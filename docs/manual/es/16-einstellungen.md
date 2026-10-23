@@ -70,7 +70,7 @@ Si a tu versión le falta la clave de firma de actualizaciones, esta sección in
 
 ### Acerca de Manta {#ueber}
 
-Manta es gratuito y de código abierto. **Sitio web y soporte** → **manta-filemanager.com** abre [el sitio web](https://manta-filemanager.com/) con novedades, ayuda y contacto. **Licencias de terceros** → **Mostrar** abre los avisos de licencia de los componentes de código abierto en los que se basa Manta. **Código fuente** → **GitHub** abre [el repositorio](https://github.com/web-workers-com/manta); las contribuciones son bienvenidas. **Licencia MIT** → **Leer** muestra la licencia: puedes usar, modificar y compartir Manta libremente. El sitio web, el código fuente y las licencias de terceros están también en el menú **Ayuda**.
+Manta es gratuito y de código abierto. **Sitio web y soporte** → **manta-filemanager.com** abre [el sitio web](https://manta-filemanager.com/) con novedades, ayuda y contacto. **Licencias de terceros** → **Mostrar** abre los avisos de licencia de los componentes de código abierto en los que se basa Manta. **Código fuente** → **GitHub** abre [el repositorio](https://github.com/web-workers-com/manta); las contribuciones son bienvenidas. **Licencia MIT** → **Leer** muestra la licencia: puedes usar, modificar y compartir Manta libremente. El sitio web, el código fuente y las licencias de terceros están también en el menú **Ayuda**. **Comentarios** → **Informar de un problema** abre el formulario de informe de errores de GitHub con las versiones de Manta y macOS rellenadas; consulta [Informar de un error](19-fehlerbehebung.md#fehler-melden).
 
 ## Plugins {#plugins}
 

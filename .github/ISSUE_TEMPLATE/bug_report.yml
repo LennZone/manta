@@ -9,11 +9,14 @@ body:
         [manual's troubleshooting chapter](https://manta-filemanager.com/manual/en/fehlerbehebung.html) first.
 
         **Security vulnerabilities** must not be reported here; see [SECURITY.md](https://github.com/web-workers-com/manta/blob/HEAD/SECURITY.md).
+
+        Tip: **Help → Report an Issue…** in Manta opens this form with the Manta version, the macOS version
+        and the chip already filled in.
   - type: input
     id: manta-version
     attributes:
       label: Manta version
-      description: Manta → About Manta
+      description: Manta → About Manta (filled in when you use Help → Report an Issue…)
       placeholder: e.g. 0.3.3
     validations:
       required: true
@@ -21,7 +24,7 @@ body:
     id: macos-version
     attributes:
       label: macOS version
-      description: Apple menu → About This Mac
+      description: Apple menu → About This Mac (filled in when you use Help → Report an Issue…)
       placeholder: e.g. macOS 15.6
     validations:
       required: true
@@ -29,7 +32,8 @@ body:
     id: mac-model
     attributes:
       label: Mac model and chip
-      placeholder: e.g. MacBook Air (M2)
+      description: Manta fills in the chip (Apple silicon or Intel); please add the model.
+      placeholder: e.g. MacBook Air (M2), Apple silicon (arm64)
     validations:
       required: true
   - type: dropdown
@@ -78,10 +82,12 @@ body:
     attributes:
       label: Log
       description: |
-        The relevant lines from `~/Library/Logs/Manta/manta.log` (command palette → "Show Log File in Finder").
+        The relevant lines from the log file `~/Library/Logs/Manta/manta.log`
+        (Help → Show Log File in Finder, or the command palette → "Show Log File in Finder").
         For more detail, start Manta from the Terminal with
         `MANTA_LOG=debug /Applications/Manta.app/Contents/MacOS/manta`.
-        The log may contain file and server names; please check it before you share it.
+        **The log may contain private data** such as file paths, user names, server and host names:
+        please remove or replace them before you paste it here.
       render: text
   - type: textarea
     id: context

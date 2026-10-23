@@ -16,6 +16,10 @@ Manta is free and open source under the MIT licence: you may use, change and sha
 
 Manta is built on open-source components. Their licence notices are under **Help** → **Third-Party Licences** or [here](../../third-party-licenses.md).
 
+### I found a bug or have an idea – where do I report it? {#feedback}
+
+On GitHub: **Help** → **Report an Issue…** opens the bug report form with the Manta and macOS versions already filled in; **Help** → **Suggest an Idea…** opens the form for ideas. What a good bug report contains and where the log file is: see [Report a bug](19-fehlerbehebung.md#fehler-melden). Report security vulnerabilities privately, never in a public issue – see the [security policy](https://github.com/web-workers-com/manta/blob/main/SECURITY.md).
+
 ### Is Manta available in English? {#sprache}
 
 Yes. **Settings** → **General** → **Language**: **System** (the default, follows your preferred languages in macOS) or one of the app's seven languages: **Deutsch**, **English**, **简体中文**, **Español**, **Français**, **Italiano**, **Русский**. The switch applies immediately. The manual (**⌘?**) follows the app language too; if it isn't available in a language, Manta shows the English version.

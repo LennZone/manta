@@ -10,8 +10,8 @@ Manta scrive errori ed eventi importanti in:
 
 Per trovarlo:
 
-1. Apri la palette dei comandi con **⇧⌘P**.
-2. Scegli **Mostra il file di log nel Finder**. Il Finder apre la cartella dei log (`~/Library/Logs/Manta`) con il file `manta.log`, proprio nel Finder, anche quando Manta è il tuo gestore file predefinito.
+1. Scegli **Aiuto** → **Mostra il file di log nel Finder** nella barra dei menu, oppure apri la palette dei comandi con **⇧⌘P** e scegli lì **Mostra il file di log nel Finder**.
+2. Il Finder apre la cartella dei log (`~/Library/Logs/Manta`) con il file `manta.log`, proprio nel Finder, anche quando Manta è il tuo gestore file predefinito.
 
 Ogni messaggio di errore che Manta ti mostra si trova lì con l’errore tecnico, il percorso e la posizione (locale, server …). Il file ruota a 5 MB; viene conservata una copia precedente.
 
@@ -22,6 +22,26 @@ Ogni messaggio di errore che Manta ti mostra si trova lì con l’errore tecnico
 > Il file di log può contenere nomi di file e di server. Controllalo prima di condividerlo. Password, passphrase e chiavi segrete non ci sono, nemmeno per SFTP, FTP e S3.
 
 I plug-in hanno log propri: **Impostazioni** → **Plug-in** → **Mostra log** sulla scheda del plug-in.
+
+## Segnalare un bug {#fehler-melden}
+
+Hai trovato un bug? Segnalalo su GitHub: il modo più semplice è **Aiuto** → **Segnala un problema…** (anche nella palette dei comandi, digitando “bug” o “errore”, e in **Impostazioni** → **Generali** → **Informazioni su Manta** → **Segnalazioni**). Manta apre nel browser il modulo per le segnalazioni di bug con la versione di Manta, la versione di macOS e il chip (Apple silicon o Intel) già compilati. Manta di per sé non invia nulla: vedi il modulo e decidi tu cosa inviare. Ti serve un account GitHub gratuito.
+
+Cosa aiuta a trovare il bug:
+
+- **Versione di Manta e di macOS**: le inserisce Manta; altrimenti in **Manta** → **Informazioni su Manta** e menu Apple → “Informazioni su questo Mac”.
+- **Passaggi per riprodurlo**: cosa hai fatto, passo per passo?
+- **Comportamento atteso ed effettivo**: cosa doveva succedere e cosa è successo invece? Il messaggio di errore esatto aiuta.
+- **Uno screenshot** (⇧⌘4) o una breve registrazione dello schermo (⇧⌘5).
+- **Le righe rilevanti del file di log** `~/Library/Logs/Manta/manta.log`: aprilo con **Aiuto** → **Mostra il file di log nel Finder**, vedi [Il file di log](#protokoll).
+
+> [!IMPORTANT]
+> Le segnalazioni di bug su GitHub sono pubbliche. Prima di incollare un log o uno screenshot, rimuovi o sostituisci i dati privati: nomi utente e percorsi come `/Users/anna/…`, nomi di server e host, indirizzi IP, nomi dei bucket.
+
+> [!CAUTION]
+> Non segnalare mai le vulnerabilità di sicurezza in una issue pubblica. Segnalale in privato tramite [Report a vulnerability](https://github.com/web-workers-com/manta/security/advisories/new) su GitHub, come descritto nella [politica di sicurezza](https://github.com/web-workers-com/manta/blob/main/SECURITY.md).
+
+Hai un’idea o un suggerimento? **Aiuto** → **Suggerisci un’idea…** apre il modulo per le idee. Tutte le opzioni sono anche su [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
 ## Manta non si apre (Gatekeeper) {#gatekeeper}
 

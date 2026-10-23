@@ -16,6 +16,10 @@ Manta 是免费的开源软件，采用 MIT 许可证：你可以自由使用、
 
 Manta 基于开源组件构建。它们的许可声明位于 **帮助** → **第三方许可**，或参阅[此处](../../third-party-licenses.md)。
 
+### 我发现了错误或有新想法，应该在哪里报告？ {#feedback}
+
+在 GitHub 上：**帮助** → **报告问题…** 会打开错误报告表单，并预先填好 Manta 和 macOS 版本；**帮助** → **提出建议…** 会打开想法表单。一份好的错误报告应包含什么、日志文件在哪里，请参见[报告错误](19-fehlerbehebung.md#fehler-melden)。安全漏洞请私下报告，切勿发到公开的 Issue 中，参见[安全政策](https://github.com/web-workers-com/manta/blob/main/SECURITY.md)。
+
 ### Manta 支持中文吗？ {#sprache}
 
 支持。**设置** → **通用** → **语言**：**系统**（默认，跟随 macOS 中的首选语言）或 App 的七种语言之一：**Deutsch**、**English**、**简体中文**、**Español**、**Français**、**Italiano**、**Русский**。切换会立即生效。手册（**⌘?**）也会跟随 App 语言；如果没有该语言的版本，Manta 会显示英文版。

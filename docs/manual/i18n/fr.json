@@ -75,11 +75,11 @@
     },
     "fehlerbehebung": {
       "title": "Dépannage",
-      "keywords": ["erreur", "problème", "journal", "log", "gatekeeper", "accès bloqué", "autorisation", "ftp", "tls", "conteneur sans shell", "réinitialiser", "transfert bloqué", "en attente de connexion", "aucune connexion à internet", "manta-part", "trousseau"]
+      "keywords": ["erreur", "problème", "journal", "log", "gatekeeper", "accès bloqué", "autorisation", "ftp", "tls", "conteneur sans shell", "réinitialiser", "transfert bloqué", "en attente de connexion", "aucune connexion à internet", "manta-part", "trousseau", "signaler un bug", "bug", "ticket", "issue", "github", "commentaires", "idée", "faille de sécurité"]
     },
     "faq": {
       "title": "Questions fréquentes",
-      "keywords": ["faq", "questions", "corbeille", "mots de passe", "google drive", "remplacer le finder", "wi-fi coupé", "interrompu", "manta-part", "trousseau", "don", "café", "buy me a coffee", "soutenir", "licences"]
+      "keywords": ["faq", "questions", "corbeille", "mots de passe", "google drive", "remplacer le finder", "wi-fi coupé", "interrompu", "manta-part", "trousseau", "don", "café", "buy me a coffee", "soutenir", "licences", "signaler un bug", "bug", "idée", "commentaires", "contribuer"]
     }
   }
 }

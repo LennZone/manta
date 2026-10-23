@@ -10,8 +10,8 @@ Manta schreibt Fehler und wichtige Ereignisse in:
 
 So findest du sie:
 
-1. Öffne die Befehlspalette mit **⇧⌘P**.
-2. Wähle **Protokolldatei im Finder zeigen**. Der Finder öffnet den Protokollordner (`~/Library/Logs/Manta`) mit der Datei `manta.log` – im Finder selbst, auch wenn Manta dein Standard-Dateimanager ist.
+1. Wähle in der Menüleiste **Hilfe** → **Protokolldatei im Finder zeigen** – oder öffne die Befehlspalette mit **⇧⌘P** und wähle dort **Protokolldatei im Finder zeigen**.
+2. Der Finder öffnet den Protokollordner (`~/Library/Logs/Manta`) mit der Datei `manta.log` – im Finder selbst, auch wenn Manta dein Standard-Dateimanager ist.
 
 Jede Fehlermeldung, die Manta dir anzeigt, steht dort mit dem technischen Fehler, dem Pfad und dem Ort (lokal, Server …). Die Datei wird bei 5 MB rotiert; eine ältere Kopie bleibt erhalten.
 
@@ -22,6 +22,26 @@ Jede Fehlermeldung, die Manta dir anzeigt, steht dort mit dem technischen Fehler
 > Die Protokolldatei kann Datei- und Servernamen enthalten. Prüfe sie, bevor du sie weitergibst. Passwörter, Passphrasen und geheime Schlüssel stehen nicht darin – auch nicht bei SFTP, FTP und S3.
 
 Plugins haben eigene Protokolle: **Einstellungen** → **Plugins** → **Protokoll einblenden** auf der Karte des Plugins.
+
+## Fehler melden {#fehler-melden}
+
+Hast du einen Fehler gefunden? Melde ihn auf GitHub – am einfachsten mit **Hilfe** → **Fehler melden …** (auch in der Befehlspalette, Stichwort „Fehler“, und unter **Einstellungen** → **Allgemein** → **Über Manta** → **Rückmeldung**). Manta öffnet das Formular für Fehlerberichte im Browser und trägt die Manta-Version, die macOS-Version und den Chip (Apple Silicon oder Intel) schon ein. Manta selbst sendet dabei nichts: Du siehst das Formular und entscheidest, was du abschickst. Du brauchst ein kostenloses GitHub-Konto.
+
+Das hilft beim Finden des Fehlers:
+
+- **Manta- und macOS-Version** – trägt Manta ein; sonst unter **Manta** → **Über Manta** und Apple-Menü → „Über diesen Mac“.
+- **Schritte zum Nachstellen** – was hast du der Reihe nach getan?
+- **Erwartet und tatsächlich** – was sollte passieren, und was ist stattdessen passiert? Die genaue Fehlermeldung hilft.
+- **Ein Bildschirmfoto** (⇧⌘4) oder eine kurze Bildschirmaufnahme (⇧⌘5).
+- **Die passenden Zeilen aus der Protokolldatei** `~/Library/Logs/Manta/manta.log` – öffnen mit **Hilfe** → **Protokolldatei im Finder zeigen**, siehe [Die Protokolldatei](#protokoll).
+
+> [!IMPORTANT]
+> Fehlerberichte auf GitHub sind öffentlich. Entferne oder ersetze vor dem Einfügen private Daten aus Protokoll und Bildschirmfotos: Benutzernamen und Pfade wie `/Users/anna/…`, Server- und Hostnamen, IP-Adressen, Bucket-Namen.
+
+> [!CAUTION]
+> Sicherheitslücken meldest du bitte nie in einem öffentlichen Issue, sondern vertraulich über [Report a vulnerability](https://github.com/web-workers-com/manta/security/advisories/new) auf GitHub, wie in der [Sicherheitsrichtlinie](https://github.com/web-workers-com/manta/blob/main/SECURITY.md) beschrieben.
+
+Eine Idee oder ein Verbesserungsvorschlag? **Hilfe** → **Idee vorschlagen …** öffnet das Formular für Vorschläge. Alle Wege findest du auch unter [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
 ## Manta lässt sich nicht öffnen (Gatekeeper) {#gatekeeper}
 

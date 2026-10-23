@@ -139,6 +139,7 @@ pub const SLIDERS_HORIZONTAL: &str = "\u{E434}";
 pub const IMAGE: &str = "\u{E2CA}";
 pub const WRENCH: &str = "\u{E5D4}";
 pub const BUG: &str = "\u{E5F4}";
+pub const LIGHTBULB: &str = "\u{E2DC}";
 pub const TRASH: &str = "\u{E4A6}";
 pub const SUN: &str = "\u{E472}";
 pub const MOON: &str = "\u{E330}";

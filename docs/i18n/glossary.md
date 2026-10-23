@@ -61,6 +61,8 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `cmd.help` | Open Manual | Handbuch öffnen | 打开手册 | Abrir el manual | Ouvrir le manuel | Apri il manuale | Открыть руководство |
 | `cmd.support` | Manta Website & Support… | Manta-Website & Support … | Manta 网站与支持… | Sitio web y soporte de Manta… | Site web et assistance Manta… | Sito web e supporto di Manta… | Сайт и поддержка Manta… |
 | `cmd.source_code` | Source Code on GitHub… | Quellcode auf GitHub … | GitHub 上的源代码… | Código fuente en GitHub… | Code source sur GitHub… | Codice sorgente su GitHub… | Исходный код на GitHub… |
+| `cmd.report_issue` | Report an Issue… | Fehler melden … | 报告问题… | Informar de un problema… | Signaler un problème… | Segnala un problema… | Сообщить о проблеме… |
+| `cmd.suggest_idea` | Suggest an Idea… | Idee vorschlagen … | 提出建议… | Sugerir una idea… | Suggérer une idée… | Suggerisci un’idea… | Предложить идею… |
 | `cmd.third_party_licenses` | Third-Party Licences | Lizenzen von Drittanbietern | 第三方许可 | Licencias de terceros | Licences de tiers | Licenze di terze parti | Лицензии сторонних компонентов |
 | `cmd.reload_plugins` | Reload Plugins | Plugins neu laden | 重新载入插件 | Recargar plugins | Recharger les plug-ins | Ricarica i plug-in | Перезагрузить плагины |
 | `cmd.browse_plugins` | Browse Plugins… | Plugins entdecken … | 浏览插件… | Explorar plugins… | Parcourir les plug-ins… | Sfoglia i plug-in… | Каталог плагинов… |
@@ -642,6 +644,8 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `settings.section.about` | About Manta | Über Manta | 关于 Manta | Acerca de Manta | À propos de Manta | Informazioni su Manta | О программе Manta |
 | `settings.about.website` | Website & Support | Website & Support | 网站与支持 | Sitio web y soporte | Site web et assistance | Sito web e supporto | Сайт и поддержка |
 | `settings.about.source` | Source Code | Quellcode | 源代码 | Código fuente | Code source | Codice sorgente | Исходный код |
+| `settings.about.feedback` | Feedback | Rückmeldung | 反馈 | Comentarios | Commentaires | Segnalazioni | Обратная связь |
+| `settings.about.feedback.report` | Report an Issue | Fehler melden | 报告问题 | Informar de un problema | Signaler un problème | Segnala un problema | Сообщить о проблеме |
 | `settings.about.license` | MIT Licence | MIT-Lizenz | MIT 许可证 | Licencia MIT | Licence MIT | Licenza MIT | Лицензия MIT |
 | `settings.about.license.read` | Read | Lesen | 阅读 | Leer | Lire | Leggi | Читать |
 | `settings.about.licenses.show` | Show | Anzeigen | 显示 | Mostrar | Afficher | Mostra | Показать |

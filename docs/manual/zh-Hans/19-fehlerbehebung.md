@@ -10,8 +10,8 @@ Manta 会将错误和重要事件写入：
 
 查找方法：
 
-1. 按 **⇧⌘P** 打开命令面板。
-2. 选择 **在访达中显示日志文件**。访达会打开日志文件夹（`~/Library/Logs/Manta`）并显示文件 `manta.log`。即使 Manta 是你的默认文件管理器，此操作也会在访达本身中打开。
+1. 在菜单栏中选择 **帮助** → **在访达中显示日志文件**，或者按 **⇧⌘P** 打开命令面板，在其中选择 **在访达中显示日志文件**。
+2. 访达会打开日志文件夹（`~/Library/Logs/Manta`）并显示文件 `manta.log`。即使 Manta 是你的默认文件管理器，此操作也会在访达本身中打开。
 
 Manta 向你显示的每条错误信息都会连同技术错误、路径和位置（本地、服务器等）记录在其中。文件达到 5 MB 时会轮换，并保留一份旧副本。
 
@@ -22,6 +22,26 @@ Manta 向你显示的每条错误信息都会连同技术错误、路径和位�
 > 日志文件可能包含文件名和服务器名称。分享前请先检查。其中不包含密码、密码短语和私密密钥，SFTP、FTP 和 S3 的也不包含。
 
 插件有自己的日志：**设置** → **插件** → 插件卡片上的 **显示日志**。
+
+## 报告错误 {#fehler-melden}
+
+发现了错误？请在 GitHub 上报告。最简单的方法是 **帮助** → **报告问题…**（也可以在命令面板中输入“bug”或“错误”，或者在 **设置** → **通用** → **关于 Manta** → **反馈** 中找到）。Manta 会在浏览器中打开错误报告表单，并预先填好 Manta 版本、macOS 版本和芯片（Apple 芯片或 Intel）。Manta 本身不会发送任何内容：你会看到表单，并自行决定提交什么。你需要一个免费的 GitHub 账户。
+
+以下信息有助于找到错误：
+
+- **Manta 和 macOS 版本**：Manta 会自动填入；也可以在 **Manta** → **关于 Manta** 和苹果菜单 →“关于本机”中查看。
+- **复现步骤**：你依次做了什么？
+- **预期行为和实际行为**：本应发生什么，实际发生了什么？确切的错误信息很有帮助。
+- **截图**（⇧⌘4）或简短的屏幕录制（⇧⌘5）。
+- **日志文件中的相关行**：`~/Library/Logs/Manta/manta.log`，可通过 **帮助** → **在访达中显示日志文件** 打开，参见[日志文件](#protokoll)。
+
+> [!IMPORTANT]
+> GitHub 上的错误报告是公开的。粘贴日志或截图之前，请删除或替换其中的私人数据：用户名和路径（例如 `/Users/anna/…`）、服务器名和主机名、IP 地址、存储桶名称。
+
+> [!CAUTION]
+> 切勿在公开的 Issue 中报告安全漏洞。请按照[安全政策](https://github.com/web-workers-com/manta/blob/main/SECURITY.md)中的说明，通过 GitHub 上的 [Report a vulnerability](https://github.com/web-workers-com/manta/security/advisories/new) 私下报告。
+
+有想法或改进建议？**帮助** → **提出建议…** 会打开建议表单。所有入口也都在 [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose)。
 
 ## Manta 无法打开（Gatekeeper） {#gatekeeper}
 

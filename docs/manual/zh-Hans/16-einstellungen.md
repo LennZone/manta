@@ -70,7 +70,7 @@
 
 ### 关于 Manta {#ueber}
 
-Manta 是免费的开源软件。**网站与支持** → **manta-filemanager.com** 会打开[网站](https://manta-filemanager.com/)，其中有新闻、帮助和联系方式。**第三方许可** → **显示** 会打开 Manta 所使用的开源组件的许可声明。**源代码** → **GitHub** 会打开[代码仓库](https://github.com/web-workers-com/manta)，欢迎参与贡献。**MIT 许可证** → **阅读** 会显示许可证：你可以自由使用、修改和分享 Manta。网站、源代码和第三方许可在 **帮助** 菜单中也有。
+Manta 是免费的开源软件。**网站与支持** → **manta-filemanager.com** 会打开[网站](https://manta-filemanager.com/)，其中有新闻、帮助和联系方式。**第三方许可** → **显示** 会打开 Manta 所使用的开源组件的许可声明。**源代码** → **GitHub** 会打开[代码仓库](https://github.com/web-workers-com/manta)，欢迎参与贡献。**MIT 许可证** → **阅读** 会显示许可证：你可以自由使用、修改和分享 Manta。网站、源代码和第三方许可在 **帮助** 菜单中也有。**反馈** → **报告问题** 会打开 GitHub 上的错误报告表单，并填好 Manta 和 macOS 版本，参见[报告错误](19-fehlerbehebung.md#fehler-melden)。
 
 ## 插件 {#plugins}
 

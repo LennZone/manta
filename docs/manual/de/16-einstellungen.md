@@ -70,7 +70,7 @@ Fehlt in deinem Build der Signaturschlüssel für Updates, steht hier „Updates
 
 ### Über Manta {#ueber}
 
-Manta ist kostenlos und Open Source. **Website & Support** → **manta-filemanager.com** öffnet [die Website](https://manta-filemanager.com/) mit Neuigkeiten, Hilfe und Kontakt. **Lizenzen von Drittanbietern** → **Anzeigen** öffnet die Lizenzhinweise der Open-Source-Komponenten, auf denen Manta aufbaut. **Quellcode** → **GitHub** öffnet [das Repository](https://github.com/web-workers-com/manta); Beiträge sind willkommen. **MIT-Lizenz** → **Lesen** zeigt die Lizenz: Du darfst Manta frei nutzen, ändern und weitergeben. Website, Quellcode und Lizenzen von Drittanbietern stehen auch im Menü **Hilfe**.
+Manta ist kostenlos und Open Source. **Website & Support** → **manta-filemanager.com** öffnet [die Website](https://manta-filemanager.com/) mit Neuigkeiten, Hilfe und Kontakt. **Lizenzen von Drittanbietern** → **Anzeigen** öffnet die Lizenzhinweise der Open-Source-Komponenten, auf denen Manta aufbaut. **Quellcode** → **GitHub** öffnet [das Repository](https://github.com/web-workers-com/manta); Beiträge sind willkommen. **MIT-Lizenz** → **Lesen** zeigt die Lizenz: Du darfst Manta frei nutzen, ändern und weitergeben. Website, Quellcode und Lizenzen von Drittanbietern stehen auch im Menü **Hilfe**. **Rückmeldung** → **Fehler melden** öffnet das Formular für Fehlerberichte auf GitHub, mit Manta- und macOS-Version, siehe [Fehler melden](19-fehlerbehebung.md#fehler-melden).
 
 ## Plugins {#plugins}
 

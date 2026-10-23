@@ -50,6 +50,11 @@ pub enum Cmd {
     Support,
     /// "Source Code on GitHub…": the repository in the browser.
     SourceCode,
+    /// "Report an Issue…": GitHub's bug report form, prefilled with the
+    /// Manta and macOS versions.
+    ReportIssue,
+    /// "Suggest an Idea…": GitHub's feature request form.
+    SuggestIdea,
     /// The licence notices of the components Manta is built on.
     ThirdPartyLicenses,
     /// Restart external plugins and rescan the plugins folder.
@@ -105,6 +110,8 @@ pub const ALL: &[Cmd] = &[
     Cmd::Help,
     Cmd::Support,
     Cmd::SourceCode,
+    Cmd::ReportIssue,
+    Cmd::SuggestIdea,
     Cmd::ThirdPartyLicenses,
     Cmd::ReloadPlugins,
     Cmd::BrowsePlugins,
@@ -172,6 +179,8 @@ impl Cmd {
             Cmd::Help => t!("cmd.help"),
             Cmd::Support => t!("cmd.support"),
             Cmd::SourceCode => t!("cmd.source_code"),
+            Cmd::ReportIssue => t!("cmd.report_issue"),
+            Cmd::SuggestIdea => t!("cmd.suggest_idea"),
             Cmd::ThirdPartyLicenses => t!("cmd.third_party_licenses"),
             Cmd::ReloadPlugins => t!("cmd.reload_plugins"),
             Cmd::BrowsePlugins => t!("cmd.browse_plugins"),
@@ -230,6 +239,8 @@ impl Cmd {
             Cmd::OpenShellInContainer
             | Cmd::Support
             | Cmd::SourceCode
+            | Cmd::ReportIssue
+            | Cmd::SuggestIdea
             | Cmd::ThirdPartyLicenses
             | Cmd::ReloadPlugins
             | Cmd::BrowsePlugins => "",
@@ -277,6 +288,8 @@ impl Cmd {
             Cmd::Help => i::QUESTION,
             Cmd::Support => i::GLOBE,
             Cmd::SourceCode => i::CODE,
+            Cmd::ReportIssue => i::BUG,
+            Cmd::SuggestIdea => i::LIGHTBULB,
             Cmd::ThirdPartyLicenses => i::SCROLL,
             Cmd::ReloadPlugins => i::ARROW_CLOCKWISE,
             Cmd::BrowsePlugins => i::PUZZLE_PIECE,
@@ -339,6 +352,8 @@ impl Cmd {
             | Cmd::Help
             | Cmd::Support
             | Cmd::SourceCode
+            | Cmd::ReportIssue
+            | Cmd::SuggestIdea
             | Cmd::ThirdPartyLicenses
             | Cmd::ReloadPlugins
             | Cmd::BrowsePlugins => t!("cmd.cat.tools"),
@@ -381,6 +396,8 @@ impl Cmd {
             Cmd::Help => t!("cmd.kw.help"),
             Cmd::Support => t!("cmd.kw.support"),
             Cmd::SourceCode => t!("cmd.kw.source_code"),
+            Cmd::ReportIssue => t!("cmd.kw.report_issue"),
+            Cmd::SuggestIdea => t!("cmd.kw.suggest_idea"),
             Cmd::ThirdPartyLicenses => t!("cmd.kw.third_party_licenses"),
             Cmd::ReloadPlugins => t!("cmd.kw.reload_plugins"),
             Cmd::BrowsePlugins => t!("cmd.kw.browse_plugins"),

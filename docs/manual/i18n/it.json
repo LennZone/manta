@@ -323,7 +323,14 @@
         "container senza shell",
         "non funziona",
         "ripristinare",
-        "trasferimento bloccato"
+        "trasferimento bloccato",
+        "segnalare un bug",
+        "bug",
+        "issue",
+        "github",
+        "segnalazioni",
+        "idea",
+        "vulnerabilità"
       ]
     },
     "faq": {
@@ -340,7 +347,12 @@
         "google drive",
         "smb",
         "webdav",
-        "sicurezza"
+        "sicurezza",
+        "segnalare un bug",
+        "bug",
+        "idea",
+        "segnalazioni",
+        "contribuire"
       ]
     }
   }

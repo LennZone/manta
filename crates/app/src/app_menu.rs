@@ -1,8 +1,9 @@
 //! The macOS menu bar: adds "Check for Updates…" (after About, as usual on
 //! macOS) and "Settings… ⌘," to the Manta menu (winit's default app menu has
-//! neither), a Help menu with "Manta Manual ⌘?", "Manta Website & Support…",
-//! "Source Code on GitHub…" and "Third-Party Licences", and shows the standard items (About, Hide, Quit, Services) in
-//! the app's language.
+//! neither), a Help menu with "Manta Manual ⌘?", "Report an Issue…",
+//! "Suggest an Idea…", "Show Log File in Finder", "Manta Website & Support…",
+//! "Source Code on GitHub…" and "Third-Party Licences", and shows the
+//! standard items (About, Hide, Quit, Services) in the app's language.
 //!
 //! The menu items only set flags; the app checks them once per frame with
 //! [`take_settings_request`] / [`take_update_request`] and acts like the
@@ -25,6 +26,7 @@ static HELP_REQUESTED: AtomicBool = AtomicBool::new(false);
 static SUPPORT_REQUESTED: AtomicBool = AtomicBool::new(false);
 static SOURCE_REQUESTED: AtomicBool = AtomicBool::new(false);
 static LICENSES_REQUESTED: AtomicBool = AtomicBool::new(false);
+static LOG_REQUESTED: AtomicBool = AtomicBool::new(false);
 static VIEWER_TOGGLE_REQUESTED: AtomicBool = AtomicBool::new(false);
 /// "Manta as Default File Manager": 0 = not offered (not macOS), 1 = off,
 /// 2 = on; +4 = can't switch right now (not in Applications, busy).
@@ -63,6 +65,11 @@ pub fn take_licenses_request() -> bool {
     LICENSES_REQUESTED.swap(false, Ordering::Relaxed)
 }
 
+/// True once after the user picked Help → Show Log File in Finder.
+pub fn take_log_request() -> bool {
+    LOG_REQUESTED.swap(false, Ordering::Relaxed)
+}
+
 /// True once after the user picked Manta → Manta as Default File Manager.
 pub fn take_viewer_toggle_request() -> bool {
     VIEWER_TOGGLE_REQUESTED.swap(false, Ordering::Relaxed)
@@ -99,6 +106,9 @@ struct Titles {
     manual: &'static str,
     support: &'static str,
     source: &'static str,
+    report: &'static str,
+    idea: &'static str,
+    log: &'static str,
     licenses: &'static str,
     viewer: &'static str,
 }
@@ -122,6 +132,9 @@ fn titles() -> Titles {
         manual: t!("menu.manual"),
         support: t!("cmd.support"),
         source: t!("cmd.source_code"),
+        report: t!("cmd.report_issue"),
+        idea: t!("cmd.suggest_idea"),
+        log: t!("palette.show_log"),
         licenses: t!("cmd.third_party_licenses"),
         viewer: t!("viewer.menu"),
     }
@@ -256,6 +269,8 @@ pub const ELSEWHERE: &[Cmd] = &[
     Cmd::Help,
     Cmd::Support,
     Cmd::SourceCode,
+    Cmd::ReportIssue,
+    Cmd::SuggestIdea,
     Cmd::ThirdPartyLicenses,
 ];
 
@@ -412,8 +427,9 @@ mod native {
     use objc2_foundation::{NSInteger, NSString};
 
     use super::{
-        Titles, HELP_REQUESTED, LICENSES_REQUESTED, SETTINGS_REQUESTED, SOURCE_REQUESTED,
-        SUPPORT_REQUESTED, UPDATE_REQUESTED, VIEWER_STATE, VIEWER_TOGGLE_REQUESTED,
+        Titles, HELP_REQUESTED, LICENSES_REQUESTED, LOG_REQUESTED, SETTINGS_REQUESTED,
+        SOURCE_REQUESTED, SUPPORT_REQUESTED, UPDATE_REQUESTED, VIEWER_STATE,
+        VIEWER_TOGGLE_REQUESTED,
     };
 
     static CTX: OnceLock<eframe::egui::Context> = OnceLock::new();
@@ -455,6 +471,14 @@ mod native {
             #[unsafe(method(mantaSourceCode:))]
             fn source_code(&self, _sender: Option<&AnyObject>) {
                 SOURCE_REQUESTED.store(true, Ordering::Relaxed);
+                if let Some(ctx) = CTX.get() {
+                    ctx.request_repaint();
+                }
+            }
+
+            #[unsafe(method(mantaShowLog:))]
+            fn show_log(&self, _sender: Option<&AnyObject>) {
+                LOG_REQUESTED.store(true, Ordering::Relaxed);
                 if let Some(ctx) = CTX.get() {
                     ctx.request_repaint();
                 }
@@ -583,6 +607,9 @@ mod native {
         top: Retained<NSMenuItem>,
         menu: Retained<NSMenu>,
         manual: Retained<NSMenuItem>,
+        report: Retained<NSMenuItem>,
+        idea: Retained<NSMenuItem>,
+        log: Retained<NSMenuItem>,
         support: Retained<NSMenuItem>,
         source: Retained<NSMenuItem>,
         licenses: Retained<NSMenuItem>,
@@ -610,8 +637,9 @@ mod native {
     }
 
     /// Add the Help menu (last in the menu bar, as on macOS) with
-    /// "Manta Manual ⌘?", "Manta Website & Support…", "Source Code on GitHub…",
-    /// ─, "Third-Party Licences".
+    /// "Manta Manual ⌘?", ─, "Report an Issue…", "Suggest an Idea…",
+    /// "Show Log File in Finder", ─, "Manta Website & Support…",
+    /// "Source Code on GitHub…", ─, "Third-Party Licences".
     /// Registered as the app's help menu, so macOS adds
     /// its search field for menu items.
     fn help_menu(mtm: MainThreadMarker, target: &MenuTarget, titles: &Titles) {
@@ -642,6 +670,20 @@ mod native {
             unsafe { it.setTarget(Some(target)) };
             it
         };
+        // Report / idea run as commands (the palette has them too).
+        let command = |title: &str, cmd: super::Cmd| {
+            let it = item(title, sel!(mantaRunCommand:));
+            it.setTag(super::cmd_tag(cmd) as NSInteger);
+            it
+        };
+        sub.addItem(&NSMenuItem::separatorItem(mtm));
+        let report = command(titles.report, super::Cmd::ReportIssue);
+        sub.addItem(&report);
+        let idea = command(titles.idea, super::Cmd::SuggestIdea);
+        sub.addItem(&idea);
+        let log = item(titles.log, sel!(mantaShowLog:));
+        sub.addItem(&log);
+        sub.addItem(&NSMenuItem::separatorItem(mtm));
         let support = item(titles.support, sel!(mantaSupport:));
         sub.addItem(&support);
         let source = item(titles.source, sel!(mantaSourceCode:));
@@ -665,6 +707,9 @@ mod native {
                 top,
                 menu: sub,
                 manual,
+                report,
+                idea,
+                log,
                 support,
                 source,
                 licenses,
@@ -882,6 +927,9 @@ mod native {
                 h.top.setTitle(&NSString::from_str(titles.help));
                 h.menu.setTitle(&NSString::from_str(titles.help));
                 h.manual.setTitle(&NSString::from_str(titles.manual));
+                h.report.setTitle(&NSString::from_str(titles.report));
+                h.idea.setTitle(&NSString::from_str(titles.idea));
+                h.log.setTitle(&NSString::from_str(titles.log));
                 h.support.setTitle(&NSString::from_str(titles.support));
                 h.source.setTitle(&NSString::from_str(titles.source));
                 h.licenses.setTitle(&NSString::from_str(titles.licenses));

@@ -127,6 +127,88 @@ fn palette_source_code_opens_the_repository() {
     set_locale(Locale::En);
 }
 
+/// "Fehler melden …" / "Report an Issue…" opens GitHub's bug report form,
+/// prefilled with the Manta version, the macOS version and the chip
+/// (recorded in tests, no browser).
+#[test]
+fn palette_report_issue_opens_the_prefilled_bug_form() {
+    for (locale, query) in [
+        (Locale::En, "report an issue"),
+        (Locale::En, "bug"),
+        (Locale::De, "fehler melden"),
+        (Locale::De, "problem"),
+    ] {
+        let fx = fixture();
+        let mut h = harness_with(&fx, WIDE, Theme::Light, false);
+        set_locale(locale);
+        h.run_steps(2);
+        run_palette(&mut h, query);
+        let a = app(&mut h);
+        assert_eq!(a.opened_links.len(), 1, "{query}: {:?}", a.opened_links);
+        let url = &a.opened_links[0];
+        assert!(
+            url.starts_with(
+                "https://github.com/web-workers-com/manta/issues/new?template=bug_report.yml&"
+            ),
+            "{query}: {url}"
+        );
+        let version = format!("&manta-version={}&", env!("CARGO_PKG_VERSION"));
+        assert!(url.contains(&version), "{url}");
+        assert!(url.contains("&macos-version="), "{url}");
+        assert!(url.contains("&mac-model="), "{url}");
+        assert!(!url.contains(' '), "encoded: {url}");
+        assert_eq!(
+            url,
+            &crate::feedback::current_issue_url(crate::feedback::Kind::Bug)
+        );
+        assert!(!a.palette.open);
+        assert!(!a.help.open);
+    }
+    set_locale(Locale::En);
+}
+
+/// "Idee vorschlagen …" / "Suggest an Idea…" opens the feature request form.
+#[test]
+fn palette_suggest_idea_opens_the_feature_form() {
+    for (locale, query) in [(Locale::En, "idea"), (Locale::De, "idee")] {
+        let fx = fixture();
+        let mut h = harness_with(&fx, WIDE, Theme::Light, false);
+        set_locale(locale);
+        h.run_steps(2);
+        run_palette(&mut h, query);
+        assert_eq!(
+            app(&mut h).opened_links,
+            vec![
+                "https://github.com/web-workers-com/manta/issues/new?template=feature_request.yml"
+                    .to_string()
+            ],
+            "{query}"
+        );
+    }
+    set_locale(Locale::En);
+}
+
+/// The Help menu lists both (and the log file); the menu bar runs them
+/// like the palette.
+#[test]
+fn help_menu_feedback_items_run_as_commands() {
+    use crate::commands::Cmd;
+    assert!(crate::app_menu::ELSEWHERE.contains(&Cmd::ReportIssue));
+    assert!(crate::app_menu::ELSEWHERE.contains(&Cmd::SuggestIdea));
+    set_locale(Locale::De);
+    assert_eq!(Cmd::ReportIssue.label(), "Fehler melden …");
+    assert_eq!(Cmd::SuggestIdea.label(), "Idee vorschlagen …");
+    set_locale(Locale::En);
+    assert_eq!(Cmd::ReportIssue.label(), "Report an Issue…");
+    assert_eq!(Cmd::SuggestIdea.label(), "Suggest an Idea…");
+    for c in [Cmd::ReportIssue, Cmd::SuggestIdea] {
+        assert_eq!(c.shortcut(), "");
+        for kw in ["feedback", "github"] {
+            assert!(c.keywords().contains(kw), "{c:?}: {kw}");
+        }
+    }
+}
+
 #[test]
 fn palette_opens_the_third_party_licences() {
     let fx = fixture();
@@ -405,4 +487,24 @@ fn render_help() {
         save_to(&mut h, &dir, &format!("settings_about_de_{tname}"));
         set_locale(Locale::En);
     }
+}
+
+/// Settings → General → About Manta → Feedback: the prefilled bug form.
+#[test]
+fn settings_about_feedback_row() {
+    let fx = fixture();
+    let mut h = harness_with(&fx, WIDE, Theme::Light, false);
+    set_locale(Locale::De);
+    h.run_steps(2);
+    app(&mut h)
+        .settings
+        .show(Some(crate::settings::SettingsTab::General));
+    h.run_steps(3);
+    assert!(h.query_by_label("Rückmeldung").is_some());
+    h.get_by_label("Fehler melden").click_accesskit();
+    h.run_steps(3);
+    let links = app(&mut h).opened_links.clone();
+    assert_eq!(links.len(), 1, "{links:?}");
+    assert!(links[0].contains("template=bug_report.yml&manta-version="));
+    set_locale(Locale::En);
 }

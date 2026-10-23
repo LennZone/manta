@@ -70,7 +70,7 @@ If your build lacks the update signing key, this section says "Updates aren't se
 
 ### About Manta {#ueber}
 
-Manta is free and open source. **Website & Support** → **manta-filemanager.com** opens [the website](https://manta-filemanager.com/) with news, help and contact. **Third-Party Licences** → **Show** opens the licence notices of the open-source components Manta is built on. **Source Code** → **GitHub** opens [the repository](https://github.com/web-workers-com/manta); contributions are welcome. **MIT Licence** → **Read** shows the licence: you may use, change and share Manta freely. The website, the source code and the third-party licences are also in the **Help** menu.
+Manta is free and open source. **Website & Support** → **manta-filemanager.com** opens [the website](https://manta-filemanager.com/) with news, help and contact. **Third-Party Licences** → **Show** opens the licence notices of the open-source components Manta is built on. **Source Code** → **GitHub** opens [the repository](https://github.com/web-workers-com/manta); contributions are welcome. **MIT Licence** → **Read** shows the licence: you may use, change and share Manta freely. The website, the source code and the third-party licences are also in the **Help** menu. **Feedback** → **Report an Issue** opens GitHub's bug report form with the Manta and macOS versions filled in, see [Report a bug](19-fehlerbehebung.md#fehler-melden).
 
 ## Plugins {#plugins}
 

@@ -70,7 +70,7 @@ Si votre version ne contient pas la clé de signature des mises à jour, cette s
 
 ### À propos de Manta {#ueber}
 
-Manta est gratuit et open source. **Site web et assistance** → **manta-filemanager.com** ouvre [le site web](https://manta-filemanager.com/) avec actualités, aide et contact. **Licences de tiers** → **Afficher** ouvre les mentions de licence des composants open source sur lesquels repose Manta. **Code source** → **GitHub** ouvre [le dépôt](https://github.com/web-workers-com/manta) ; les contributions sont les bienvenues. **Licence MIT** → **Lire** affiche la licence : vous pouvez utiliser, modifier et partager Manta librement. Le site web, le code source et les licences de tiers figurent aussi dans le menu **Aide**.
+Manta est gratuit et open source. **Site web et assistance** → **manta-filemanager.com** ouvre [le site web](https://manta-filemanager.com/) avec actualités, aide et contact. **Licences de tiers** → **Afficher** ouvre les mentions de licence des composants open source sur lesquels repose Manta. **Code source** → **GitHub** ouvre [le dépôt](https://github.com/web-workers-com/manta) ; les contributions sont les bienvenues. **Licence MIT** → **Lire** affiche la licence : vous pouvez utiliser, modifier et partager Manta librement. Le site web, le code source et les licences de tiers figurent aussi dans le menu **Aide**. **Commentaires** → **Signaler un problème** ouvre le formulaire de rapport de bug de GitHub avec les versions de Manta et de macOS renseignées, voir [Signaler un bug](19-fehlerbehebung.md#fehler-melden).
 
 ## Plug-ins {#plugins}
 

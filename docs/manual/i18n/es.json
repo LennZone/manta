@@ -337,7 +337,14 @@
         "manta-part",
         "clave cambiada",
         "servidor desconocido",
-        "llavero"
+        "llavero",
+        "informar de un error",
+        "bug",
+        "issue",
+        "github",
+        "comentarios",
+        "idea",
+        "vulnerabilidad"
       ]
     },
     "faq": {
@@ -355,7 +362,12 @@
         "llavero",
         "donativo",
         "apoyar",
-        "licencias"
+        "licencias",
+        "informar de un error",
+        "bug",
+        "idea",
+        "comentarios",
+        "contribuir"
       ]
     }
   }

@@ -1714,7 +1714,8 @@ fn cloud_section(
 }
 
 /// Settings → General → About Manta: the website (help, news, contact),
-/// the source code, the licence and the third-party licences.
+/// the source code, feedback (an issue on GitHub), the licence and the
+/// third-party licences.
 fn about_section(ui: &mut egui::Ui, open_link: &mut Option<String>) {
     let p = pal(ui);
     ui.spacing_mut().item_spacing.y = space::SM;
@@ -1748,6 +1749,27 @@ fn about_section(ui: &mut egui::Ui, open_link: &mut Option<String>) {
                     .clicked()
                 {
                     *open_link = Some(crate::help::SOURCE_URL.to_string());
+                }
+            },
+        );
+        ui.add_space(space::SM);
+        setting_row(
+            ui,
+            t!("settings.about.feedback"),
+            t!("settings.about.feedback.note"),
+            |ui| {
+                if link_button(
+                    ui,
+                    icons::BUG,
+                    t!("settings.about.feedback.report"),
+                    p.accent_text,
+                )
+                .on_hover_text(crate::feedback::CHOOSE_URL)
+                .clicked()
+                {
+                    *open_link = Some(crate::feedback::current_issue_url(
+                        crate::feedback::Kind::Bug,
+                    ));
                 }
             },
         );

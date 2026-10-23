@@ -10,8 +10,8 @@ Manta escribe los errores y los eventos importantes en:
 
 Para encontrarlo:
 
-1. Abre la paleta de comandos con **⇧⌘P**.
-2. Elige **Mostrar archivo de registro en Finder**. Finder abre la carpeta de registros (`~/Library/Logs/Manta`) con el archivo `manta.log`, en el propio Finder, aunque Manta sea tu gestor de archivos predeterminado.
+1. Elige **Ayuda** → **Mostrar archivo de registro en Finder** en la barra de menús, o abre la paleta de comandos con **⇧⌘P** y elige allí **Mostrar archivo de registro en Finder**.
+2. Finder abre la carpeta de registros (`~/Library/Logs/Manta`) con el archivo `manta.log`, en el propio Finder, aunque Manta sea tu gestor de archivos predeterminado.
 
 Cada mensaje de error que Manta te muestra está ahí con el error técnico, la ruta y la ubicación (local, servidor…). El archivo rota al llegar a 5 MB; se conserva una copia anterior.
 
@@ -22,6 +22,26 @@ Cada mensaje de error que Manta te muestra está ahí con el error técnico, la 
 > El archivo de registro puede contener nombres de archivos y de servidores. Revísalo antes de compartirlo. Las contraseñas, frases de contraseña y claves secretas no aparecen en él, tampoco para SFTP, FTP y S3.
 
 Los plugins tienen sus propios registros: **Ajustes** → **Plugins** → **Mostrar registro** en la tarjeta del plugin.
+
+## Informar de un error {#fehler-melden}
+
+¿Has encontrado un error? Infórmanos en GitHub. Lo más fácil es **Ayuda** → **Informar de un problema…** (también en la paleta de comandos, escribiendo «error» o «bug», y en **Ajustes** → **General** → **Acerca de Manta** → **Comentarios**). Manta abre el formulario de informe de errores en tu navegador con la versión de Manta, la versión de macOS y el chip (Apple silicon o Intel) ya rellenados. Manta no envía nada por sí mismo: ves el formulario y decides qué envías. Necesitas una cuenta gratuita de GitHub.
+
+Lo que ayuda a encontrar el error:
+
+- **Versión de Manta y de macOS**: las rellena Manta; si no, en **Manta** → **Acerca de Manta** y en el menú Apple → «Acerca de este Mac».
+- **Pasos para reproducirlo**: ¿qué hiciste, paso a paso?
+- **Comportamiento esperado y real**: ¿qué debería haber pasado y qué pasó en su lugar? El mensaje de error exacto ayuda.
+- **Una captura de pantalla** (⇧⌘4) o una grabación de pantalla corta (⇧⌘5).
+- **Las líneas relevantes del archivo de registro** `~/Library/Logs/Manta/manta.log`: ábrelo con **Ayuda** → **Mostrar archivo de registro en Finder**, consulta [El archivo de registro](#protokoll).
+
+> [!IMPORTANT]
+> Los informes de errores en GitHub son públicos. Antes de pegar un registro o una captura, elimina o sustituye los datos privados: nombres de usuario y rutas como `/Users/anna/…`, nombres de servidores y hosts, direcciones IP, nombres de buckets.
+
+> [!CAUTION]
+> Nunca informes de vulnerabilidades de seguridad en un issue público. Infórmanos de forma privada mediante [Report a vulnerability](https://github.com/web-workers-com/manta/security/advisories/new) en GitHub, como se describe en la [política de seguridad](https://github.com/web-workers-com/manta/blob/main/SECURITY.md).
+
+¿Tienes una idea o una sugerencia? **Ayuda** → **Sugerir una idea…** abre el formulario de ideas. Todas las opciones están también en [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
 ## Manta no se abre (Gatekeeper) {#gatekeeper}
 

@@ -10,8 +10,8 @@ Manta writes errors and important events to:
 
 To find it:
 
-1. Open the command palette with **⇧⌘P**.
-2. Choose **Show Log File in Finder**. Finder opens the log folder (`~/Library/Logs/Manta`) with the file `manta.log` – in Finder itself, even when Manta is your default file viewer.
+1. Choose **Help** → **Show Log File in Finder** in the menu bar – or open the command palette with **⇧⌘P** and choose **Show Log File in Finder** there.
+2. Finder opens the log folder (`~/Library/Logs/Manta`) with the file `manta.log` – in Finder itself, even when Manta is your default file viewer.
 
 Every error message Manta shows you is in there with the technical error, the path and the location (local, server …). The file rotates at 5 MB; one older copy is kept.
 
@@ -22,6 +22,26 @@ Every error message Manta shows you is in there with the technical error, the pa
 > The log file may contain file and server names. Check it before you share it. Passwords, passphrases and secret keys aren't in it – for SFTP, FTP and S3 neither.
 
 Plugins have logs of their own: **Settings** → **Plugins** → **Show Log** on the plugin's card.
+
+## Report a bug {#fehler-melden}
+
+Found a bug? Report it on GitHub – the easiest way is **Help** → **Report an Issue…** (also in the command palette – type "bug" – and in **Settings** → **General** → **About Manta** → **Feedback**). Manta opens the bug report form in your browser with the Manta version, the macOS version and the chip (Apple silicon or Intel) already filled in. Manta itself sends nothing: you see the form and decide what to submit. You need a free GitHub account.
+
+What helps to find the bug:
+
+- **Manta and macOS version** – filled in by Manta; otherwise under **Manta** → **About Manta** and Apple menu → "About This Mac".
+- **Steps to reproduce** – what did you do, step by step?
+- **Expected and actual behaviour** – what should have happened, and what happened instead? The exact error message helps.
+- **A screenshot** (⇧⌘4) or a short screen recording (⇧⌘5).
+- **The relevant lines from the log file** `~/Library/Logs/Manta/manta.log` – open it with **Help** → **Show Log File in Finder**, see [The log file](#protokoll).
+
+> [!IMPORTANT]
+> Bug reports on GitHub are public. Before you paste a log or a screenshot, remove or replace private data: user names and paths such as `/Users/anna/…`, server and host names, IP addresses, bucket names.
+
+> [!CAUTION]
+> Never report security vulnerabilities in a public issue. Report them privately via [Report a vulnerability](https://github.com/web-workers-com/manta/security/advisories/new) on GitHub, as described in the [security policy](https://github.com/web-workers-com/manta/blob/main/SECURITY.md).
+
+Have an idea or a suggestion? **Help** → **Suggest an Idea…** opens the form for ideas. All options are also at [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
 ## Manta won't open (Gatekeeper) {#gatekeeper}
 

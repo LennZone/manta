@@ -2293,7 +2293,14 @@
           "manta-part",
           "schlüssel geändert",
           "unbekannter server",
-          "schlüsselbund"
+          "schlüsselbund",
+          "fehler melden",
+          "bug",
+          "issue",
+          "github",
+          "feedback",
+          "idee",
+          "sicherheitslücke"
         ],
         "en": [
           "error",
@@ -2312,7 +2319,14 @@
           "manta-part",
           "key changed",
           "unknown server",
-          "keychain"
+          "keychain",
+          "report a bug",
+          "bug",
+          "issue",
+          "github",
+          "feedback",
+          "idea",
+          "security vulnerability"
         ],
         "zh-Hans": [
           "错误",
@@ -2328,7 +2342,15 @@
           "传输卡住",
           "无互联网连接",
           "密钥已更改",
-          "钥匙串"
+          "钥匙串",
+          "报告错误",
+          "报告问题",
+          "bug",
+          "issue",
+          "GitHub",
+          "反馈",
+          "建议",
+          "安全漏洞"
         ],
         "es": [
           "error",
@@ -2345,7 +2367,14 @@
           "manta-part",
           "clave cambiada",
           "servidor desconocido",
-          "llavero"
+          "llavero",
+          "informar de un error",
+          "bug",
+          "issue",
+          "github",
+          "comentarios",
+          "idea",
+          "vulnerabilidad"
         ],
         "fr": [
           "erreur",
@@ -2363,7 +2392,15 @@
           "en attente de connexion",
           "aucune connexion à internet",
           "manta-part",
-          "trousseau"
+          "trousseau",
+          "signaler un bug",
+          "bug",
+          "ticket",
+          "issue",
+          "github",
+          "commentaires",
+          "idée",
+          "faille de sécurité"
         ],
         "it": [
           "problemi",
@@ -2377,7 +2414,14 @@
           "container senza shell",
           "non funziona",
           "ripristinare",
-          "trasferimento bloccato"
+          "trasferimento bloccato",
+          "segnalare un bug",
+          "bug",
+          "issue",
+          "github",
+          "segnalazioni",
+          "idea",
+          "vulnerabilità"
         ],
         "ru": [
           "ошибка",
@@ -2394,7 +2438,14 @@
           "передача зависла",
           "ожидание подключения",
           "ключ изменился",
-          "связка ключей"
+          "связка ключей",
+          "сообщить об ошибке",
+          "баг",
+          "issue",
+          "github",
+          "обратная связь",
+          "идея",
+          "уязвимость"
         ]
       }
     },
@@ -2432,7 +2483,12 @@
           "open source",
           "quellcode",
           "github",
-          "mit-lizenz"
+          "mit-lizenz",
+          "fehler melden",
+          "bug",
+          "idee",
+          "feedback",
+          "mitwirken"
         ],
         "en": [
           "faq",
@@ -2454,7 +2510,12 @@
           "open source",
           "source code",
           "github",
-          "mit licence"
+          "mit licence",
+          "report a bug",
+          "bug",
+          "idea",
+          "feedback",
+          "contribute"
         ],
         "zh-Hans": [
           "常见问题",
@@ -2470,7 +2531,12 @@
           "请我喝杯咖啡",
           "支持",
           "许可",
-          "第三方"
+          "第三方",
+          "报告错误",
+          "bug",
+          "想法",
+          "反馈",
+          "贡献"
         ],
         "es": [
           "preguntas frecuentes",
@@ -2485,7 +2551,12 @@
           "llavero",
           "donativo",
           "apoyar",
-          "licencias"
+          "licencias",
+          "informar de un error",
+          "bug",
+          "idea",
+          "comentarios",
+          "contribuir"
         ],
         "fr": [
           "faq",
@@ -2502,7 +2573,12 @@
           "café",
           "buy me a coffee",
           "soutenir",
-          "licences"
+          "licences",
+          "signaler un bug",
+          "bug",
+          "idée",
+          "commentaires",
+          "contribuer"
         ],
         "it": [
           "faq",
@@ -2516,7 +2592,12 @@
           "google drive",
           "smb",
           "webdav",
-          "sicurezza"
+          "sicurezza",
+          "segnalare un bug",
+          "bug",
+          "idea",
+          "segnalazioni",
+          "contribuire"
         ],
         "ru": [
           "вопросы",
@@ -2532,7 +2613,12 @@
           "пожертвование",
           "кофе",
           "поддержать",
-          "лицензии"
+          "лицензии",
+          "сообщить об ошибке",
+          "баг",
+          "идея",
+          "обратная связь",
+          "участие"
         ]
       }
     }

@@ -10,8 +10,8 @@ Manta consigne les erreurs et les événements importants dans :
 
 Pour le trouver :
 
-1. Ouvrez la palette de commandes avec **⇧⌘P**.
-2. Choisissez **Afficher le fichier journal dans le Finder**. Le Finder ouvre le dossier des journaux (`~/Library/Logs/Manta`) avec le fichier `manta.log` – dans le Finder lui-même, même si Manta est votre gestionnaire de fichiers par défaut.
+1. Choisissez **Aide** → **Afficher le fichier journal dans le Finder** dans la barre des menus – ou ouvrez la palette de commandes avec **⇧⌘P** et choisissez-y **Afficher le fichier journal dans le Finder**.
+2. Le Finder ouvre le dossier des journaux (`~/Library/Logs/Manta`) avec le fichier `manta.log` – dans le Finder lui-même, même si Manta est votre gestionnaire de fichiers par défaut.
 
 Chaque message d’erreur que Manta vous affiche y figure, avec l’erreur technique, le chemin et l’emplacement (local, serveur…). Le fichier est renouvelé à 5 Mo ; une copie plus ancienne est conservée.
 
@@ -22,6 +22,26 @@ Chaque message d’erreur que Manta vous affiche y figure, avec l’erreur techn
 > Le fichier journal peut contenir des noms de fichiers et de serveurs. Vérifiez-le avant de le partager. Les mots de passe, phrases de passe et clés secrètes n’y figurent pas – y compris pour SFTP, FTP et S3.
 
 Les plug-ins ont leurs propres journaux : **Réglages** → **Plug-ins** → **Afficher le journal** sur la carte du plug-in.
+
+## Signaler un bug {#fehler-melden}
+
+Vous avez trouvé un bug ? Signalez-le sur GitHub – le plus simple est **Aide** → **Signaler un problème…** (également dans la palette de commandes – tapez « bug » – et dans **Réglages** → **Général** → **À propos de Manta** → **Commentaires**). Manta ouvre le formulaire de rapport de bug dans votre navigateur, avec la version de Manta, la version de macOS et la puce (Apple silicon ou Intel) déjà renseignées. Manta lui-même n’envoie rien : vous voyez le formulaire et décidez de ce que vous envoyez. Il vous faut un compte GitHub gratuit.
+
+Ce qui aide à trouver le bug :
+
+- **Versions de Manta et de macOS** – renseignées par Manta ; sinon sous **Manta** → **À propos de Manta** et menu Pomme → « À propos de ce Mac ».
+- **Étapes pour reproduire** – qu’avez-vous fait, étape par étape ?
+- **Comportement attendu et constaté** – que devait-il se passer, et que s’est-il passé à la place ? Le message d’erreur exact aide.
+- **Une capture d’écran** (⇧⌘4) ou un court enregistrement d’écran (⇧⌘5).
+- **Les lignes pertinentes du fichier journal** `~/Library/Logs/Manta/manta.log` – ouvrez-le avec **Aide** → **Afficher le fichier journal dans le Finder**, voir [Le fichier journal](#protokoll).
+
+> [!IMPORTANT]
+> Les rapports de bug sur GitHub sont publics. Avant de coller un journal ou une capture, supprimez ou remplacez les données privées : noms d’utilisateur et chemins comme `/Users/anna/…`, noms de serveurs et d’hôtes, adresses IP, noms de buckets.
+
+> [!CAUTION]
+> Ne signalez jamais une faille de sécurité dans un ticket public. Signalez-la en privé via [Report a vulnerability](https://github.com/web-workers-com/manta/security/advisories/new) sur GitHub, comme décrit dans la [politique de sécurité](https://github.com/web-workers-com/manta/blob/main/SECURITY.md).
+
+Une idée ou une suggestion ? **Aide** → **Suggérer une idée…** ouvre le formulaire des idées. Toutes les options se trouvent aussi sur [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
 ## Manta ne s’ouvre pas (Gatekeeper) {#gatekeeper}
 

@@ -82,6 +82,8 @@ pub const ENTRIES: Entries = &[
         "Source Code on GitHub…",
         "Quellcode auf GitHub …",
     ),
+    ("cmd.report_issue", "Report an Issue…", "Fehler melden …"),
+    ("cmd.suggest_idea", "Suggest an Idea…", "Idee vorschlagen …"),
     (
         "cmd.third_party_licenses",
         "Third-Party Licences",
@@ -236,6 +238,16 @@ pub const ENTRIES: Entries = &[
         "cmd.kw.source_code",
         "source code github repository repo open source mit licence license contribute develop",
         "source code github quellcode repository repo open source mit lizenz mitwirken entwickeln",
+    ),
+    (
+        "cmd.kw.report_issue",
+        "bug issue problem feedback report crash error github",
+        "bug issue problem feedback report crash error github fehler melden absturz problem rückmeldung",
+    ),
+    (
+        "cmd.kw.suggest_idea",
+        "idea feature request suggestion feedback wish improvement github",
+        "idea feature request suggestion feedback idee vorschlag wunsch verbesserung funktion rückmeldung",
     ),
     (
         "cmd.kw.third_party_licenses",

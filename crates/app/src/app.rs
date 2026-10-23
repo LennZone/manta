@@ -3036,6 +3036,12 @@ impl MantaApp {
             Cmd::Help => Action::ShowHelp(String::new()),
             Cmd::Support => Action::OpenWebLink(crate::help::WEBSITE_URL.to_string()),
             Cmd::SourceCode => Action::OpenWebLink(crate::help::SOURCE_URL.to_string()),
+            Cmd::ReportIssue => Action::OpenWebLink(crate::feedback::current_issue_url(
+                crate::feedback::Kind::Bug,
+            )),
+            Cmd::SuggestIdea => Action::OpenWebLink(crate::feedback::current_issue_url(
+                crate::feedback::Kind::Idea,
+            )),
             Cmd::ThirdPartyLicenses => {
                 Action::ShowHelp(crate::help::THIRD_PARTY_LICENSES.to_string())
             }
@@ -6155,6 +6161,10 @@ impl MantaApp {
         if crate::app_menu::take_source_request() {
             log::debug!("menu bar: Source Code on GitHub");
             actions.push(Action::OpenWebLink(crate::help::SOURCE_URL.to_string()));
+        }
+        if crate::app_menu::take_log_request() {
+            log::debug!("menu bar: Show Log File in Finder");
+            actions.push(Action::ShowLogFile);
         }
         if crate::app_menu::take_licenses_request() {
             log::debug!("menu bar: Third-Party Licences");

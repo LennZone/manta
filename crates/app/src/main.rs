@@ -13,6 +13,7 @@ mod containers;
 mod default_viewer;
 mod dialogs;
 mod favorites;
+mod feedback;
 mod file_actions;
 mod goto;
 mod help;
