@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Hardened-runtime entitlements for Manta.app (Developer ID, not sandboxed).
+     Deliberately minimal: spawning git, docker, kubectl, ssh, python3 and shells
+     needs no entitlement, and there is no JIT, no unsigned code and no DYLD_* use.
+     The only exception: sending Apple Events (Finder Trash/reveal, Terminal,
+     osascript in Quick Actions) is blocked under the hardened runtime without it. -->
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.automation.apple-events</key>
+    <true/>
+</dict>
+</plist>

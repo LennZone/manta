@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://manta-filemanager.com/plugins/registry.schema.json",
+  "title": "Manta community plugin directory",
+  "description": "plugins/registry.json in the Manta repository. Maintained through pull requests; see docs/plugins.md, section 'Publishing a plugin'. Checked by scripts/plugin-registry.py.",
+  "type": "object",
+  "required": ["schema", "plugins"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": 1 },
+    "plugins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/plugin" }
+    }
+  },
+  "$defs": {
+    "localized": {
+      "description": "Text per language. 'en' is required; other keys: de, zh-Hans, es, fr, it, ru.",
+      "type": "object",
+      "required": ["en"],
+      "propertyNames": { "enum": ["en", "de", "zh-Hans", "es", "fr", "it", "ru"] },
+      "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 300 }
+    },
+    "plugin": {
+      "type": "object",
+      "required": ["id", "name", "description", "author", "repository", "license", "latest", "min_manta_version", "platforms"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,63}$", "description": "The id from plugin.toml (manta.* is reserved)." },
+        "name": { "$ref": "#/$defs/localized" },
+        "description": { "$ref": "#/$defs/localized" },
+        "author": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^https://", "description": "Public source code." },
+        "homepage": { "type": "string", "pattern": "^https://" },
+        "license": { "type": "string", "description": "SPDX id of an OSI-approved licence, e.g. MIT, Apache-2.0, GPL-3.0-or-later." },
+        "latest": {
+          "type": "object",
+          "required": ["version", "url", "sha256"],
+          "additionalProperties": false,
+          "properties": {
+            "version": { "type": "string", "description": "Same as 'version' in the release's plugin.toml." },
+            "url": { "type": "string", "pattern": "^https://", "description": "A .mantaplugin or .zip release asset." },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          }
+        },
+        "min_manta_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$" },
+        "platforms": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": ["any", "macos-arm64"] },
+          "description": "'any' for scripts that run wherever their interpreter does; 'macos-arm64' for native binaries."
+        },
+        "runtime": { "enum": ["python3", "node", "shell", "native", "other"], "description": "What the user needs installed." },
+        "permissions": {
+          "type": "array",
+          "items": { "enum": ["read_files", "write_files", "network", "run_programs", "terminal"] },
+          "description": "Same as 'permissions' in plugin.toml."
+        },
+        "tags": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9-]{1,24}$" }, "maxItems": 6 }
+      }
+    }
+  }
+}

@@ -1,0 +1,149 @@
+# Risoluzione dei problemi {#fehlerbehebung}
+
+Soluzioni ai problemi più comuni e dove Manta registra gli errori. Se segnali un bug, il file di log è di grande aiuto.
+
+## Il file di log {#protokoll}
+
+Manta scrive errori ed eventi importanti in:
+
+`~/Library/Logs/Manta/manta.log`
+
+Per trovarlo:
+
+1. Apri la palette dei comandi con **⇧⌘P**.
+2. Scegli **Mostra il file di log nel Finder**. Il Finder apre la cartella dei log (`~/Library/Logs/Manta`) con il file `manta.log`, proprio nel Finder, anche quando Manta è il tuo gestore file predefinito.
+
+Ogni messaggio di errore che Manta ti mostra si trova lì con l’errore tecnico, il percorso e la posizione (locale, server …). Il file ruota a 5 MB; viene conservata una copia precedente.
+
+> [!TIP]
+> Per log più dettagliati, avvia Manta dal Terminale con `MANTA_LOG=debug /Applications/Manta.app/Contents/MacOS/manta`.
+
+> [!NOTE]
+> Il file di log può contenere nomi di file e di server. Controllalo prima di condividerlo. Password, passphrase e chiavi segrete non ci sono, nemmeno per SFTP, FTP e S3.
+
+I plug-in hanno log propri: **Impostazioni** → **Plug-in** → **Mostra log** sulla scheda del plug-in.
+
+## Manta non si apre (Gatekeeper) {#gatekeeper}
+
+**Problema:** al primo avvio macOS segnala che *“Manta” non è stato aperto* oppure che *“…” non può essere aperto perché Apple non può verificare che non contenga malware*.
+
+**Causa:** questa copia non è autenticata da Apple. macOS blocca queste app al primo avvio.
+
+**Soluzione:**
+
+1. Fai clic su **Fine**.
+2. Apri **Impostazioni di Sistema** → **Privacy e sicurezza**.
+3. In fondo, fai clic su **Apri comunque** accanto a Manta e conferma.
+
+Prima di macOS 15: clic destro (o clic con Ctrl) su Manta nella cartella **Applicazioni** → **Apri** → **Apri**.
+
+## “macOS ha bloccato l’accesso” {#berechtigungen}
+
+**Problema:** una cartella non si apre, oppure Manta segnala “macOS ha bloccato l’accesso a “…” (operazione non consentita)”.
+
+**Causa:** non hai consentito a Manta di accedere a questa cartella (o hai fatto clic per errore su “Non consentire”), oppure la cartella richiede l’Accesso completo al disco.
+
+**Soluzione:**
+
+1. Apri **Impostazioni di Sistema** → **Privacy e sicurezza** → **File e cartelle**.
+2. Trova **Manta** e attiva la cartella (Scrivania, Documenti, Download, volumi rimovibili, volumi di rete).
+3. Per cartelle come `~/Library/Mail`: **Accesso completo al disco** → attiva **Manta**.
+4. Esci da Manta e riavvialo.
+
+Se Manta non compare nell’elenco, macOS non ha ancora fatto la domanda. Apri una volta la cartella in Manta e la domanda comparirà.
+
+“Non hai il permesso di aprire questa cartella” è un’altra cosa: mancano i normali permessi Unix. Chiedi al proprietario della cartella oppure modifica i permessi nel Finder (**Ottieni informazioni**).
+
+## Funzioni che controllano il Finder o il Terminale {#automation}
+
+**Problema:** “Mostra nel Finder”, “Apri in Terminal.app” o lo spostamento dei duplicati nel Cestino non funzionano.
+
+**Soluzione:** **Impostazioni di Sistema** → **Privacy e sicurezza** → **Automazione** → sotto **Manta**, attiva **Finder** e **Terminale**.
+
+## FTP: le cartelle non si caricano, errori “TLS” {#ftp-datenkanal}
+
+**Problema:** l’accesso a un server FTPS funziona, ma le cartelle restano vuote o si caricano all’infinito, oppure Manta segnala che “la rete blocca le connessioni dati FTP codificate”.
+
+**Causa:** alcune reti e firewall aziendali reimpostano le connessioni dati FTP codificate.
+
+**Soluzione:**
+
+1. Clic destro sul preferito → **Modifica connessione…** (o **⌘K** per una nuova connessione).
+2. Imposta **Canale dati** su **Automatico**.
+3. Connettiti di nuovo.
+
+Manta invia allora elenchi e file senza codifica; l’accesso resta codificato. Lo indica uno scudo di avviso sull’indicatore della posizione.
+
+> [!WARNING]
+> Non è una buona soluzione per i dati riservati. Usa invece SFTP, un’altra rete o una VPN e imposta il canale dati su **Obbligatorio**.
+
+Altri suggerimenti per FTP:
+
+- “Impossibile stabilire una connessione sicura”: il server non supporta FTPS su questa porta (prova **FTP**, se è accettabile nella tua rete), oppure il suo certificato non è attendibile.
+- Manta non supporta l’FTPS implicito (porta 990).
+
+## Un container senza shell {#container-ohne-shell}
+
+**Problema:** un container si apre in sola lettura, oppure Manta segnala “Il container non ha una shell”.
+
+**Causa:** Manta ha bisogno di `sh` nel container per elencare e modificare i file. Le immagini distroless e scratch non hanno una shell.
+
+**Soluzione:**
+
+- Leggere e copiare all’esterno (**F5**, trascinamento) funziona comunque, tramite `docker cp`.
+- Per apportare modifiche ti serve un’immagine con una shell (ad esempio una variante di debug dell’immagine).
+- I pod Kubernetes richiedono `sh` anche solo per la lettura.
+- Anche i container arrestati sono di sola lettura: avviali per apportare modifiche.
+
+## Docker o Kubernetes non compaiono {#container-fehlen}
+
+- **“Docker non è in esecuzione”**: avvia Docker Desktop.
+- **“Docker non è installato”**: installa Docker Desktop, oppure assicurati che il comando `docker` sia nel tuo PATH. Manta cerca anche in `/opt/homebrew/bin`, `/usr/local/bin` e all’interno dell’app Docker Desktop.
+- **“kubectl non è installato”**: `brew install kubectl`.
+- **“Il cluster Kubernetes non è raggiungibile”**: controlla il contesto e la VPN, oppure avvia il tuo cluster locale.
+
+## Connessioni ai server {#server}
+
+| Messaggio | Soluzione |
+|---|---|
+| “La chiave del server è cambiata” | La chiave non corrisponde a `~/.ssh/known_hosts`; Manta non si connette (possibile attacco man-in-the-middle). Chiedi l’impronta all’amministratore. Se il server è stato davvero reinstallato, rimuovi la vecchia voce con il comando indicato nella finestra (`ssh-keygen -R host`). |
+| “Server sconosciuto” | Prima connessione a questo server. Confronta l’impronta e fai clic su **Connetti e ricorda**, vedi [Connessioni](08-verbindungen.md). |
+| “La password salvata non è stata trovata nel Portachiavi” | L’elemento è stato eliminato, ad esempio in Accesso Portachiavi. Inserisci la password e lascia attivo **Ricorda password**. |
+| “Nessuna chiave utilizzabile in ssh-agent” | `ssh-add ~/.ssh/id_ed25519` |
+| “L’orologio del Mac non è corretto” | **Impostazioni di Sistema** → **Generali** → **Data e ora** → impostazione automatica. |
+| “Il bucket si trova in un’altra regione” | Nella finestra imposta la regione indicata. |
+| “La connessione al server è stata persa” | Controlla la rete, poi **Riprova**. |
+
+## Un trasferimento non va avanti {#uebertragungen}
+
+| Cosa vedi | Soluzione |
+|---|---|
+| “In attesa di connessione… (tentativo 5, prossimo tra 16 s)” | La rete o il server non sono raggiungibili. Manta continua a provare e riprende dallo stesso punto. Controlla Wi-Fi/VPN; **Riprova ora** avvia subito il tentativo successivo. |
+| **Nessuna connessione a Internet** in cima a **Trasferimenti** | Il tuo Mac è offline. Non appena torna online, i trasferimenti riprendono da soli. |
+| “Richiede una connessione a …” | Dopo un riavvio manca la connessione al server. Fai clic su **Riconnetti** e inserisci la password. |
+| “In pausa · …” | Hai sospeso l’operazione (tu o **Metti tutto in pausa**). Fai clic su **Riprendi**. |
+| File nascosti `.NAME.manta-part` nella destinazione | File parziali di un’operazione interrotta. Lasciali finché l’operazione deve essere ripresa; altrimenti puoi eliminarli. |
+
+Vedi [Sospendere e riprendere i trasferimenti](05-dateien.md#pausieren).
+
+## Un aggiornamento non riesce {#updates}
+
+Vedi [Aggiornamenti](17-updates.md#blockiert). Di solito Manta non viene eseguito dalla cartella **Applicazioni**.
+
+## Cloud: “Rimuovi download” non funziona {#cloud}
+
+Per Google Drive, OneDrive, Dropbox e altri decide l’app del fornitore. Usa il Finder: clic destro → **Rimuovi download**. Vedi [Archiviazione cloud](09-cloud.md#download-entfernen).
+
+## Una cartella mostra contenuti non aggiornati {#aktualisieren}
+
+Premi **⌘R**. Manta vede le modifiche fatte da altre app o dal server solo dopo un aggiornamento.
+
+## Ripristinare Manta {#zuruecksetzen}
+
+Come ultima risorsa:
+
+1. Esci da Manta.
+2. Rinomina `~/Library/Application Support/Manta` (ad esempio in `Manta old`).
+3. Avvia Manta. Partirà come se fosse la prima volta.
+
+I tuoi Preferiti e le tue azioni rapide si trovano ancora nella cartella rinominata.

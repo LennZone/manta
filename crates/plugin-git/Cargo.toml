@@ -1,0 +1,17 @@
+[package]
+name = "manta-plugin-git"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+manta-plugin.workspace = true
+egui.workspace = true
+log.workspace = true
+notify = "8"
+
+[dev-dependencies]
+tempfile = "3"
+egui_kittest = { version = "0.37", features = ["wgpu", "snapshot"] }
+egui-wgpu = "0.37"

@@ -1,0 +1,347 @@
+{
+  "lang": "it",
+  "chapters": {
+    "erste-schritte": {
+      "title": "Primi passi",
+      "keywords": [
+        "installare",
+        "dmg",
+        "applicazioni",
+        "gatekeeper",
+        "apri comunque",
+        "autorizzazioni",
+        "permessi",
+        "privacy",
+        "accesso completo al disco",
+        "gestore file predefinito",
+        "palette dei comandi",
+        "rustlift",
+        "primo avvio"
+      ]
+    },
+    "bereiche-tabs": {
+      "title": "Pannelli e schede",
+      "keywords": [
+        "pannello",
+        "dividere",
+        "dividi pannello",
+        "chiudi pannello",
+        "scheda",
+        "nuova scheda",
+        "pannello attivo",
+        "pannello di destinazione",
+        "altro pannello",
+        "larghezza",
+        "sessione",
+        "ripristinare"
+      ]
+    },
+    "ansichten": {
+      "title": "Viste",
+      "keywords": [
+        "vista",
+        "icone",
+        "elenco",
+        "colonne",
+        "galleria",
+        "miniature",
+        "ordinare",
+        "ordina per",
+        "opzioni vista",
+        "dimensione icone",
+        "pellicola",
+        "vista per cartella"
+      ]
+    },
+    "navigation": {
+      "title": "Navigazione",
+      "keywords": [
+        "barra del percorso",
+        "vai al percorso",
+        "percorso",
+        "indietro",
+        "avanti",
+        "cronologia",
+        "filtro",
+        "filtrare",
+        "file nascosti",
+        "selezionare",
+        "cartella superiore",
+        "aggiornare",
+        "torna a locale"
+      ]
+    },
+    "dateien": {
+      "title": "Gestire i file",
+      "keywords": [
+        "copiare",
+        "spostare",
+        "rinominare",
+        "eliminare",
+        "cestino",
+        "nuova cartella",
+        "trasferimenti",
+        "conflitto di nome",
+        "trascinare",
+        "sospendere",
+        "riprendere",
+        "file parziale",
+        "manta-part",
+        "sostituisci",
+        "mantieni entrambi"
+      ]
+    },
+    "schnellansicht": {
+      "title": "Visualizzazione rapida e anteprima",
+      "keywords": [
+        "visualizzazione rapida",
+        "anteprima",
+        "barra spaziatrice",
+        "anteprima integrata",
+        "quick look",
+        "vedere file",
+        "immagini",
+        "pdf",
+        "testo"
+      ]
+    },
+    "seitenleiste": {
+      "title": "Preferiti e barra laterale",
+      "keywords": [
+        "preferiti",
+        "barra laterale",
+        "posizioni",
+        "dispositivi",
+        "server",
+        "container",
+        "cestino",
+        "svuota il cestino",
+        "aggiungi ai preferiti",
+        "accesso completo al disco",
+        "unità",
+        "espellere"
+      ]
+    },
+    "verbindungen": {
+      "title": "Connessioni",
+      "keywords": [
+        "sftp",
+        "ftp",
+        "ftps",
+        "s3",
+        "server",
+        "connessione al server",
+        "docker",
+        "kubernetes",
+        "container",
+        "portachiavi",
+        "password",
+        "chiave ssh",
+        "impronta",
+        "known_hosts",
+        "canale dati"
+      ]
+    },
+    "cloud": {
+      "title": "Archiviazione cloud",
+      "keywords": [
+        "cloud",
+        "icloud drive",
+        "google drive",
+        "onedrive",
+        "dropbox",
+        "box",
+        "scarica ora",
+        "rimuovi download",
+        "solo nel cloud",
+        "sincronizzazione",
+        "contrassegni",
+        "oauth"
+      ]
+    },
+    "archive": {
+      "title": "Archivi",
+      "keywords": [
+        "archivio",
+        "zip",
+        "tar",
+        "estrarre",
+        "estrai qui",
+        "comprimere",
+        "comprimi",
+        "decomprimere",
+        "tar.gz",
+        "sola lettura",
+        "sfoglia archivio"
+      ]
+    },
+    "terminal": {
+      "title": "Terminale",
+      "keywords": [
+        "terminale",
+        "shell",
+        "cd",
+        "zsh",
+        "ssh",
+        "docker exec",
+        "kubectl exec",
+        "azioni sui file",
+        "tasto meta",
+        "opzione",
+        "riga di comando"
+      ]
+    },
+    "git": {
+      "title": "Git",
+      "keywords": [
+        "git",
+        "branch",
+        "commit",
+        "prepara",
+        "stage",
+        "diff",
+        "conflitto di merge",
+        "repository",
+        "stato git",
+        "pannello git",
+        "upstream"
+      ]
+    },
+    "vergleichen": {
+      "title": "Confronta e sincronizza",
+      "keywords": [
+        "confrontare",
+        "sincronizzare",
+        "confronta e sincronizza",
+        "rispecchiare",
+        "differenze",
+        "cartelle",
+        "pannello a",
+        "pannello b",
+        "backup",
+        "elimina file in più"
+      ]
+    },
+    "plugins": {
+      "title": "Plug-in integrati",
+      "keywords": [
+        "plug-in",
+        "dimensioni cartelle",
+        "utilizzo disco",
+        "rinomina in blocco",
+        "azioni rapide",
+        "info progetto",
+        "anteprima markdown",
+        "strumenti immagine",
+        "duplicati",
+        "exif",
+        "actions.json",
+        "treemap",
+        "carico di sistema",
+        "cpu",
+        "gpu",
+        "ram",
+        "memoria",
+        "monitoraggio attività",
+        "barra di stato"
+      ]
+    },
+    "eigene-plugins": {
+      "title": "Plug-in personali",
+      "keywords": [
+        "plug-in personali",
+        "installare plug-in",
+        "plugin.toml",
+        "sviluppare",
+        "python",
+        "sicurezza",
+        "log",
+        "disinstallare",
+        "estensioni",
+        "hello python"
+      ]
+    },
+    "einstellungen": {
+      "title": "Impostazioni",
+      "keywords": [
+        "impostazioni",
+        "preferenze",
+        "aspetto",
+        "modalità scura",
+        "colore di accento",
+        "lingua",
+        "italiano",
+        "file nascosti",
+        "anteprima",
+        "copia e spostamento",
+        "aggiornamenti",
+        "configurazione",
+        "settings.json"
+      ]
+    },
+    "updates": {
+      "title": "Aggiornamenti",
+      "keywords": [
+        "aggiornamento",
+        "verifica aggiornamenti",
+        "nuova versione",
+        "beta",
+        "stabile",
+        "canale",
+        "installa e riavvia",
+        "salta questa versione",
+        "privacy",
+        "firma"
+      ]
+    },
+    "tastenkuerzel": {
+      "title": "Scorciatoie da tastiera",
+      "keywords": [
+        "scorciatoie",
+        "tastiera",
+        "combinazioni di tasti",
+        "tasti",
+        "comando",
+        "f5",
+        "f6",
+        "finder",
+        "tasti funzione",
+        "fn"
+      ]
+    },
+    "fehlerbehebung": {
+      "title": "Risoluzione dei problemi",
+      "keywords": [
+        "problemi",
+        "errore",
+        "log",
+        "file di log",
+        "gatekeeper",
+        "permessi",
+        "accesso negato",
+        "ftp tls",
+        "container senza shell",
+        "non funziona",
+        "ripristinare",
+        "trasferimento bloccato"
+      ]
+    },
+    "faq": {
+      "title": "Domande frequenti",
+      "keywords": [
+        "faq",
+        "domande",
+        "domande frequenti",
+        "gratuito",
+        "donazione",
+        "sostituire finder",
+        "recuperare file",
+        "password",
+        "google drive",
+        "smb",
+        "webdav",
+        "sicurezza"
+      ]
+    }
+  }
+}

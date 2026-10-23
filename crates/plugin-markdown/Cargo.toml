@@ -1,0 +1,22 @@
+[package]
+name = "manta-plugin-markdown"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+manta-plugin.workspace = true
+egui.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+pulldown-cmark = { version = "0.13", default-features = false }
+syntect = { version = "5.3", default-features = false, features = ["default-syntaxes", "default-themes", "regex-fancy"] }
+
+[dev-dependencies]
+tempfile = "3"
+egui_kittest = { version = "0.37", features = ["wgpu", "snapshot"] }
+egui-wgpu = "0.37"
+egui_extras = { version = "0.37", features = ["image"] }
+image = { version = "0.25", default-features = false, features = ["png"] }

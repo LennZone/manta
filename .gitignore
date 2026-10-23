@@ -1,0 +1,24 @@
+/target
+__pycache__/
+/dist/
+/packaging/icon/render/target/
+# Update signing: the private key lives in ~/.config/manta/ and must never be
+# committed. Guard against copies landing in the repo (the public key is fine).
+*signing-key*
+*.ed25519
+update-signing-key*
+!packaging/update-public-key.txt
+.DS_Store
+.claude/
+
+# The website is not part of this repository.
+/website/
+
+# Private release infrastructure (lives in ~/.config/manta/, never in the repo).
+publish.env
+*.p12
+*.cer
+*.mobileprovision
+*codesign*
+.env
+!crates/plugin-projectinfo/tests/fixtures/**/.env

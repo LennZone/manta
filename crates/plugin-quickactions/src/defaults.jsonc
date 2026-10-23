@@ -1,0 +1,160 @@
+// Quick Actions for Manta: your own commands for the selected files.
+//
+// Edit this file and save: Manta picks up the changes within a second.
+// Comments (// and /* */) and trailing commas are allowed.
+//
+// Every action:
+//   "id"          unique, letters/digits/.-_ (required)
+//   "title"       shown in the context menu, palette and panel (required)
+//   "title_de"    optional German title, used when Manta is in German
+//                 (also "message_de" and "confirm_de")
+//   "command"     shell command template, run with /bin/sh (required)
+//   "applies_to"  what it works on: "any", "files", "folders" and/or file
+//                 extensions like "jpg" ("tar.gz" works too). Default "any".
+//   "min", "max"  how many selected items it needs (default 1 and no limit)
+//   "mode"        "background" (default): runs hidden, with a progress toast
+//                 and a result toast (stderr if it fails);
+//                 "terminal": typed into Manta's terminal, runs visibly;
+//                 "silent": runs hidden, a toast only if it fails
+//   "output"      "none" (default), "toast" (show stdout in a toast) or
+//                 "panel" (show stdout in the Quick Actions panel)
+//   "confirm"     optional question asked before running ({count}, {s})
+//   "message"     optional toast text on success ({count}, {s}, {title})
+//   "refresh"     true: list the folder again afterwards (default false)
+//   "icon"        optional: file, folder, image, archive, code, terminal,
+//                 copy, link, eye, key, lock, info, check, warning, …
+//   "shortcut"    optional key, e.g. "⌃⌥Z"
+//
+// Placeholders in "command" are quoted for you, never add quotes around
+// them yourself unless you mean it:
+//   {files}  all selected items (absolute paths, each quoted)
+//   {names}  all selected names (relative to {dir})
+//   {file}   one item: the command runs once per selected item
+//   {name}   its name, {stem} the name without extension, {ext} the
+//            extension without the dot (all per item, like {file})
+//   {dir}    the folder the items are in (the command's working directory)
+//   {dest}   the folder shown in the other pane
+//   {count}  how many items are selected
+// Inside "double quotes" a placeholder becomes the plain text (e.g.
+// "{stem} copy.txt"); inside 'single quotes' it becomes quoted words for an
+// inner shell (sh -c '…').
+{
+  "actions": [
+    {
+      "id": "resize-50",
+      "title": "Resize Images to 50%",
+      "icon": "image",
+      "applies_to": ["jpg", "jpeg", "png", "heic", "tif", "tiff", "gif", "bmp"],
+      "command": "w=$(sips -g pixelWidth {file} | awk '/pixelWidth/ {print $2}') && sips --resampleWidth $((w / 2)) {file} --out {dir}/{stem}-50%.{ext}",
+      "message": "Resized {count} image{s}",
+      "refresh": true
+    },
+    {
+      "id": "to-jpeg",
+      "title": "Convert to JPEG",
+      "icon": "image",
+      "applies_to": ["png", "heic", "heif", "tif", "tiff", "gif", "bmp", "webp"],
+      "command": "sips -s format jpeg -s formatOptions 90 {file} --out {dir}/{stem}.jpg",
+      "message": "Converted {count} image{s} to JPEG",
+      "refresh": true
+    },
+    {
+      "id": "to-png",
+      "title": "Convert to PNG",
+      "icon": "image",
+      "applies_to": ["jpg", "jpeg", "heic", "heif", "tif", "tiff", "gif", "bmp", "webp"],
+      "command": "sips -s format png {file} --out {dir}/{stem}.png",
+      "message": "Converted {count} image{s} to PNG",
+      "refresh": true
+    },
+    {
+      "id": "zip",
+      "title": "Compress to ZIP",
+      "icon": "archive",
+      "max": 1,
+      "command": "ditto -c -k --sequesterRsrc --keepParent {file} {file}.zip && echo \"Created {name}.zip\"",
+      "output": "toast",
+      "refresh": true
+    },
+    {
+      "id": "zip-many",
+      "title": "Compress to ZIP",
+      "icon": "archive",
+      "min": 2,
+      "command": "n=Archive.zip; i=2; while [ -e \"$n\" ]; do n=\"Archive $i.zip\"; i=$((i + 1)); done; zip -r -q -X \"$n\" {names} && echo \"Created $n\"",
+      "output": "toast",
+      "refresh": true
+    },
+    {
+      "id": "extract",
+      "title": "Extract Archive",
+      "icon": "archive",
+      "applies_to": ["zip", "tar", "tgz", "tar.gz", "tbz2", "tar.bz2", "txz", "tar.xz"],
+      "command": "case {name} in *.zip|*.ZIP) ditto -x -k {file} {dir} ;; *) tar -xf {file} -C {dir} ;; esac",
+      "message": "Extracted {count} archive{s}",
+      "refresh": true
+    },
+    {
+      "id": "vscode",
+      "title": "Open in VS Code",
+      "icon": "code",
+      "mode": "silent",
+      "command": "if command -v code >/dev/null 2>&1; then code {files}; else open -a 'Visual Studio Code' {files} 2>/dev/null || { echo 'VS Code isn’t installed: no “code” command and no Visual Studio Code app. In VS Code, run “Shell Command: Install code command in PATH”.' >&2; exit 127; }; fi"
+    },
+    {
+      "id": "terminal-app",
+      "title": "Open in Terminal.app",
+      "icon": "terminal",
+      "max": 1,
+      "mode": "silent",
+      "command": "if [ -d {file} ]; then open -a Terminal {file}; else open -a Terminal {dir}; fi"
+    },
+    {
+      "id": "copy-path",
+      "title": "Copy Path",
+      "icon": "copy",
+      "command": "printf '%s\\n' {files} | awk 'NR > 1 {printf \"\\n\"} {printf \"%s\", $0}' | pbcopy",
+      "message": "Copied {count} path{s}"
+    },
+    {
+      "id": "reveal",
+      "title": "Reveal in Finder",
+      "icon": "eye",
+      "mode": "silent",
+      "command": "open -R {files}"
+    },
+    {
+      "id": "chmod-x",
+      "title": "Make Executable",
+      "icon": "lock",
+      "applies_to": ["files"],
+      "command": "chmod +x {files}",
+      "message": "Made {count} file{s} executable",
+      "refresh": true
+    },
+    {
+      "id": "count-lines",
+      "title": "Count Lines",
+      "icon": "text",
+      "applies_to": ["files"],
+      "command": "wc -l {names}",
+      "output": "toast"
+    },
+    {
+      "id": "sha256",
+      "title": "Calculate SHA-256",
+      "icon": "key",
+      "applies_to": ["files"],
+      "command": "shasum -a 256 {names}",
+      "output": "panel"
+    },
+    {
+      "id": "rsync-other",
+      "title": "Copy to Other Pane (rsync)",
+      "icon": "terminal",
+      "mode": "terminal",
+      "confirm": "Copy {count} item{s} to the other pane with rsync? Existing files with the same names are overwritten.",
+      "command": "rsync -a --progress {files} {dest}/"
+    },
+  ],
+}

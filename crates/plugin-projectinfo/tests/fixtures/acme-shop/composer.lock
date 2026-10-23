@@ -1,0 +1,33 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state"
+    ],
+    "content-hash": "4c9f8b0e5f3c2a1d7e6b5a4c3d2e1f0a",
+    "packages": [
+        {
+            "name": "brick/math",
+            "version": "0.12.1",
+            "type": "library"
+        },
+        {
+            "name": "laravel/framework",
+            "version": "v11.9.2",
+            "type": "library"
+        },
+        {
+            "name": "laravel/tinker",
+            "version": "v2.9.0",
+            "type": "library"
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "laravel/sail",
+            "version": "v1.29.2",
+            "type": "library"
+        }
+    ],
+    "platform": {
+        "php": "^8.2"
+    }
+}

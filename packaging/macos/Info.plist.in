@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Template for Manta.app/Contents/Info.plist. scripts/build-release.sh
+     replaces @VERSION@, @BUILD@, @BUNDLE_ID@, @MIN_MACOS@ and @YEAR@. -->
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key><string>Manta</string>
+    <key>CFBundleDisplayName</key><string>Manta</string>
+    <key>CFBundleIdentifier</key><string>@BUNDLE_ID@</string>
+    <key>CFBundleExecutable</key><string>manta</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+    <key>CFBundleShortVersionString</key><string>@VERSION@</string>
+    <key>CFBundleVersion</key><string>@BUILD@</string>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <!-- Lets AppKit localise the standard menu items (see crates/app/src/app_menu.rs). -->
+    <key>CFBundleLocalizations</key><array><string>en</string><string>de</string></array>
+    <key>NSHumanReadableCopyright</key><string>© @YEAR@ Manta contributors. MIT licence.</string>
+    <key>LSApplicationCategoryType</key><string>public.app-category.developer-tools</string>
+    <key>LSMinimumSystemVersion</key><string>@MIN_MACOS@</string>
+    <key>NSPrincipalClass</key><string>NSApplication</string>
+    <key>NSHighResolutionCapable</key><true/>
+    <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
+
+    <!-- Folders: lets Manta become the default app for public.folder
+         (Settings > General > Default file manager). Rank Alternate: never
+         chosen over Finder unless the user switches it on. -->
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key><string>Folder</string>
+            <key>CFBundleTypeRole</key><string>Viewer</string>
+            <key>LSHandlerRank</key><string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array><string>public.folder</string></array>
+        </dict>
+    </array>
+
+    <!-- Privacy prompts. Shown by macOS the first time the matching resource is used. -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>Manta talks to Finder and Terminal to move items to the Trash, reveal files and run Quick Actions.</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>Manta shows and manages the files in your Desktop folder.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>Manta shows and manages the files in your Documents folder.</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>Manta shows and manages the files in your Downloads folder.</string>
+    <key>NSRemovableVolumesUsageDescription</key>
+    <string>Manta shows and manages files on removable drives.</string>
+    <key>NSNetworkVolumesUsageDescription</key>
+    <string>Manta shows and manages files on network volumes.</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Manta connects to SFTP, FTP and S3 servers on your local network.</string>
+</dict>
+</plist>

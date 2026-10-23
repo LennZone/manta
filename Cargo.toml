@@ -1,0 +1,88 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/core",
+    "crates/vfs",
+    "crates/ops",
+    "crates/plugin",
+    "crates/plugin-protocol",
+    "crates/plugin-git",
+    "crates/plugin-terminal",
+    "crates/plugin-foldersize",
+    "crates/plugin-rename",
+    "crates/plugin-markdown",
+    "crates/plugin-quickactions",
+    "crates/plugin-projectinfo",
+    "crates/plugin-duplicates",
+    "crates/plugin-imagetools",
+    "crates/plugin-sysstats",
+    "crates/updater",
+    "crates/update-upload",
+    "crates/app",
+]
+
+[workspace.package]
+version = "0.3.4"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+manta-core = { path = "crates/core" }
+manta-vfs = { path = "crates/vfs" }
+manta-ops = { path = "crates/ops" }
+manta-plugin = { path = "crates/plugin" }
+manta-plugin-protocol = { path = "crates/plugin-protocol" }
+manta-plugin-git = { path = "crates/plugin-git" }
+manta-plugin-terminal = { path = "crates/plugin-terminal" }
+manta-plugin-foldersize = { path = "crates/plugin-foldersize" }
+manta-plugin-rename = { path = "crates/plugin-rename" }
+manta-plugin-markdown = { path = "crates/plugin-markdown" }
+manta-plugin-quickactions = { path = "crates/plugin-quickactions" }
+manta-plugin-projectinfo = { path = "crates/plugin-projectinfo" }
+manta-plugin-duplicates = { path = "crates/plugin-duplicates" }
+manta-plugin-imagetools = { path = "crates/plugin-imagetools" }
+manta-plugin-sysstats = { path = "crates/plugin-sysstats" }
+manta-updater = { path = "crates/updater" }
+egui = "0.37"
+serde_json = "1"
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+chrono = { version = "0.4", features = ["serde"] }
+log = "0.4"
+toml = "1"
+dirs = "6"
+rfd = "0.17"
+tempfile = "3"
+zip = { version = "9", default-features = false, features = ["aes-crypto", "bzip2", "deflate64", "deflate-flate2-zlib-rs", "lzma", "xz", "zstd"] }
+tar = "0.4"
+flate2 = "1"
+bzip2 = "0.6"
+lzma-rust2 = "0.22"
+zstd = "0.14"
+
+# Release builds are hardened for distribution (see README, "Building a release").
+# Local paths are removed by scripts/build-release.sh with --remap-path-prefix
+# (cargo's `trim-paths` is not stable yet); dev builds and tests are unaffected.
+[profile.release]
+# 3, not "s": "s" saved 17 % (arm64 25.3 -> 20.9 MB) but gives up the vectorised
+# code that archive (de)compression, SHA-256 duplicate hashing and image decoding
+# rely on; the DMG is compressed anyway.
+opt-level = 3
+debug = false
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
+# Must stay "unwind": the plugin host isolates panicking plugins with
+# std::panic::catch_unwind (crates/plugin/src/host.rs). "abort" would turn a
+# plugin bug into a crash of the whole app.
+panic = "unwind"
+incremental = false
+
+# Dependencies (image codecs, crypto, egui) optimized even in dev/test builds:
+# debug-mode PNG/JPEG decoding and TLS dominate test time otherwise. Our own
+# crates stay unoptimized for fast incremental builds and good debugging.
+[profile.dev.package."*"]
+opt-level = 2
+# No debug info for dependencies: it was most of target/ (tens of GB) and
+# is never needed; our own crates keep full debug info.
+debug = false

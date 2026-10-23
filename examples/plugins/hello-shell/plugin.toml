@@ -1,0 +1,60 @@
+# plugin.toml: tells Manta what your plugin is and how to start it.
+# Copy this folder, change `id`, `name` and `repository`, then edit main.sh.
+# Reference: docs/plugins.md
+
+# Unique id: lowercase letters, digits, '.', '-', '_' (manta.* is reserved).
+id = "hello-shell"
+name = "Hello Shell"
+version = "0.1.0"
+description = "Template plugin in a shell script (bash + jq): a palette command, a context-menu command and an item-count chip."
+author = "Manta"
+
+# Source, license and the oldest Manta that can run it (shown when installing).
+license = "MIT"
+repository = "https://github.com/web-workers-com/manta/tree/main/examples/plugins/hello-shell"
+min_manta_version = "0.3.0"
+
+# What the plugin does, shown in the install/trust dialog. Declarative
+# only (Manta doesn't enforce it), so be honest. Vocabulary: read_files,
+# write_files, network, run_programs, terminal.
+# This one lists local folders to count their items.
+permissions = ["read_files"]
+
+# The protocol version this plugin speaks.
+api_version = 1
+
+# Started with the plugin folder as working directory, so "./main.sh" is
+# the script next to this file. It must be executable: chmod +x main.sh
+# Manta adds /opt/homebrew/bin and /usr/local/bin to PATH (for a Homebrew jq).
+command = ["./main.sh"]
+
+# Informational: shown in Settings › Plugins.
+capabilities = ["chips", "commands"]
+
+# Name and description in Manta's other languages.
+[localized.de]
+name = "Hallo Shell"
+description = "Vorlage als Shell-Skript (bash + jq): ein Befehl in der Befehlspalette, einer im Kontextmenü und ein Chip mit der Anzahl der Objekte."
+
+[localized.zh]
+name = "你好 Shell"
+description = "Shell 脚本（bash + jq）插件模板：一个命令面板命令、一个右键菜单命令和一个显示项目数量的标签。"
+
+[localized.es]
+name = "Hola Shell"
+description = "Plantilla de plugin como script de shell (bash + jq): un comando en la paleta, uno en el menú contextual y una etiqueta con el número de ítems."
+
+[localized.fr]
+name = "Bonjour Shell"
+description = "Modèle de plug-in en script shell (bash + jq) : une commande dans la palette, une dans le menu contextuel et une pastille avec le nombre d’éléments."
+
+[localized.it]
+name = "Ciao Shell"
+description = "Modello di plug-in come script di shell (bash + jq): un comando nella palette, uno nel menu contestuale e un’etichetta con il numero di elementi."
+
+[localized.ru]
+name = "Привет, Shell"
+description = "Шаблон плагина в виде shell-скрипта (bash + jq): команда в палитре, команда в контекстном меню и метка с числом объектов."
+
+# Commands are registered at runtime (main.sh sends `register_commands`
+# with titles in the current language), so none are declared here.

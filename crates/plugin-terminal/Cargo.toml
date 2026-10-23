@@ -1,0 +1,21 @@
+[package]
+name = "manta-plugin-terminal"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+manta-plugin.workspace = true
+egui.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+alacritty_terminal = "0.25"
+portable-pty = "0.9"
+libc = "0.2"
+
+[dev-dependencies]
+egui_kittest = { version = "0.37", features = ["wgpu", "snapshot"] }
+tempfile = "3"
+libc = "0.2"

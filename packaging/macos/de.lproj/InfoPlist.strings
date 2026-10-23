@@ -1,0 +1,8 @@
+/* German privacy prompts (UTF-8). */
+"NSAppleEventsUsageDescription" = "Manta steuert Finder und Terminal, um Objekte in den Papierkorb zu legen, Dateien anzuzeigen und Schnellaktionen auszuführen.";
+"NSDesktopFolderUsageDescription" = "Manta zeigt und verwaltet die Dateien in deinem Ordner „Schreibtisch“.";
+"NSDocumentsFolderUsageDescription" = "Manta zeigt und verwaltet die Dateien in deinem Ordner „Dokumente“.";
+"NSDownloadsFolderUsageDescription" = "Manta zeigt und verwaltet die Dateien in deinem Ordner „Downloads“.";
+"NSRemovableVolumesUsageDescription" = "Manta zeigt und verwaltet Dateien auf Wechseldatenträgern.";
+"NSNetworkVolumesUsageDescription" = "Manta zeigt und verwaltet Dateien auf Netzwerkvolumes.";
+"NSLocalNetworkUsageDescription" = "Manta verbindet sich mit SFTP-, FTP- und S3-Servern in deinem lokalen Netzwerk.";

@@ -1,0 +1,31 @@
+[package]
+name = "manta-ops"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+chrono.workspace = true
+log.workspace = true
+tempfile.workspace = true
+zip.workspace = true
+tar.workspace = true
+flate2.workspace = true
+lzma-rust2.workspace = true
+zstd.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+# Network reachability (NWPathMonitor update handler is a block).
+block2 = "0.6.2"
+
+[features]
+# Exposes `manta_ops::memfs::MemFs`, an in-memory `Vfs` for tests.
+testing = []
+
+[dev-dependencies]
+manta-vfs.workspace = true
+tempfile = "3"
+sha2 = "0.11"

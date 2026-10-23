@@ -1,0 +1,59 @@
+# plugin.toml: tells Manta what your plugin is and how to start it.
+# Copy this folder, change `id`, `name` and `repository`, then edit main.js.
+# Reference: docs/plugins.md
+
+# Unique id: lowercase letters, digits, '.', '-', '_' (manta.* is reserved).
+id = "hello-node"
+name = "Hello Node"
+version = "0.1.0"
+description = "Template plugin in plain Node.js: a palette command, a context-menu command and an item-count chip."
+author = "Manta"
+
+# Source, license and the oldest Manta that can run it (shown when installing).
+license = "MIT"
+repository = "https://github.com/web-workers-com/manta/tree/main/examples/plugins/hello-node"
+min_manta_version = "0.3.0"
+
+# What the plugin does, shown in the install/trust dialog. Declarative
+# only (Manta doesn't enforce it), so be honest. Vocabulary: read_files,
+# write_files, network, run_programs, terminal.
+# This one lists local folders to count their items.
+permissions = ["read_files"]
+
+# The protocol version this plugin speaks.
+api_version = 1
+
+# Started with the plugin folder as working directory. Manta adds
+# /opt/homebrew/bin and /usr/local/bin to PATH, so a Homebrew `node` is found.
+command = ["node", "main.js"]
+
+# Informational: shown in Settings › Plugins.
+capabilities = ["chips", "commands"]
+
+# Name and description in Manta's other languages.
+[localized.de]
+name = "Hallo Node"
+description = "Vorlage in reinem Node.js: ein Befehl in der Befehlspalette, einer im Kontextmenü und ein Chip mit der Anzahl der Objekte."
+
+[localized.zh]
+name = "你好 Node"
+description = "纯 Node.js 插件模板：一个命令面板命令、一个右键菜单命令和一个显示项目数量的标签。"
+
+[localized.es]
+name = "Hola Node"
+description = "Plantilla de plugin en Node.js puro: un comando en la paleta, uno en el menú contextual y una etiqueta con el número de ítems."
+
+[localized.fr]
+name = "Bonjour Node"
+description = "Modèle de plug-in en Node.js pur : une commande dans la palette, une dans le menu contextuel et une pastille avec le nombre d’éléments."
+
+[localized.it]
+name = "Ciao Node"
+description = "Modello di plug-in in Node.js puro: un comando nella palette, uno nel menu contestuale e un’etichetta con il numero di elementi."
+
+[localized.ru]
+name = "Привет, Node"
+description = "Шаблон плагина на чистом Node.js: команда в палитре, команда в контекстном меню и метка с числом объектов."
+
+# Commands are registered at runtime (main.js sends `register_commands`
+# with titles in the current language), so none are declared here.

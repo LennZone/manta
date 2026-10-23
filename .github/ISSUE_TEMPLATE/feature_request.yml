@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest an idea or an improvement for Manta
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your idea! Please search the existing issues first, and check the
+        [manual](https://manta-filemanager.com/manual/en/) in case Manta can already do it.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what makes it hard today?
+      placeholder: I'm always frustrated when …
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should Manta behave? Mention menus, shortcuts or settings if you have something specific in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Workarounds you use today, or how other apps (Finder, other file managers) solve it.
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Could this be a plugin?
+      description: Plugins can add badges, path-bar chips, commands, panels and status bar items (see docs/plugins.md).
+      options:
+        - Not sure
+        - "Yes"
+        - "No, it needs a change in Manta itself"
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, mock-ups or links.

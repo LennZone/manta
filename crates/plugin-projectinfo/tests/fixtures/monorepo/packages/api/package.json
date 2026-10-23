@@ -1,0 +1,6 @@
+{
+  "name": "@acme/api",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

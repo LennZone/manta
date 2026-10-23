@@ -1,0 +1,43 @@
+[package]
+name = "manta-updater"
+description = "Self-update engine for Manta: signed update feed, download, verification and bundle swap (no UI)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+build = "build.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+log.workspace = true
+dirs.workspace = true
+# Same major as the S3 backend in manta-vfs (one HTTP stack in the binary).
+ureq = { version = "3.4", default-features = false, features = ["rustls"] }
+semver = { version = "1", features = ["serde"] }
+ed25519-dalek = "2"
+sha2 = "0.10"
+base64 = "0.22"
+hex = "0.4"
+getrandom = "0.3"
+libc = "0.2"
+tempfile = "3"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSString", "NSURL", "NSError", "NSFileManager"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[[bin]]
+name = "manta-update-keygen"
+path = "src/bin/keygen.rs"
+
+[[bin]]
+name = "manta-update-sign"
+path = "src/bin/sign.rs"
+
+[[bin]]
+name = "manta-update-selftest"
+path = "src/bin/selftest.rs"

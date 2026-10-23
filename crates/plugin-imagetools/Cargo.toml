@@ -1,0 +1,25 @@
+[package]
+name = "manta-plugin-imagetools"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+manta-plugin.workspace = true
+egui.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+base64 = "0.22"
+sha2 = "0.11"
+kamadak-exif = "0.6"
+regex = "1"
+miniz_oxide = "0.8"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "webp"] }
+
+[dev-dependencies]
+tempfile = "3"
+egui_kittest = { version = "0.37", features = ["wgpu", "snapshot"] }
+egui-wgpu = "0.37"

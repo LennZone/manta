@@ -1,0 +1,26 @@
+version: '3'
+
+vars:
+  APP: acme
+
+tasks:
+  default:
+    cmds:
+      - task --list
+  build:
+    desc: Build the app
+    cmds:
+      - go build ./...
+  test:
+    desc: "Run the tests"
+    deps: [build]
+    cmds:
+      - go test ./...
+  "db:reset":
+    desc: Drop and recreate the database
+    cmds:
+      - ./scripts/reset-db.sh
+  internal-helper:
+    internal: true
+    cmds:
+      - echo hi

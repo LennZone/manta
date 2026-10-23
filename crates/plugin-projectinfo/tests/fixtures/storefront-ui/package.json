@@ -1,0 +1,20 @@
+{
+  "name": "@acme/storefront-ui",
+  "version": "2.4.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.4.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "storybook": "storybook dev -p 6006",
+    "format": "prettier --write src",
+    "clean": "rm -rf dist node_modules/.vite"
+  }
+}

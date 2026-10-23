@@ -1,0 +1,20 @@
+[package]
+name = "manta-plugin-projectinfo"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+manta-plugin.workspace = true
+egui.workspace = true
+log.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# Scripts are listed in file order.
+toml = { workspace = true, features = ["preserve_order"] }
+regex = "1"
+yaml-rust2 = "0.10"
+
+[dev-dependencies]
+tempfile = "3"

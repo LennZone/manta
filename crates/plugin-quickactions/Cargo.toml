@@ -1,0 +1,16 @@
+[package]
+name = "manta-plugin-quickactions"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+manta-plugin.workspace = true
+egui.workspace = true
+log.workspace = true
+serde_json.workspace = true
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3"

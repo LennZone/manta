@@ -1,0 +1,70 @@
+[package]
+name = "manta"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "manta"
+path = "src/main.rs"
+
+[dependencies]
+manta-core.workspace = true
+manta-vfs.workspace = true
+manta-ops.workspace = true
+serde.workspace = true
+chrono.workspace = true
+log.workspace = true
+eframe = "0.37"
+egui_extras = { version = "0.37", features = ["image", "gif", "webp"] }
+# Chinese UI font lookup (already part of eframe's system font fallback).
+egui_system_font_provider = "0.37"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "webp"] }
+serde_json = "1"
+sys-locale = "0.3"
+dirs = "6"
+open = "5"
+env_logger = "0.11"
+# Live folder refresh (FSEvents on macOS), same major as the Git plugin.
+notify = "8"
+rfd.workspace = true
+tempfile.workspace = true
+manta-plugin.workspace = true
+manta-plugin-git.workspace = true
+manta-plugin-terminal.workspace = true
+manta-plugin-foldersize.workspace = true
+manta-plugin-rename.workspace = true
+manta-plugin-markdown.workspace = true
+manta-plugin-quickactions.workspace = true
+manta-plugin-projectinfo.workspace = true
+manta-plugin-duplicates.workspace = true
+manta-plugin-imagetools.workspace = true
+manta-plugin-sysstats.workspace = true
+manta-updater.workspace = true
+
+# Native Quick Look (QLPreviewPanel) and native drag & drop (native_drag.rs).
+# Versions match the winit used by eframe.
+[target.'cfg(target_os = "macos")'.dependencies]
+# Server passwords of favorites (secrets.rs). Same major as manta-vfs.
+security-framework = "3"
+objc2 = "0.6.3"
+block2 = "0.6.2"
+objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSString", "NSURL", "NSObject", "NSArray", "NSError", "NSFileManager", "NSGeometry", "NSOperation", "NSDictionary", "NSValue"] }
+objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "block2", "NSApplication", "NSEvent", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSPanel", "NSResponder", "NSWindow", "NSView", "NSDragging", "NSDraggingItem", "NSDraggingSession", "NSFilePromiseProvider", "NSPasteboard", "NSImage", "NSWorkspace"] }
+objc2-quick-look-ui = { version = "0.3.2", default-features = false, features = ["std", "QLPreviewItem", "QLPreviewPanel", "objc2-app-kit"] }
+# Thumbnails of PDFs, videos and other documents (the Icons / Columns /
+# Gallery views), made on background threads.
+objc2-quick-look-thumbnailing = { version = "0.3.2", default-features = false, features = ["std", "block2", "objc2-core-graphics", "objc2-core-foundation", "QLThumbnailGenerationRequest", "QLThumbnailGenerator", "QLThumbnailRepresentation"] }
+objc2-core-graphics = { version = "0.3.2", default-features = false, features = ["std", "CGBitmapContext", "CGContext", "CGImage", "CGColorSpace"] }
+objc2-core-foundation = { version = "0.3.2", default-features = false, features = ["std", "CFCGTypes"] }
+
+[dev-dependencies]
+egui_kittest = { version = "0.37", features = ["wgpu", "snapshot", "eframe"] }
+egui-wgpu = "0.37"
+tempfile = "3"
+manta-ops = { workspace = true, features = ["testing"] }
+zip.workspace = true
+tar.workspace = true
+# Manual screenshots (`render_manual_images`): 256-colour PNGs.
+png = "0.18"
+color_quant = "1.1"

@@ -1,0 +1,19 @@
+[package]
+name = "manta-plugin-protocol"
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+description = "Message types and a tiny stdio loop for writing Manta plugins in Rust (JSON lines over stdin/stdout, api_version 1)."
+repository = "https://github.com/web-workers-com/manta"
+readme = "README.md"
+keywords = ["manta", "plugin", "file-manager", "json-lines"]
+categories = ["api-bindings"]
+
+# Deliberately standalone: no dependency on Manta's internal crates, so
+# third-party plugins can depend on it via git:
+#   manta-plugin-protocol = { git = "https://github.com/web-workers-com/manta" }
+# The crate version follows the protocol: 1.x speaks api_version 1.
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

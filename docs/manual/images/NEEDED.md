@@ -1,0 +1,75 @@
+# Screenshots needed
+
+Every image the manual references, by file name.
+
+**Generated images** (✅ below) come from the synthetic test fixtures and are written by the `render_manual_images*` tests in all seven UI languages (`de`, `en`, `zh-Hans`, `es`, `fr`, `it`, `ru`; the UI language is switched per run, Chinese with the PingFang SC font like the app), light theme, cropped, scaled to at most 1600 px wide and stored as 256-colour PNGs:
+
+```sh
+MANTA_MANUAL_IMAGES=1 cargo test -p manta render_manual_images -- --test-threads=1
+# only some languages:
+MANTA_MANUAL_IMAGES=1 MANTA_MANUAL_LANGS=zh-Hans,ru cargo test -p manta render_manual_images -- --test-threads=1
+```
+
+Dark variants (`NAME-dark.png`) aren't generated yet; the help window shows the light image in dark mode until they exist. Images that are still missing appear in the help window as a quiet placeholder with the alt text. Each one is needed in **every language** (`de/NAME.png`, `en/NAME.png`, `zh-Hans/NAME.png`, …, see `../README.md`) unless noted; the column "de/en" says "both" for those. A language without its own copy of an image shows the English one (then any other language's). "Theme" says which appearance to render; "both" means a light and a dark variant (`NAME.png` and `NAME-dark.png`), otherwise light only.
+
+Window size for full-window shots: 1440 × 900 pt at 2x, accent colour Blue, default font size. Use neutral sample data (no real names, hosts or e-mail addresses): a home folder `anna`, a project `manta-demo`, a server `files.example.com`.
+
+| File | Chapter | What it should show | Theme | de/en | Status |
+|---|---|---|---|---|---|
+| `overview-two-panes.png` | 01 | Main window: toolbar, sidebar (Favorites, Locations, Devices, Servers), two panes with a few folders and files, status bar. | both | both | ✅ generated (light) |
+| `dmg-window.png` | 01 | The DMG window: Manta icon, arrow, Applications folder. | light | one (no text) | — not app UI (packaging, `scripts/build-release.sh`); take by hand |
+| `default-file-manager-prompt.png` | 01 | The "Use Manta as your default file manager?" sheet with Set as Default / Not Now / Don't Ask Again. | light | both | ✅ generated (light) |
+| `command-palette.png` | 01 | Command palette open with "new fo" typed, matching rows with shortcuts. | both | both | ✅ generated (light) |
+| `panes-three.png` | 02 | Three panes, the middle one active (accent outline). | light | both | ✅ generated (light) |
+| `panes-target-badge.png` | 02 | Three panes; active pane with a selection; target pane with faint outline and → badge in its path bar (tooltip "Copy and Move (F5 / F6) go to this pane" visible). | light | both | ✅ generated (light) |
+| `views-overview.png` | 03 | 2×2 collage of one folder of photos in Icons, List, Columns and Gallery view, path bar with the View switcher visible in each. | light | both | — 2×2 collage; compose from the view-* images by hand |
+| `view-options.png` | 03 | Close-up of a path bar in Icons view: View switcher (Icons selected) and the open View Options popover (Sort By Name, Ascending, Icon Size slider). | both | both | — popover open; not generated yet |
+| `view-list.png` | 03 | List view sorted by Size (descending), Folder Sizes values incl. one "≥ … GB" still counting. | light | both | ✅ generated (light) |
+| `view-columns.png` | 03 | Column view three levels deep, a JPEG selected so the preview column shows the thumbnail and Information (Kind, Size, Modified, Permissions). | light | both | ✅ generated (light) |
+| `view-gallery.png` | 03 | Gallery view of a photo folder: large photo, name and "Kind · size · date" line, filmstrip with the selected item ringed. | both | both | ✅ generated (light) |
+| `path-bar.png` | 04 | Close-up of a path bar on an SFTP server: location chip ("SFTP · user@host") with the "Back to Local" arrow, breadcrumb, a Git chip and a Project Info chip, filter field. | both | both | — needs a connected SFTP pane with Git and Project Info chips; not generated yet |
+| `go-to-path.png` | 04 | Go to Path popup with `~/Do` typed, "Matching folders" and "Recent" lists, footer with key hints. | light | both | — `~/Do` lists the real home folder; needs a fake home first |
+| `copy-dialog.png` | 05 | Copy sheet for 3 items with 3 panes: From, To picker, "If an item already exists" options. | light | both | ✅ generated (light) |
+| `transfers-panel.png` | 05 | Transfers panel with one running copy (progress, speed, time left, pause/stop icons) and one finished job. | light | both | ✅ generated (light) |
+| `transfers-paused-waiting.png` | 05 | Transfers panel with the "No internet connection" banner, one job "Paused · 1.2 GB of 3.0 GB", one "Waiting for connection … (attempt 3, next in 8 s)" with Try Again Now icon, header buttons Pause All / Resume All. | light | both | ✅ generated (light) |
+| `resume-prompt.png` | 05 | Launch prompt "Resume interrupted transfers?" with two rows (one "needs files.example.com (SFTP)"), the explanatory text, Discard / Resume buttons. | light | both | ✅ generated (light) |
+| `quick-look.png` | 06 | Apple Quick Look panel showing a PDF over a pane. | light | both | — Apple's QLPreviewPanel is not drawn by egui; take by hand |
+| `preview-builtin.png` | 06 | Built-in preview window with a text file from an SFTP server. | light | both | ✅ generated (light) |
+| `sidebar.png` | 07 | Sidebar with Favorites (incl. a server favorite), Locations, Devices, Servers (one connected), Containers (a Compose group), Cloud. Cloud is built in now. | both | both | ✅ generated (light) |
+| `favorites-drag.png` | 07 | Two folders being dragged onto Favorites: highlighted section, insertion line with ring, "Add 2 folders to Favorites" badge at the pointer. | light | both | — needs a drag session in progress; not generated yet |
+| `connect-sftp.png` | 08 | Connect to Server sheet, SFTP, Sign in with "Key File", Add to Favorites on. | light | both | ✅ generated (light) |
+| `connect-ftps-data-channel.png` | 08 | Connect sheet, FTPS, Data channel segmented control with Automatic selected and its note. | light | both | ✅ generated (light) |
+| `connect-s3.png` | 08 | Connect sheet, S3, Provider "Cloudflare R2" with the Account ID field. | light | both | ✅ generated (light) |
+| `connect-container.png` | 08 | Connect sheet, Container, Docker, list of containers (one stopped, read-only). | light | both | ✅ generated (light) |
+| `cloud-sidebar-badges.png` | 09 | Cloud section in the sidebar (iCloud Drive, Google Drive, OneDrive) and a Google Drive folder with "only in cloud", "downloading" and downloaded files; context menu with Download Now / Remove Download. Built in now; `render_cloud` (crates/app/src/cloud_ux_tests.rs) renders German light/dark versions. | both | both | ✅ generated (light) |
+| `archive-as-folder.png` | 10 | A ZIP open as a folder: breadcrumb `Downloads › backup.zip › docs`, lock chip "read-only archive". | light | both | ✅ generated (light) |
+| `compress-sheet.png` | 10 | Compress sheet: format zip, name, Level slider, "Exclude .DS_Store and __MACOSX" on. | light | both | ✅ generated (light) |
+| `terminal.png` | 11 | A pane with the terminal below it, showing a `cd` and an echoed `cp -R` file action with "done". | dark | both | — needs the terminal plugin with a real shell (pty); take by hand |
+| `git-panel.png` | 12 | File list with Git badges (modified, untracked, staged) and the Git panel with Staged/Changes groups and a commit message. | both | both | — needs a Git repository fixture with the Git plugin; not generated yet |
+| `compare-sync-ab.png` | 13 | Compare & Sync with three panes: cards "Pane A" / "Pane B" with the pane pop-up open ("1 · manta-demo", "2 · Downloads  (B)", "3 · …"), statuses "Only in A", "B newer"; behind it a pane path bar with the A/B buttons. | light | both | — pane pop-up open in the A/B picker; not generated yet |
+| `compare-sync.png` | 13 | Compare & Sync window, two panes, status legend, rows with several statuses, direction →, "Sync N Items" button. | light | both | ✅ generated (light) |
+| `settings-plugins.png` | 14 | Settings → Plugins with the Built-in list. | light | both | ✅ generated (light) |
+| `disk-usage.png` | 14 | Disk Usage panel: treemap plus "Largest Items". | both | both | — not generated yet (renders exist in `i18n_plugin_ux_tests/disk_usage.rs`) |
+| `batch-rename.png` | 14 | Batch Rename sheet with two rules (Find & Replace, Numbering) and the live preview with highlights. | light | both | ✅ generated (light) |
+| `project-info.png` | 14 | Project panel for a Laravel demo project: header tags, buttons, Recent, Artisan and Composer sections. | light | both | ✅ generated (light) |
+| `image-tools.png` | 14 | Image panel with a photo: dimensions, colour profile, EXIF camera section, GPS warning. | light | both | ✅ generated (light) |
+| `duplicates.png` | 14 | Duplicates panel after a scan: summary (groups, duplicate files, reclaimable) and two groups with "Kept". | light | both | ✅ generated (light) |
+| `plugin-confirm.png` | 15 | "Turn on “Hello Python”?" confirmation showing Runs / In. | light | both | ✅ generated (light) |
+| `settings-general.png` | 16 | Settings → General, top part (Appearance, Language, Default file manager, Files). | both | both | ✅ generated (light) |
+| `software-update.png` | 17 | Software Update window: "Manta 0.2.0 is available — you have 0.1.3", What's new, the three buttons. | light | both | ✅ generated (light) |
+
+## Status per language
+
+All 30 generated images (✅ above) exist in every language; the hand-made and not-yet-generated ones (— above) are missing in all of them.
+
+| Language | Folder | Generated | Known problems in the renders (UI, not the crop) |
+|---|---|---|---|
+| German | `de/` | 30/30 ✅ | — |
+| English | `en/` | 30/30 ✅ | — |
+| Simplified Chinese | `zh-Hans/` | 30/30 ✅ (PingFang SC, no tofu) | — |
+| Spanish | `es/` | 30/30 ✅ | — |
+| French | `fr/` | 30/30 ✅ | — |
+| Italian | `it/` | 30/30 ✅ | — |
+| Russian | `ru/` | 30/30 ✅ | — |
+
+Sample data that stays English in every language on purpose (fixtures, not UI strings): the job titles in `transfers-panel.png`, the release notes in `software-update.png`, the README text in `preview-builtin.png`.

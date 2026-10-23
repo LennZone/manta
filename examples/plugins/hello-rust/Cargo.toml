@@ -1,0 +1,20 @@
+[package]
+name = "hello-rust"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+description = "Template Manta plugin in Rust."
+
+# An empty workspace table: this crate is NOT part of the Manta repo's
+# workspace, so `cargo build` here builds just this plugin (into ./target).
+[workspace]
+
+[dependencies]
+# Message types and the stdin/stdout loop (api_version 1). The path works
+# inside the Manta repo; after copying this template elsewhere use:
+#   manta-plugin-protocol = { git = "https://github.com/web-workers-com/manta" }
+manta-plugin-protocol = { path = "../../../crates/plugin-protocol" }
+
+[profile.release]
+strip = true # a smaller binary to ship

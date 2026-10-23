@@ -1,0 +1,30 @@
+set dotenv-load
+alias b := build
+
+version := "1.2.0"
+
+# List the recipes
+default:
+    @just --list
+
+# Build the site
+build:
+    npm run build
+
+[doc('Serve on a port')]
+serve port='8000':
+    python3 -m http.server {{port}}
+
+# Deploy to an environment
+deploy env:
+    ./deploy.sh {{env}}
+
+[private]
+helper:
+    echo hidden
+
+_secret:
+    echo hidden too
+
+@lint *files:
+    eslint {{files}}

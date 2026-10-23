@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Laravel Sail (stub for the fixture)
+echo "sail $*"

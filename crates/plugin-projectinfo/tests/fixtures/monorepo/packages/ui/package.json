@@ -1,0 +1,7 @@
+{
+  "name": "@acme/ui",
+  "scripts": {
+    "build": "tsup src/index.ts",
+    "test": "vitest"
+  }
+}

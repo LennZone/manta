@@ -1,0 +1,84 @@
+# plugin.toml: tells Manta what your plugin is and how to start it.
+# Copy this folder, change `id` and `name`, and start hacking on main.py.
+
+# Unique id: lowercase letters, digits, '.', '-', '_'. Used as the folder
+# name when installed and as the key for the on/off state.
+id = "hello-python"
+name = "Hello Python"
+version = "0.2.0"
+description = "Example plugin: flags large files, counts items and shows file info."
+author = "Manta"
+
+# Source, license and the oldest Manta that can run it (shown when installing).
+license = "MIT"
+repository = "https://github.com/web-workers-com/manta/tree/main/examples/plugins/hello-python"
+min_manta_version = "0.3.0"
+
+# What the plugin does, shown in the install/trust dialog. Declarative
+# only (Manta doesn't enforce it), so be honest. Vocabulary: read_files,
+# write_files, network, run_programs, terminal.
+# This one lists local folders and reads file sizes and dates.
+permissions = ["read_files"]
+
+# The protocol version this plugin speaks. Manta refuses plugins written
+# for a version it doesn't know.
+api_version = 1
+
+# Program and arguments. It runs with the plugin folder as working
+# directory, so relative paths like "main.py" or "./run.sh" just work.
+# Any language works: the plugin only reads and writes JSON lines.
+command = ["python3", "main.py"]
+
+# Informational: shown in Settings → Plugins.
+capabilities = ["decorations", "chips", "commands", "panels"]
+
+# Commands can be declared here (static) or sent at runtime with a
+# `register_commands` message (which replaces these).
+
+# Appears in the command palette and in the file list's context menu.
+# Name and description in German (Settings, menus).
+[localized.de]
+name = "Hallo Python"
+description = "Beispiel-Plugin: markiert große Dateien, zählt Objekte und zeigt Dateiinformationen."
+
+[localized.zh]
+name = "你好 Python"
+description = "示例插件：标记大文件、统计项目数量并显示文件信息。"
+
+[localized.es]
+name = "Hola Python"
+description = "Plugin de ejemplo: marca los archivos grandes, cuenta los ítems y muestra información de los archivos."
+
+[localized.fr]
+name = "Bonjour Python"
+description = "Plug-in d’exemple : signale les fichiers volumineux, compte les éléments et affiche des informations sur les fichiers."
+
+[localized.it]
+name = "Ciao Python"
+description = "Plug-in di esempio: segnala i file di grandi dimensioni, conta gli elementi e mostra le informazioni sui file."
+
+[localized.ru]
+name = "Привет, Python"
+description = "Пример плагина: отмечает большие файлы, считает объекты и показывает сведения о файлах."
+
+[[commands]]
+id = "file-info"
+title = "Show File Info"
+context = "file_context_menu"
+
+# Appears in the command palette only. `shortcut` binds a global key:
+# ⌃ ⌥ ⇧ ⌘ followed by one key.
+[[commands]]
+id = "say-hello"
+title = "Say Hello"
+context = "palette"
+shortcut = "⌃⌥H"
+
+# A panel the plugin fills with declarative blocks (`set_panel_content`).
+# placement: "pane_bottom" (one per pane, below the file list) or
+# "right_sidebar" (one, on the right side of the window).
+[[panels]]
+id = "file-info"
+title = "File Info"
+placement = "right_sidebar"
+default_open = false

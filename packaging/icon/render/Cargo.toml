@@ -1,0 +1,15 @@
+# Standalone SVG -> PNG rasteriser for the app icon and DMG background.
+# Not a workspace member (own [workspace] table) so it never affects app builds.
+[package]
+name = "manta-icon-render"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[workspace]
+
+[dependencies]
+resvg = { version = "=0.45.1", default-features = false }
+
+[profile.release]
+opt-level = 3

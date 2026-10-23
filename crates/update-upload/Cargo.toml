@@ -1,0 +1,18 @@
+[package]
+name = "manta-update-upload"
+description = "Uploads Manta release files (update ZIP, signature, feed) over FTPS with Manta's own FTP backend"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+manta-core.workspace = true
+manta-vfs.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+
+[[bin]]
+name = "manta-update-upload"
+path = "src/main.rs"

@@ -1,0 +1,362 @@
+{
+  "lang": "es",
+  "chapters": {
+    "erste-schritte": {
+      "title": "Primeros pasos",
+      "keywords": [
+        "instalar",
+        "instalación",
+        "dmg",
+        "aplicaciones",
+        "gatekeeper",
+        "abrir igualmente",
+        "permisos",
+        "privacidad",
+        "acceso total al disco",
+        "gestor de archivos predeterminado",
+        "paleta de comandos",
+        "rustlift",
+        "primer arranque",
+        "requisitos"
+      ]
+    },
+    "bereiche-tabs": {
+      "title": "Paneles y pestañas",
+      "keywords": [
+        "panel",
+        "dividir",
+        "cerrar panel",
+        "panel activo",
+        "panel de destino",
+        "otro panel",
+        "anchura",
+        "separador",
+        "pestaña",
+        "nueva pestaña",
+        "sesión",
+        "restaurar"
+      ]
+    },
+    "ansichten": {
+      "title": "Visualizaciones",
+      "keywords": [
+        "visualización",
+        "vista",
+        "iconos",
+        "lista",
+        "columnas",
+        "galería",
+        "ordenar",
+        "miniaturas",
+        "como iconos",
+        "como lista",
+        "como columnas",
+        "como galería",
+        "opciones de visualización",
+        "tamaño de los iconos",
+        "recordar la visualización por carpeta"
+      ]
+    },
+    "navigation": {
+      "title": "Navegación",
+      "keywords": [
+        "barra de ruta",
+        "ir a la ruta",
+        "editar ruta",
+        "local",
+        "historial",
+        "atrás",
+        "adelante",
+        "seleccionar escribiendo",
+        "filtrar",
+        "archivos ocultos",
+        "archivos con punto",
+        "actualizar",
+        "abrir",
+        "carpeta contenedora"
+      ]
+    },
+    "dateien": {
+      "title": "Gestionar archivos",
+      "keywords": [
+        "copiar",
+        "mover",
+        "arrastrar y soltar",
+        "renombrar",
+        "eliminar",
+        "papelera",
+        "transferencias",
+        "pausar",
+        "reanudar",
+        "manta-part",
+        "archivo parcial",
+        "reconectar",
+        "devolver",
+        "eliminar inmediatamente",
+        "vaciar papelera"
+      ]
+    },
+    "schnellansicht": {
+      "title": "Vista Rápida y vista previa",
+      "keywords": [
+        "vista rápida",
+        "vista previa",
+        "previsualizar",
+        "barra espaciadora",
+        "vista previa integrada",
+        "imagen",
+        "texto",
+        "⌘y"
+      ]
+    },
+    "seitenleiste": {
+      "title": "Favoritos y barra lateral",
+      "keywords": [
+        "favoritos",
+        "barra lateral",
+        "ubicaciones",
+        "dispositivos",
+        "servidores",
+        "contenedores",
+        "añadir a favoritos",
+        "quitar de favoritos",
+        "favorito de servidor",
+        "⌃⌘T",
+        "llavero",
+        "nube",
+        "papelera",
+        "vaciar papelera",
+        "acceso total al disco"
+      ]
+    },
+    "verbindungen": {
+      "title": "Conexiones",
+      "keywords": [
+        "servidor",
+        "conectarse al servidor",
+        "sftp",
+        "ftp",
+        "ftps",
+        "canal de datos",
+        "s3",
+        "bucket",
+        "docker",
+        "kubernetes",
+        "contenedor",
+        "contraseña",
+        "llavero",
+        "known_hosts",
+        "clave del servidor"
+      ]
+    },
+    "cloud": {
+      "title": "Almacenamiento en la nube",
+      "keywords": [
+        "nube",
+        "icloud",
+        "google drive",
+        "onedrive",
+        "dropbox",
+        "descargar ahora",
+        "eliminar descarga",
+        "sincronizar",
+        "insignias",
+        "liberar espacio",
+        "google drive para ordenadores",
+        "solo en la nube",
+        "cliente oauth",
+        "cloudstorage"
+      ]
+    },
+    "archive": {
+      "title": "Archivos comprimidos",
+      "keywords": [
+        "archivo comprimido",
+        "zip",
+        "tar",
+        "extraer",
+        "descomprimir",
+        "comprimir",
+        "extraer aquí",
+        "gz",
+        "zst",
+        "solo lectura"
+      ]
+    },
+    "terminal": {
+      "title": "Terminal",
+      "keywords": [
+        "terminal",
+        "shell",
+        "consola",
+        "cd",
+        "seguir carpeta",
+        "ssh",
+        "docker exec",
+        "kubectl exec",
+        "acciones de archivo",
+        "tecla meta",
+        "tecla opción"
+      ]
+    },
+    "git": {
+      "title": "Git",
+      "keywords": [
+        "git",
+        "rama",
+        "commit",
+        "preparar",
+        "quitar",
+        "diff",
+        "conflicto",
+        "fusión",
+        "merge",
+        "estado",
+        "repositorio"
+      ]
+    },
+    "vergleichen": {
+      "title": "Comparar y sincronizar",
+      "keywords": [
+        "comparar",
+        "sincronizar",
+        "sincronización",
+        "reflejar",
+        "panel a",
+        "panel b",
+        "gana el archivo más reciente",
+        "eliminar sobrantes",
+        "solo en a",
+        "solo en b",
+        "diferencias",
+        "tres paneles"
+      ]
+    },
+    "plugins": {
+      "title": "Plugins integrados",
+      "keywords": [
+        "plugins",
+        "tamaños de carpeta",
+        "uso del disco",
+        "renombrar en lote",
+        "acciones rápidas",
+        "actions.json",
+        "info del proyecto",
+        "markdown",
+        "herramientas de imagen",
+        "exif",
+        "duplicados",
+        "mapa de árbol",
+        "carga del sistema",
+        "cpu",
+        "gpu",
+        "ram",
+        "memoria",
+        "monitor de actividad",
+        "barra de estado"
+      ]
+    },
+    "eigene-plugins": {
+      "title": "Tus propios plugins",
+      "keywords": [
+        "instalar plugin",
+        "plugin.toml",
+        "desarrollar",
+        "programar",
+        "seguridad",
+        "registro",
+        "hello python",
+        "plugin externo"
+      ]
+    },
+    "einstellungen": {
+      "title": "Ajustes",
+      "keywords": [
+        "ajustes",
+        "preferencias",
+        "apariencia",
+        "modo oscuro",
+        "color de acentuación",
+        "idioma",
+        "español",
+        "actualizaciones",
+        "settings.json",
+        "miniaturas del servidor",
+        "recordar la visualización por carpeta",
+        "nube",
+        "acerca de manta",
+        "donativo",
+        "licencias"
+      ]
+    },
+    "updates": {
+      "title": "Actualizaciones",
+      "keywords": [
+        "actualización",
+        "actualizar",
+        "actualización de software",
+        "beta",
+        "canal",
+        "firma",
+        "privacidad",
+        "dirección ip",
+        "buscar actualizaciones"
+      ]
+    },
+    "tastenkuerzel": {
+      "title": "Atajos de teclado",
+      "keywords": [
+        "atajos de teclado",
+        "atajos",
+        "teclado",
+        "teclas",
+        "combinaciones de teclas",
+        "diferencias con finder",
+        "tecla fn",
+        "como iconos",
+        "nueva pestaña",
+        "transferencias",
+        "vaciar papelera",
+        "⇧⌘⌫"
+      ]
+    },
+    "fehlerbehebung": {
+      "title": "Solución de problemas",
+      "keywords": [
+        "error",
+        "problema",
+        "registro",
+        "gatekeeper",
+        "acceso bloqueado",
+        "permisos",
+        "contenedor sin shell",
+        "restablecer",
+        "transferencia atascada",
+        "esperando conexión",
+        "sin conexión",
+        "manta-part",
+        "clave cambiada",
+        "servidor desconocido",
+        "llavero"
+      ]
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "keywords": [
+        "preguntas frecuentes",
+        "faq",
+        "papelera",
+        "contraseñas",
+        "google drive",
+        "sustituir finder",
+        "se cae la wi-fi",
+        "interrumpido",
+        "manta-part",
+        "llavero",
+        "donativo",
+        "apoyar",
+        "licencias"
+      ]
+    }
+  }
+}

@@ -1,0 +1,90 @@
+name: Bug report
+description: Something in Manta doesn't work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please search the existing issues and the
+        [manual's troubleshooting chapter](https://manta-filemanager.com/manual/en/fehlerbehebung.html) first.
+
+        **Security vulnerabilities** must not be reported here; see [SECURITY.md](https://github.com/web-workers-com/manta/blob/HEAD/SECURITY.md).
+  - type: input
+    id: manta-version
+    attributes:
+      label: Manta version
+      description: Manta → About Manta
+      placeholder: e.g. 0.3.3
+    validations:
+      required: true
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      description: Apple menu → About This Mac
+      placeholder: e.g. macOS 15.6
+    validations:
+      required: true
+  - type: input
+    id: mac-model
+    attributes:
+      label: Mac model and chip
+      placeholder: e.g. MacBook Air (M2)
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where does it happen?
+      multiple: true
+      options:
+        - Local files
+        - SFTP
+        - FTP / FTPS
+        - S3
+        - Docker / Kubernetes
+        - Cloud folders (iCloud Drive, Google Drive, …)
+        - Archives
+        - Terminal
+        - A built-in plugin
+        - An external plugin
+        - Updates
+        - Other
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Click …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happened instead? Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log
+      description: |
+        The relevant lines from `~/Library/Logs/Manta/manta.log` (command palette → "Show Log File in Finder").
+        For more detail, start Manta from the Terminal with
+        `MANTA_LOG=debug /Applications/Manta.app/Contents/MacOS/manta`.
+        The log may contain file and server names; please check it before you share it.
+      render: text
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might help, e.g. the app language, plugins you use, or whether it worked in an earlier version.

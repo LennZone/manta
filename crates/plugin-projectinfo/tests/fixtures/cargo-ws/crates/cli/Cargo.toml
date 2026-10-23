@@ -1,0 +1,14 @@
+[package]
+name = "acme-cli"
+version = "0.3.0"
+edition = "2021"
+description = """
+The command line tool."""
+
+[[bin]]
+name = "acme"
+path = "src/main.rs"
+
+[dependencies]
+acme-core = { path = "../core" }
+anyhow.workspace = true

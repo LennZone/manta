@@ -1,0 +1,25 @@
+[package]
+name = "manta-plugin"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+manta-core.workspace = true
+egui.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+log.workspace = true
+toml.workspace = true
+dirs.workspace = true
+base64 = "0.22"
+# Installing plugins from .zip / .mantaplugin archives (install.rs).
+zip.workspace = true
+# macOS quarantine attribute (install.rs).
+libc = "0.2"
+
+[dev-dependencies]
+tempfile.workspace = true
+# The standalone SDK crate for third-party Rust plugins: checked against
+# the host's types in tests/sdk_compat.rs.
+manta-plugin-protocol.workspace = true
