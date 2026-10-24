@@ -58,15 +58,19 @@ Beim nächsten Start zeigt Manta unten rechts einmal den Hinweis **Manta wurde b
 
 ## Manta lässt sich nicht öffnen (Gatekeeper) {#gatekeeper}
 
-**Problem:** Beim ersten Start meldet macOS „„Manta“ wurde nicht geöffnet“ oder „… kann nicht geöffnet werden, da Apple es nicht auf Schadsoftware überprüfen kann“.
+**Problem:** Beim ersten Start meldet macOS „„Manta“ nicht geöffnet“ („Apple konnte nicht überprüfen, ob „Manta“ frei von Schadsoftware ist …“) oder unter älteren macOS-Versionen „… kann nicht geöffnet werden, da Apple es nicht auf Schadsoftware überprüfen kann“.
 
-**Ursache:** Die Version ist nicht von Apple beglaubigt (notarisiert). macOS blockiert solche Apps beim ersten Start.
+**Ursache:** Manta ist nicht von Apple beglaubigt (notarisiert). macOS blockiert solche Apps beim ersten Start.
 
 **Lösung:**
 
-1. Klicke auf **Fertig**.
-2. Öffne **Systemeinstellungen** → **Datenschutz & Sicherheit**.
-3. Klicke unten bei Manta auf **Dennoch öffnen** und bestätige.
+1. Klicke in der Meldung auf **Fertig** (nicht auf **In den Papierkorb legen**).
+2. Öffne **Systemeinstellungen** → **Datenschutz & Sicherheit** und scrolle zum Abschnitt **Sicherheit**.
+3. Klicke bei „„Manta“ wurde blockiert …“ auf **Dennoch öffnen**, in der Rückfrage noch einmal auf **Dennoch öffnen**, und bestätige mit Passwort oder Touch ID.
+
+![Systemeinstellungen, Datenschutz & Sicherheit: die Taste Dennoch öffnen neben dem Hinweis zu Manta](images/gatekeeper-open-anyway.png)
+
+Fehlt **Dennoch öffnen**, starte Manta noch einmal und schau gleich danach nach – die Taste bleibt nur etwa eine Stunde da. Alle Schritte mit Bildern und den Weg über das Terminal findest du unter [Der erste Start: Gatekeeper](01-erste-schritte.md#gatekeeper).
 
 Vor macOS 15: Rechtsklick (oder Control-Klick) auf Manta im Ordner **Programme** → **Öffnen** → **Öffnen**.
 

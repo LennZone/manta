@@ -12,7 +12,10 @@ Manta 是一款 Mac 文件管理器，可以并排显示多个面板。本章介
 ## 安装 Manta {#installieren}
 
 1. 连按 `Manta-<version>.dmg`。
-2. 在打开的窗口中，将 **Manta** 拖移到 **应用程序** 文件夹。
+2. 在打开的窗口中，将 **Manta** 拖移到 **Applications** 文件夹（即“应用程序”文件夹）。
+
+   ![磁盘映像窗口：Manta 正被拖移到已标出的 Applications 文件夹](images/install-dmg.png)
+
 3. 推出磁盘映像（在访达中点按推出图标）。
 4. 从 **应用程序** 文件夹启动 Manta，例如通过启动台或聚焦。
 
@@ -21,18 +24,30 @@ Manta 是一款 Mac 文件管理器，可以并排显示多个面板。本章介
 
 ## 首次启动：Gatekeeper {#gatekeeper}
 
-如果你的 Manta 副本未经 Apple 公证，macOS 会在首次启动时阻止它，并显示类似“未打开‘Manta’”的信息。这是 macOS 的安全功能（Gatekeeper），而不是 Manta 的错误。
+Manta 未经 Apple 公证，因此 macOS 会在首次启动时阻止它，并显示“未打开‘Manta’”。这是 macOS 的安全功能（Gatekeeper），而不是 Manta 的错误。要仍然打开 Manta（只需执行一次）：
 
-要仍然打开 Manta：
+1. 启动 Manta。macOS 显示“未打开‘Manta’”。点按 **完成**，不要点按 **移到废纸篓**，否则你需要重新下载 Manta。
 
-1. 在信息中点按 **完成**（不要点按“移到废纸篓”）。
-2. 打开 **系统设置** → **隐私与安全性**。
-3. 向下滚动到 **安全性** 部分，那里会显示一条关于 Manta 的提示。
-4. 点按 **仍要打开**，然后使用密码或触控 ID 确认。
+   ![“未打开‘Manta’”信息，带有“完成”和“移到废纸篓”按钮，“完成”已标出](images/gatekeeper-blocked.png)
+
+2. 打开 **系统设置** → **隐私与安全性**，向下滚动到 **安全性** 部分。那里显示“已阻止‘Manta’以保护Mac。”。点按旁边的 **仍要打开**。
+
+   ![系统设置中的“隐私与安全性”，“安全性”部分：Manta 提示旁的“仍要打开”按钮已标出](images/gatekeeper-open-anyway.png)
+
+3. macOS 会再次询问：“打开‘Manta’？”。点按 **仍要打开**，然后使用密码或触控 ID 确认。Manta 随即启动。
+
+   ![“打开‘Manta’？”询问，带有“仍要打开”和“完成”按钮，“仍要打开”已标出](images/gatekeeper-confirm.png)
+
+此后 Manta 会像其他 App 一样启动。Manta 自行安装的更新（[更新](17-updates.md)）无需再次执行此操作。
+
+找不到 **仍要打开**？此按钮只会在尝试启动后出现，并保留约一小时。请再次启动 Manta，点按 **完成**，然后立即查看 **隐私与安全性**。
 
 在 macOS 15 之前的版本中，只需在访达中按住 Control 键点按 Manta，然后选择 **打开** 即可。
 
-此操作只需执行一次。另请参阅[故障排除](19-fehlerbehebung.md#gatekeeper)。
+> [!TIP]
+> **高级用户：** 你也可以在终端中解除阻止，而不使用系统设置：`xattr -dr com.apple.quarantine /Applications/Manta.app`。此命令会移除 Manta 的下载标记（隔离），之后 Manta 启动时不再询问。请仅对你自己从 manta-filemanager.com 或 GitHub 下载的 Manta 执行此操作。
+
+另请参阅[故障排除](19-fehlerbehebung.md#gatekeeper)。
 
 ## macOS 为什么会请求权限 {#berechtigungen}
 

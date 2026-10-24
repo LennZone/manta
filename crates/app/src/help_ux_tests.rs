@@ -470,6 +470,14 @@ fn render_help() {
         h.run_steps(4);
         save_to(&mut h, &dir, &format!("help_images_de_{tname}"));
 
+        // Images inside numbered steps (the Gatekeeper illustrations).
+        app(&mut h).handle_action(
+            &ctx,
+            Action::ShowHelp("01-erste-schritte.md#gatekeeper".into()),
+        );
+        h.run_steps(4);
+        save_to(&mut h, &dir, &format!("help_gatekeeper_de_{tname}"));
+
         app(&mut h).handle_action(
             &ctx,
             Action::ShowHelp(crate::help::THIRD_PARTY_LICENSES.into()),

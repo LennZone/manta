@@ -12,7 +12,10 @@ Manta es un gestor de archivos para Mac con varios paneles uno al lado del otro.
 ## Instalar Manta {#installieren}
 
 1. Haz doble clic en `Manta-<version>.dmg`.
-2. En la ventana que se abre, arrastra **Manta** a la carpeta **Aplicaciones**.
+2. En la ventana que se abre, arrastra **Manta** a la carpeta **Applications** (es la carpeta “Aplicaciones”).
+
+   ![La ventana de la imagen de disco: Manta se arrastra a la carpeta Applications, que aparece marcada](images/install-dmg.png)
+
 3. Expulsa la imagen de disco (haz clic en el icono de expulsión en Finder).
 4. Abre Manta desde la carpeta **Aplicaciones**, por ejemplo con Launchpad o Spotlight.
 
@@ -21,18 +24,30 @@ Manta es un gestor de archivos para Mac con varios paneles uno al lado del otro.
 
 ## El primer arranque: Gatekeeper {#gatekeeper}
 
-Si tu copia de Manta no está notarizada por Apple, macOS bloquea el primer arranque con un mensaje como *No se ha abierto “Manta”*. Es una función de seguridad de macOS (Gatekeeper), no un error de Manta.
+Manta no está notarizada por Apple, así que macOS bloquea el primer arranque con el mensaje *No se ha abierto Manta*. Es una función de seguridad de macOS (Gatekeeper), no un error de Manta. Para abrir Manta de todos modos (solo tienes que hacerlo una vez):
 
-Para abrir Manta de todos modos:
+1. Abre Manta. macOS muestra *No se ha abierto Manta*. Haz clic en **Aceptar**, no en **Trasladar a la Papelera**, o tendrás que volver a descargar Manta.
 
-1. Haz clic en **OK** en el mensaje (no en “Trasladar a la papelera”).
-2. Abre **Ajustes del Sistema** → **Privacidad y seguridad**.
-3. Desplázate hasta la sección **Seguridad**. Ahí aparece un aviso sobre Manta.
-4. Haz clic en **Abrir igualmente** y confirma con tu contraseña o con Touch ID.
+   ![El mensaje No se ha abierto Manta con los botones Aceptar y Trasladar a la Papelera; Aceptar está marcado](images/gatekeeper-blocked.png)
+
+2. Abre **Ajustes del Sistema** → **Privacidad y seguridad** y desplázate hasta la sección **Seguridad**. Ahí pone *Se ha bloqueado Manta para proteger tu Mac.* Haz clic en **Abrir igualmente**, al lado.
+
+   ![Ajustes del Sistema, Privacidad y seguridad, sección Seguridad: el botón Abrir igualmente junto al aviso sobre Manta está marcado](images/gatekeeper-open-anyway.png)
+
+3. macOS vuelve a preguntar: *¿Abrir Manta?* Haz clic en **Abrir igualmente** y confirma con tu contraseña o con Touch ID. Manta se abre.
+
+   ![La pregunta ¿Abrir Manta? con los botones Abrir igualmente y Aceptar; Abrir igualmente está marcado](images/gatekeeper-confirm.png)
+
+A partir de ahora Manta se abre como cualquier otra app. Las actualizaciones que instala Manta ([Actualizaciones](17-updates.md)) no necesitan este paso.
+
+¿No ves **Abrir igualmente**? El botón solo aparece después de intentar abrir la app y se mantiene una hora aproximadamente. Abre Manta otra vez, haz clic en **Aceptar** y mira enseguida en **Privacidad y seguridad**.
 
 En versiones anteriores a macOS 15 basta con hacer Control + clic en Manta en Finder y elegir **Abrir**.
 
-Solo tienes que hacerlo una vez. Consulta también [Solución de problemas](19-fehlerbehebung.md#gatekeeper).
+> [!TIP]
+> **Para usuarios avanzados:** En lugar de usar Ajustes del Sistema, puedes quitar el bloqueo en Terminal: `xattr -dr com.apple.quarantine /Applications/Manta.app`. El comando elimina la marca de descarga (cuarentena) de Manta; después Manta se abre sin preguntar. Hazlo solo con una copia de Manta que hayas descargado tú desde manta-filemanager.com o GitHub.
+
+Consulta también [Solución de problemas](19-fehlerbehebung.md#gatekeeper).
 
 ## Por qué macOS pide permisos {#berechtigungen}
 

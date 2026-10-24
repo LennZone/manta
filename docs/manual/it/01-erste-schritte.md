@@ -12,7 +12,10 @@ Manta è un gestore file per Mac con più pannelli affiancati. Questo capitolo s
 ## Installare Manta {#installieren}
 
 1. Fai doppio clic su `Manta-<version>.dmg`.
-2. Nella finestra che si apre, trascina **Manta** sulla cartella **Applicazioni**.
+2. Nella finestra che si apre, trascina **Manta** sulla cartella **Applications** (è la cartella “Applicazioni”).
+
+   ![La finestra dell’immagine disco: Manta viene trascinato sulla cartella Applications, evidenziata](images/install-dmg.png)
+
 3. Espelli l’immagine disco (fai clic sull’icona di espulsione nel Finder).
 4. Avvia Manta dalla cartella **Applicazioni**, ad esempio con Launchpad o Spotlight.
 
@@ -21,18 +24,30 @@ Manta è un gestore file per Mac con più pannelli affiancati. Questo capitolo s
 
 ## Il primo avvio: Gatekeeper {#gatekeeper}
 
-Se la tua copia di Manta non è autenticata da Apple, macOS blocca il primo avvio con un messaggio come *“Manta” non è stato aperto*. È una funzione di sicurezza di macOS (Gatekeeper), non un errore di Manta.
+Manta non è autenticato da Apple, quindi macOS blocca il primo avvio con il messaggio *Manta non è stata aperta*. È una funzione di sicurezza di macOS (Gatekeeper), non un errore di Manta. Per aprire comunque Manta (basta farlo una volta):
 
-Per aprire comunque Manta:
+1. Avvia Manta. macOS mostra *Manta non è stata aperta*. Fai clic su **Fine**, non su **Sposta nel Cestino**, altrimenti dovrai scaricare di nuovo Manta.
 
-1. Nel messaggio fai clic su **Fine** (non su “Sposta nel Cestino”).
-2. Apri **Impostazioni di Sistema** → **Privacy e sicurezza**.
-3. Scorri fino alla sezione **Sicurezza**. Lì trovi un avviso su Manta.
-4. Fai clic su **Apri comunque** e conferma con la password o con Touch ID.
+   ![Il messaggio Manta non è stata aperta con i pulsanti Fine e Sposta nel Cestino; Fine è evidenziato](images/gatekeeper-blocked.png)
+
+2. Apri **Impostazioni di Sistema** → **Privacy e sicurezza** e scorri fino alla sezione **Sicurezza**. Lì c’è scritto *Il Mac ha bloccato Manta per garantire la sicurezza.* Fai clic su **Apri comunque**, lì accanto.
+
+   ![Impostazioni di Sistema, Privacy e sicurezza, sezione Sicurezza: il pulsante Apri comunque accanto all’avviso su Manta è evidenziato](images/gatekeeper-open-anyway.png)
+
+3. macOS chiede ancora una volta: *Vuoi aprire Manta?* Fai clic su **Apri comunque** e conferma con la password o con Touch ID. Manta si avvia.
+
+   ![La domanda Vuoi aprire Manta? con i pulsanti Apri comunque e Fine; Apri comunque è evidenziato](images/gatekeeper-confirm.png)
+
+D’ora in poi Manta si avvia come qualsiasi altra app. Gli aggiornamenti che Manta installa da solo ([Aggiornamenti](17-updates.md)) non richiedono di ripetere questi passaggi.
+
+Non vedi **Apri comunque**? Il pulsante compare solo dopo un tentativo di avvio e resta disponibile per circa un’ora. Avvia di nuovo Manta, fai clic su **Fine** e guarda subito in **Privacy e sicurezza**.
 
 Nelle versioni precedenti a macOS 15 basta fare clic su Manta nel Finder tenendo premuto Ctrl e scegliere **Apri**.
 
-Devi farlo una sola volta. Vedi anche [Risoluzione dei problemi](19-fehlerbehebung.md#gatekeeper).
+> [!TIP]
+> **Per utenti esperti:** invece di usare Impostazioni di Sistema puoi togliere il blocco nel Terminale: `xattr -dr com.apple.quarantine /Applications/Manta.app`. Il comando rimuove da Manta il contrassegno di download (quarantena); dopo Manta si avvia senza chiedere. Fallo solo con una copia di Manta che hai scaricato tu da manta-filemanager.com o da GitHub.
+
+Vedi anche [Risoluzione dei problemi](19-fehlerbehebung.md#gatekeeper).
 
 ## Perché macOS chiede le autorizzazioni {#berechtigungen}
 

@@ -58,17 +58,21 @@ Au prochain lancement, Manta affiche une seule fois un avis en bas à droite : 
 
 ## Manta ne s’ouvre pas (Gatekeeper) {#gatekeeper}
 
-**Problème :** au premier lancement, macOS affiche « “Manta” n’a pas été ouvert » ou « … ne peut pas être ouvert, car Apple ne peut pas vérifier qu’il ne contient pas de logiciel malveillant ».
+**Problème :** au premier lancement, macOS affiche « Élément « Manta » non ouvert » (« Apple n’a pas pu confirmer que « Manta » ne contenait pas de logiciel malveillant… ») ou, sur les anciennes versions de macOS, « … ne peut pas être ouvert, car Apple ne peut pas vérifier qu’il ne contient pas de logiciel malveillant ».
 
-**Cause :** cette copie n’est pas notariée par Apple. macOS bloque ces apps au premier lancement.
+**Cause :** Manta n’est pas notarié par Apple. macOS bloque ces apps au premier lancement.
 
-**Solution :**
+**Solution :**
 
-1. Cliquez sur **Terminé**.
-2. Ouvrez **Réglages Système** → **Confidentialité et sécurité**.
-3. En bas, cliquez sur **Ouvrir quand même** à côté de Manta et confirmez.
+1. Cliquez sur **Terminé** dans le message (et non sur **Placer dans la corbeille**).
+2. Ouvrez **Réglages Système** → **Confidentialité et sécurité** et faites défiler jusqu’à la section **Sécurité**.
+3. Cliquez sur **Ouvrir quand même** à côté de « « Manta » a été bloqué… », de nouveau sur **Ouvrir quand même** quand macOS le demande, puis confirmez avec votre mot de passe ou Touch ID.
 
-Avant macOS 15 : clic droit (ou Contrôle-clic) sur Manta dans le dossier **Applications** → **Ouvrir** → **Ouvrir**.
+![Réglages Système, Confidentialité et sécurité : le bouton Ouvrir quand même à côté de la remarque sur Manta](images/gatekeeper-open-anyway.png)
+
+S’il n’y a pas de bouton **Ouvrir quand même**, relancez Manta et regardez juste après : le bouton ne reste qu’environ une heure. Toutes les étapes en images, et la méthode par Terminal, se trouvent dans [Le premier lancement : Gatekeeper](01-erste-schritte.md#gatekeeper).
+
+Avant macOS 15 : clic droit (ou Contrôle-clic) sur Manta dans le dossier **Applications** → **Ouvrir** → **Ouvrir**.
 
 ## « macOS a bloqué l’accès » {#berechtigungen}
 

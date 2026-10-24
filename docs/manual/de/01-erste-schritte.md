@@ -12,7 +12,10 @@ Manta ist ein Dateimanager für den Mac mit mehreren Bereichen nebeneinander. Di
 ## So installierst du Manta {#installieren}
 
 1. Öffne die Datei `Manta-<Version>.dmg` per Doppelklick.
-2. Im Fenster, das sich öffnet, ziehst du **Manta** auf den Ordner **Programme**.
+2. Im Fenster, das sich öffnet, ziehst du **Manta** auf den Ordner **Applications** (das ist der Ordner „Programme“).
+
+   ![Das Fenster des Disk-Images: Manta wird auf den Ordner Applications gezogen, der Ordner ist markiert](images/install-dmg.png)
+
 3. Wirf das Disk-Image aus (im Finder auf das Auswerfen-Symbol klicken).
 4. Starte Manta aus dem Ordner **Programme**, z. B. über Launchpad oder Spotlight.
 
@@ -21,18 +24,30 @@ Manta ist ein Dateimanager für den Mac mit mehreren Bereichen nebeneinander. Di
 
 ## Der erste Start: Gatekeeper {#gatekeeper}
 
-Ist deine Manta-Version nicht von Apple beglaubigt (notarisiert), blockiert macOS den ersten Start mit einer Meldung wie „„Manta“ wurde nicht geöffnet“. Das ist eine Schutzfunktion von macOS (Gatekeeper), kein Fehler in Manta.
+Manta ist nicht von Apple beglaubigt (notarisiert). Deshalb blockiert macOS den ersten Start mit der Meldung „„Manta“ nicht geöffnet“. Das ist eine Schutzfunktion von macOS (Gatekeeper), kein Fehler in Manta. So öffnest du Manta trotzdem – das musst du nur einmal tun:
 
-So öffnest du Manta trotzdem:
+1. Starte Manta. macOS zeigt „„Manta“ nicht geöffnet“. Klicke auf **Fertig** – nicht auf **In den Papierkorb legen**, sonst musst du Manta neu laden.
 
-1. Klicke in der Meldung auf **Fertig** (nicht auf „In den Papierkorb legen“).
-2. Öffne **Systemeinstellungen** → **Datenschutz & Sicherheit**.
-3. Scrolle nach unten zum Abschnitt **Sicherheit**. Dort steht ein Hinweis zu Manta.
-4. Klicke auf **Dennoch öffnen** und bestätige mit deinem Passwort oder Touch ID.
+   ![Die Meldung „Manta“ nicht geöffnet mit den Tasten Fertig und In den Papierkorb legen, Fertig ist markiert](images/gatekeeper-blocked.png)
+
+2. Öffne **Systemeinstellungen** → **Datenschutz & Sicherheit** und scrolle nach unten zum Abschnitt **Sicherheit**. Dort steht „„Manta“ wurde blockiert, um deinen Mac zu schützen.“ Klicke daneben auf **Dennoch öffnen**.
+
+   ![Systemeinstellungen, Datenschutz & Sicherheit, Abschnitt Sicherheit: neben dem Hinweis zu Manta ist die Taste Dennoch öffnen markiert](images/gatekeeper-open-anyway.png)
+
+3. macOS fragt noch einmal nach: „„Manta“ öffnen?“. Klicke auf **Dennoch öffnen** und bestätige mit deinem Passwort oder Touch ID. Manta startet.
+
+   ![Die Rückfrage „Manta“ öffnen? mit den Tasten Dennoch öffnen und Fertig, Dennoch öffnen ist markiert](images/gatekeeper-confirm.png)
+
+Ab jetzt startet Manta wie jede andere App. Updates, die Manta selbst installiert ([Updates](17-updates.md)), musst du nicht noch einmal freigeben.
+
+Siehst du kein **Dennoch öffnen**? Die Taste erscheint erst nach einem Startversuch und bleibt etwa eine Stunde lang da. Starte Manta noch einmal, klicke auf **Fertig** und schau gleich danach in **Datenschutz & Sicherheit** nach.
 
 Unter älteren macOS-Versionen (vor macOS 15) reicht es, Manta im Finder mit gedrückter Control-Taste anzuklicken und **Öffnen** zu wählen.
 
-Das musst du nur einmal tun. Mehr dazu unter [Fehlerbehebung](19-fehlerbehebung.md#gatekeeper).
+> [!TIP]
+> **Für Fortgeschrittene:** Du kannst die Sperre auch im Terminal aufheben, statt in den Systemeinstellungen: `xattr -dr com.apple.quarantine /Applications/Manta.app`. Der Befehl entfernt die Download-Markierung (Quarantäne) von Manta, danach startet Manta ohne Rückfrage. Mach das nur mit einem Manta, das du selbst von manta-filemanager.com oder GitHub geladen hast.
+
+Mehr dazu unter [Fehlerbehebung](19-fehlerbehebung.md#gatekeeper).
 
 ## Warum macOS um Erlaubnis fragt {#berechtigungen}
 

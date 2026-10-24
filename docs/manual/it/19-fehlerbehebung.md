@@ -58,15 +58,19 @@ Al successivo avvio, Manta mostra una sola volta un avviso in basso a destra: **
 
 ## Manta non si apre (Gatekeeper) {#gatekeeper}
 
-**Problema:** al primo avvio macOS segnala che *“Manta” non è stato aperto* oppure che *“…” non può essere aperto perché Apple non può verificare che non contenga malware*.
+**Problema:** al primo avvio macOS segnala *Manta non è stata aperta* (*Apple non è in grado di verificare che Manta non contenga malware…*) oppure, nelle versioni meno recenti di macOS, che *“…” non può essere aperto perché Apple non può verificare che non contenga malware*.
 
-**Causa:** questa copia non è autenticata da Apple. macOS blocca queste app al primo avvio.
+**Causa:** Manta non è autenticato da Apple. macOS blocca queste app al primo avvio.
 
 **Soluzione:**
 
-1. Fai clic su **Fine**.
-2. Apri **Impostazioni di Sistema** → **Privacy e sicurezza**.
-3. In fondo, fai clic su **Apri comunque** accanto a Manta e conferma.
+1. Nel messaggio fai clic su **Fine** (non su **Sposta nel Cestino**).
+2. Apri **Impostazioni di Sistema** → **Privacy e sicurezza** e scorri fino alla sezione **Sicurezza**.
+3. Fai clic su **Apri comunque** accanto a *Il Mac ha bloccato Manta…*, di nuovo su **Apri comunque** quando macOS lo chiede, e conferma con la password o con Touch ID.
+
+![Impostazioni di Sistema, Privacy e sicurezza: il pulsante Apri comunque accanto all’avviso su Manta](images/gatekeeper-open-anyway.png)
+
+Se **Apri comunque** non c’è, avvia di nuovo Manta e guarda subito dopo: il pulsante resta solo per circa un’ora. Tutti i passaggi con le immagini, e la via dal Terminale, sono in [Il primo avvio: Gatekeeper](01-erste-schritte.md#gatekeeper).
 
 Prima di macOS 15: clic destro (o clic con Ctrl) su Manta nella cartella **Applicazioni** → **Apri** → **Apri**.
 

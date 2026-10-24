@@ -58,15 +58,19 @@ La próxima vez que abras Manta, aparece una vez un aviso en la esquina inferior
 
 ## Manta no se abre (Gatekeeper) {#gatekeeper}
 
-**Problema:** En el primer arranque, macOS indica *No se ha abierto “Manta”* o *No se puede abrir “Manta” porque Apple no puede comprobar si contiene software malicioso*.
+**Problema:** En el primer arranque, macOS indica *No se ha abierto Manta* (*Apple no ha podido verificar que Manta no contenga software malicioso…*) o, en versiones anteriores de macOS, *No se puede abrir “Manta” porque Apple no puede comprobar si contiene software malicioso*.
 
-**Causa:** Esta copia no está notarizada por Apple. macOS bloquea estas apps en el primer arranque.
+**Causa:** Manta no está notarizada por Apple. macOS bloquea estas apps en el primer arranque.
 
 **Solución:**
 
-1. Haz clic en **OK**.
-2. Abre **Ajustes del Sistema** → **Privacidad y seguridad**.
-3. Abajo, haz clic en **Abrir igualmente** junto a Manta y confirma.
+1. Haz clic en **Aceptar** en el mensaje (no en **Trasladar a la Papelera**).
+2. Abre **Ajustes del Sistema** → **Privacidad y seguridad** y desplázate hasta la sección **Seguridad**.
+3. Haz clic en **Abrir igualmente** junto a *Se ha bloqueado Manta…*, otra vez en **Abrir igualmente** cuando macOS pregunte, y confirma con tu contraseña o con Touch ID.
+
+![Ajustes del Sistema, Privacidad y seguridad: el botón Abrir igualmente junto al aviso sobre Manta](images/gatekeeper-open-anyway.png)
+
+Si no aparece **Abrir igualmente**, abre Manta otra vez y mira justo después: el botón solo se mantiene una hora aproximadamente. Todos los pasos con imágenes, y la vía por Terminal, están en [El primer arranque: Gatekeeper](01-erste-schritte.md#gatekeeper).
 
 Antes de macOS 15: haz clic derecho (o Control + clic) en Manta en la carpeta **Aplicaciones** → **Abrir** → **Abrir**.
 

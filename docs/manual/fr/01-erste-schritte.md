@@ -13,26 +13,41 @@ Manta est un gestionnaire de fichiers pour Mac qui affiche plusieurs sous-fenêt
 
 1. Double-cliquez sur `Manta-<version>.dmg`.
 2. Dans la fenêtre qui s’ouvre, faites glisser **Manta** sur le dossier **Applications**.
+
+   ![La fenêtre de l’image disque : Manta est glissé sur le dossier Applications, mis en évidence](images/install-dmg.png)
+
 3. Éjectez l’image disque (cliquez sur l’icône d’éjection dans le Finder).
 4. Lancez Manta depuis le dossier **Applications**, par exemple avec Launchpad ou Spotlight.
 
 > [!IMPORTANT]
 > Lancez toujours Manta depuis le dossier **Applications**, et non directement depuis l’image disque. C’est seulement ainsi que Manta peut se mettre à jour ([Mises à jour](17-updates.md)) et devenir votre gestionnaire de fichiers par défaut.
 
-## Le premier lancement : Gatekeeper {#gatekeeper}
+## Le premier lancement : Gatekeeper {#gatekeeper}
 
-Si votre copie de Manta n’est pas notariée par Apple, macOS bloque le premier lancement avec un message tel que « “Manta” n’a pas été ouvert ». Il s’agit d’une fonction de sécurité de macOS (Gatekeeper), pas d’un bug de Manta.
+Manta n’est pas notarié par Apple : macOS bloque donc le premier lancement avec le message « Élément « Manta » non ouvert ». Il s’agit d’une fonction de sécurité de macOS (Gatekeeper), pas d’un bug de Manta. Pour ouvrir Manta malgré tout (une seule fois suffit) :
 
-Pour ouvrir Manta malgré tout :
+1. Lancez Manta. macOS affiche « Élément « Manta » non ouvert ». Cliquez sur **Terminé**, et non sur **Placer dans la corbeille**, sinon vous devrez télécharger Manta à nouveau.
 
-1. Cliquez sur **Terminé** dans le message (et non sur « Placer dans la corbeille »).
-2. Ouvrez **Réglages Système** → **Confidentialité et sécurité**.
-3. Faites défiler jusqu’à la section **Sécurité**. Une remarque y concerne Manta.
-4. Cliquez sur **Ouvrir quand même** et confirmez avec votre mot de passe ou Touch ID.
+   ![Le message Élément « Manta » non ouvert avec les boutons Terminé et Placer dans la corbeille ; Terminé est mis en évidence](images/gatekeeper-blocked.png)
+
+2. Ouvrez **Réglages Système** → **Confidentialité et sécurité** et faites défiler jusqu’à la section **Sécurité**. On y lit « « Manta » a été bloqué pour protéger votre Mac. » Cliquez sur **Ouvrir quand même**, juste à côté.
+
+   ![Réglages Système, Confidentialité et sécurité, section Sécurité : le bouton Ouvrir quand même à côté de la remarque sur Manta est mis en évidence](images/gatekeeper-open-anyway.png)
+
+3. macOS demande encore une fois : « Ouvrir « Manta » ? ». Cliquez sur **Ouvrir quand même** et confirmez avec votre mot de passe ou Touch ID. Manta se lance.
+
+   ![La question Ouvrir « Manta » ? avec les boutons Ouvrir quand même et Terminé ; Ouvrir quand même est mis en évidence](images/gatekeeper-confirm.png)
+
+Désormais, Manta se lance comme n’importe quelle autre app. Les mises à jour que Manta installe lui-même ([Mises à jour](17-updates.md)) ne demandent pas de refaire cette étape.
+
+Pas de bouton **Ouvrir quand même** ? Il n’apparaît qu’après une tentative de lancement et reste affiché environ une heure. Relancez Manta, cliquez sur **Terminé**, puis regardez tout de suite dans **Confidentialité et sécurité**.
 
 Sur les versions antérieures à macOS 15, il suffit de cliquer sur Manta dans le Finder en maintenant la touche Contrôle enfoncée, puis de choisir **Ouvrir**.
 
-Vous n’avez à le faire qu’une seule fois. Voir aussi [Dépannage](19-fehlerbehebung.md#gatekeeper).
+> [!TIP]
+> **Pour les utilisateurs avancés :** au lieu de passer par les Réglages Système, vous pouvez lever le blocage dans Terminal : `xattr -dr com.apple.quarantine /Applications/Manta.app`. La commande retire de Manta le marqueur de téléchargement (quarantaine) ; Manta se lance ensuite sans confirmation. Ne le faites qu’avec une copie de Manta que vous avez téléchargée vous-même sur manta-filemanager.com ou GitHub.
+
+Voir aussi [Dépannage](19-fehlerbehebung.md#gatekeeper).
 
 ## Pourquoi macOS demande des autorisations {#berechtigungen}
 

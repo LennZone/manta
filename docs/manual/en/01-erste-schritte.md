@@ -13,6 +13,9 @@ Manta is a file manager for the Mac with several panes side by side. This chapte
 
 1. Double-click `Manta-<version>.dmg`.
 2. In the window that opens, drag **Manta** onto the **Applications** folder.
+
+   ![The disk image window: Manta being dragged onto the Applications folder, which is highlighted](images/install-dmg.png)
+
 3. Eject the disk image (click the eject icon in Finder).
 4. Start Manta from the **Applications** folder, for example with Launchpad or Spotlight.
 
@@ -21,18 +24,30 @@ Manta is a file manager for the Mac with several panes side by side. This chapte
 
 ## The first launch: Gatekeeper {#gatekeeper}
 
-If your copy of Manta isn't notarized by Apple, macOS blocks the first launch with a message such as "“Manta” Not Opened". This is a macOS safety feature (Gatekeeper), not a bug in Manta.
+Manta isn't notarized by Apple, so macOS blocks the first launch with the message "“Manta” Not Opened". This is a macOS safety feature (Gatekeeper), not a bug in Manta. To open Manta anyway – you only need to do this once:
 
-To open Manta anyway:
+1. Start Manta. macOS shows "“Manta” Not Opened". Click **Done** – not **Move to Trash**, or you'll have to download Manta again.
 
-1. Click **Done** in the message (not "Move to Trash").
-2. Open **System Settings** → **Privacy & Security**.
-3. Scroll down to the **Security** section. There is a note about Manta.
-4. Click **Open Anyway** and confirm with your password or Touch ID.
+   ![The message “Manta” Not Opened with the buttons Done and Move to Trash; Done is highlighted](images/gatekeeper-blocked.png)
+
+2. Open **System Settings** → **Privacy & Security** and scroll down to the **Security** section. It says "“Manta” was blocked to protect your Mac." Click **Open Anyway** next to it.
+
+   ![System Settings, Privacy & Security, Security section: the Open Anyway button next to the note about Manta is highlighted](images/gatekeeper-open-anyway.png)
+
+3. macOS asks once more: "Open “Manta”?". Click **Open Anyway** and confirm with your password or Touch ID. Manta starts.
+
+   ![The question Open “Manta”? with the buttons Open Anyway and Done; Open Anyway is highlighted](images/gatekeeper-confirm.png)
+
+From now on Manta starts like any other app. Updates that Manta installs itself ([Updates](17-updates.md)) don't need this again.
+
+No **Open Anyway** button? It only appears after a launch attempt and stays for about an hour. Start Manta again, click **Done** and look in **Privacy & Security** right away.
 
 On macOS versions before macOS 15 it's enough to Control-click Manta in Finder and choose **Open**.
 
-You only need to do this once. See also [Troubleshooting](19-fehlerbehebung.md#gatekeeper).
+> [!TIP]
+> **For advanced users:** Instead of System Settings you can lift the block in Terminal: `xattr -dr com.apple.quarantine /Applications/Manta.app`. The command removes the download flag (quarantine) from Manta; after that Manta starts without asking. Only do this with a copy of Manta you downloaded yourself from manta-filemanager.com or GitHub.
+
+See also [Troubleshooting](19-fehlerbehebung.md#gatekeeper).
 
 ## Why macOS asks for permission {#berechtigungen}
 

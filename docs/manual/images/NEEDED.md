@@ -57,10 +57,23 @@ Window size for full-window shots: 1440 × 900 pt at 2x, accent colour Blue, def
 | `plugin-confirm.png` | 15 | "Turn on “Hello Python”?" confirmation showing Runs / In. | light | both | ✅ generated (light) |
 | `settings-general.png` | 16 | Settings → General, top part (Appearance, Language, Default file manager, Files). | both | both | ✅ generated (light) |
 | `software-update.png` | 17 | Software Update window: "Manta 0.2.0 is available — you have 0.1.3", What's new, the three buttons. | light | both | ✅ generated (light) |
+| `install-dmg.png` | 01 | The disk image window (`packaging/dmg` background, window title "Manta"): the Manta icon, a half-transparent copy being dragged with the pointer, the "Applications" shortcut ringed. No macOS text, so only `en/`. | light | en only | ✅ illustration (see below) |
+| `gatekeeper-blocked.png` | 01, 19 | macOS alert "“Manta” Not Opened" / "Apple could not verify …" with Done (ringed, pointer) and Move to Trash. | light | both | ✅ illustration (see below) |
+| `gatekeeper-open-anyway.png` | 01, 19 | System Settings › Privacy & Security scrolled to Security: "Allow applications from", "“Manta” was blocked to protect your Mac." with Open Anyway (ringed, pointer). | light | both | ✅ illustration (see below) |
+| `gatekeeper-confirm.png` | 01 | macOS alert "Open “Manta”?" with Open Anyway (ringed, pointer) and Done. | light | both | ✅ illustration (see below) |
 
 ## Status per language
 
-All 39 generated images (✅ above) exist in every language. The DMG window and Apple's Quick Look panel are system UI, not drawn by Manta: the manual describes them in words and shows no image of them.
+All 39 generated images (✅ above) exist in every language. Apple's Quick Look panel is system UI, not drawn by Manta: the manual describes it in words and shows no image of it.
+
+**Install illustrations** (`install-dmg.png`, `gatekeeper-*.png`): the disk image window, the Gatekeeper alerts and System Settings are macOS UI, and real screenshots would exist only in the Mac's own language (and need a blocked app). `scripts/manual/install_images/generate.py` draws them instead as HTML/CSS styled like macOS 26 (light, system font, PingFang SC for Chinese) and renders them at 2x with headless Google Chrome (throwaway profile; nothing is installed, launched or changed). All macOS text is Apple's own localized string from `scripts/manual/install_images/strings.json`, which `extract_strings.py` reads from the system's `.loctable` files (CoreServicesUIAgent, the Privacy & Security settings extension, System Settings) and which records the table and key of every string. Each page checks itself for clipped text. Full colour, not 256 colours (the gradients would band):
+
+```sh
+python3 scripts/manual/install_images/extract_strings.py --check   # after a macOS update: are the strings still the same?
+python3 scripts/manual/install_images/generate.py                  # all four, all languages (install-dmg.png only in en/)
+python3 scripts/manual/install_images/generate.py --lang ru --only gatekeeper-open-anyway
+```
+
 
 | Language | Folder | Generated | Known problems in the renders (UI, not the crop) |
 |---|---|---|---|
