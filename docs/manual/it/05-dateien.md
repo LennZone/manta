@@ -259,7 +259,7 @@ I tag standard hanno i nomi che il Finder usa sul tuo Mac (ad esempio “Rosso�
 
 ## Ottieni informazioni {#informationen}
 
-**⌘I** (**Ottieni informazioni**, anche nel menu contestuale e nel menu **File**) apre una finestra Informazioni per la selezione, come nel Finder: una finestra per ogni elemento (richiederla di nuovo la porta in primo piano), una finestra riepilogativa per più elementi. Possono essere aperte fino a sei finestre Informazioni; per aprirne una nuova si chiude la più vecchia. Sono finestre normali: puoi continuare a lavorare nella finestra principale.
+**⌘I** (**Ottieni informazioni**, anche nel menu contestuale e nel menu **Archivio**) apre una finestra Informazioni per la selezione, come nel Finder: una finestra per ogni elemento (richiederla di nuovo la porta in primo piano), una finestra riepilogativa per più elementi. Possono essere aperte fino a sei finestre Informazioni; per aprirne una nuova si chiude la più vecchia. Sono finestre normali: puoi continuare a lavorare nella finestra principale.
 
 Una finestra Informazioni mostra:
 

@@ -15,7 +15,7 @@ pub const ENTRIES: Translations = &[
     ("help.button", "Aiuto"),
     ("help.button.tip", "Apri il manuale su questo argomento"),
     ("menu.help", "Aiuto"),
-    ("menu.file", "File"),
+    ("menu.file", "Archivio"),
     ("menu.edit", "Modifica"),
     ("menu.view", "Vista"),
     ("menu.go", "Vai"),

@@ -770,7 +770,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `help.chapter` | Chapter | Kapitel | 章节 | Capítulo | Chapitre | Capitolo | Глава |
 | `help.button` | Help | Hilfe | 帮助 | Ayuda | Aide | Aiuto | Справка |
 | `menu.help` | Help | Hilfe | 帮助 | Ayuda | Aide | Aiuto | Справка |
-| `menu.file` | File | Ablage | 文件 | Archivo | Fichier | File | Файл |
+| `menu.file` | File | Ablage | 文件 | Archivo | Fichier | Archivio | Файл |
 | `menu.edit` | Edit | Bearbeiten | 编辑 | Edición | Édition | Modifica | Правка |
 | `menu.view` | View | Darstellung | 显示 | Visualización | Présentation | Vista | Вид |
 | `menu.go` | Go | Gehe zu | 前往 | Ir | Aller | Vai | Переход |
