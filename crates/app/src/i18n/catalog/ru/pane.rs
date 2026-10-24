@@ -95,6 +95,7 @@ pub const ENTRIES: Translations = &[
     ("pane.drag.download_failed", "Не удалось загрузить «{name}»"),
     ("pane.drag.failed", "Не удалось перетащить объекты из Manta"),
     ("sidebar.disconnect", "Отключить"),
+    ("sidebar.eject", "Извлечь"),
     ("sidebar.favorites", "Избранное"),
     ("sidebar.add_current", "Добавить текущую папку"),
     ("sidebar.favorites_empty", "Нажмите {shortcut}, чтобы поместить сюда текущую папку."),

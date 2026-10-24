@@ -81,6 +81,7 @@ pub const ENTRIES: Translations = &[
     ("pane.drag.download_failed", "无法下载“{name}”"),
     ("pane.drag.failed", "无法将项目拖出 Manta"),
     ("sidebar.disconnect", "断开连接"),
+    ("sidebar.eject", "推出"),
     ("sidebar.favorites", "个人收藏"),
     ("sidebar.add_current", "添加当前文件夹"),
     ("sidebar.favorites_empty", "按下 {shortcut} 以将当前文件夹放在这里。"),

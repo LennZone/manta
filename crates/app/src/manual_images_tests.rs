@@ -191,6 +191,17 @@ fn render_manual_images() {
         form.s3.bucket = "media-assets".into();
         app(&mut h).dialog = Some(Dialog::Connect(form));
         shot(&mut h, lang, "connect-s3", Crop::Modal);
+
+        // 08: WebDAV with the Nextcloud preset, SMB with the share list.
+        let mut form = ConnectForm::new(Side::Left);
+        form.set_protocol_for_tests(manta_core::Protocol::WebDavs);
+        form.host = "cloud.example.com".into();
+        form.user = "anna".into();
+        form.dav.set_preset("nextcloud", "anna");
+        app(&mut h).dialog = Some(Dialog::Connect(form));
+        shot(&mut h, lang, "connect-webdav", Crop::Modal);
+        app(&mut h).dialog = Some(Dialog::Connect(super::smb_webdav_ux::smb_form(true)));
+        shot(&mut h, lang, "connect-smb", Crop::Modal);
         app(&mut h).dialog = None;
 
         // 13: Compare & Sync.

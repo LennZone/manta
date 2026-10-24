@@ -58,6 +58,8 @@ fn sftp_config(host: &str, port: u16) -> ConnectionConfig {
         s3: None,
         container: None,
         ftp: None,
+        webdav: None,
+        smb: None,
     }
 }
 

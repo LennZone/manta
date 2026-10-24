@@ -101,6 +101,12 @@ pub enum WorkResult {
     TrashMeasured(Option<crate::trash::TrashSummary>),
     /// "Empty Trash" finished.
     TrashEmptied(Result<crate::trash::EmptyOutcome, String>),
+    /// A network volume was ejected (or refused to).
+    Ejected {
+        path: std::path::PathBuf,
+        name: String,
+        result: Result<(), String>,
+    },
     /// Local items were moved to the Trash (⌘⌫).
     Trashed {
         /// The `FileAction` to finish.

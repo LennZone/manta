@@ -65,6 +65,8 @@ fn connect_sftp(h: &mut H, side: Side, fx: &Fixture) {
         s3: None,
         container: None,
         ftp: None,
+        webdav: None,
+        smb: None,
     };
     let fs: SharedVfs = Arc::new(manta_vfs::local::LocalFs);
     let home = VfsPath::new(&fx.root.to_string_lossy());

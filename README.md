@@ -46,6 +46,10 @@ updates.
 **Servers, containers and cloud**
 - SFTP (password, key or ssh-agent; host keys checked against `~/.ssh/known_hosts`), FTP and
   FTPS (explicit TLS)
+- WebDAV over HTTPS or HTTP (Basic and Digest sign-in, Nextcloud / ownCloud presets,
+  resumable downloads, server-side copy)
+- SMB shares mounted through macOS (NetFS: Kerberos, Keychain, SMB 2/3), with a share
+  picker; network volumes mounted in Finder show up under Devices with an eject button
 - Amazon S3 and S3-compatible storage (Cloudflare R2, MinIO, Backblaze B2, Wasabi,
   DigitalOcean Spaces, Hetzner)
 - Docker containers and Kubernetes pods as folders, through the `docker` / `kubectl` CLIs
@@ -139,7 +143,7 @@ A Cargo workspace; the app is the `manta` package in `crates/app`.
 |---|---|
 | [`crates/app`](crates/app) | The egui/eframe GUI (binary `manta`) |
 | [`crates/core`](crates/core) | Shared types and the virtual file system abstraction (`Vfs` trait, `VfsPath`) |
-| [`crates/vfs`](crates/vfs) | Backends: local, SFTP, FTP/FTPS, S3, Google Drive, Docker / Kubernetes, read-only archives, cloud folders synced by macOS |
+| [`crates/vfs`](crates/vfs) | Backends: local, SFTP, FTP/FTPS, WebDAV, SMB (macOS mounts), S3, Google Drive, Docker / Kubernetes, read-only archives, cloud folders synced by macOS |
 | [`crates/ops`](crates/ops) | File operations across backends: transfer queue, compare and sync |
 | [`crates/plugin`](crates/plugin) | Plugin system: contract, plugin host, external plugin processes, localisation helpers |
 | [`crates/plugin-protocol`](crates/plugin-protocol) | Message types and a small stdio loop for writing Manta plugins in Rust |

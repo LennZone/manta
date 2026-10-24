@@ -26,6 +26,8 @@ fn config(server: &Server, protocol: Protocol, policy: FtpDataChannel) -> Connec
         ftp: Some(Box::new(FtpOptions {
             data_channel: policy,
         })),
+        webdav: None,
+        smb: None,
     }
 }
 

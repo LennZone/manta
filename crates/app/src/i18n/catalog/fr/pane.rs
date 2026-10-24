@@ -81,6 +81,7 @@ pub const ENTRIES: Translations = &[
     ("pane.drag.download_failed", "Impossible de télécharger «\u{a0}{name}\u{a0}»"),
     ("pane.drag.failed", "Impossible de faire glisser les éléments hors de Manta"),
     ("sidebar.disconnect", "Déconnecter"),
+    ("sidebar.eject", "Éjecter"),
     ("sidebar.favorites", "Favoris"),
     ("sidebar.add_current", "Ajouter le dossier actuel"),
     ("sidebar.favorites_empty", "Appuyez sur {shortcut} pour garder le dossier actuel ici."),

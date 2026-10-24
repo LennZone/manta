@@ -1,11 +1,11 @@
 # Connections {#verbindungen}
 
-Manta opens folders on servers (SFTP, FTP, FTPS), in S3 storage and in Docker and Kubernetes containers like local folders. You copy, move and rename there just as on your Mac.
+Manta opens folders on servers (SFTP, FTP, FTPS, WebDAV, SMB), in S3 storage and in Docker and Kubernetes containers like local folders. You copy, move and rename there just as on your Mac.
 
 ## Connect to a server {#verbinden}
 
 1. Press **⌘K** (**Connect to Server…**), click **Connect** in the toolbar, or click the **+** next to **Servers** in the sidebar.
-2. Choose the **Protocol** at the top: **SFTP**, **FTP**, **FTPS**, **S3** or **Container**.
+2. Choose the **Protocol** at the top: **SFTP**, **FTP**, **FTPS**, **WebDAV**, **SMB**, **S3** or **Container**.
 3. Fill in the fields (see below).
 4. Optional: click **Test Connection**. Manta reports, for example, "Signed in. Home folder: /home/anna".
 5. Click **Connect**.
@@ -90,6 +90,58 @@ Good to know:
 - AWS profiles using SSO, `credential_process` or assume-role don't work, only static keys.
 - If your Mac's clock is more than 15 minutes off, S3 rejects the requests ("Your Mac's clock is off").
 
+## WebDAV {#webdav}
+
+**WebDAV** connects to Nextcloud, ownCloud, NAS systems (Synology, QNAP), Apache or nginx servers and other WebDAV services.
+
+| Field | Meaning |
+|---|---|
+| **Server**, **Port** | The server's address. You can paste a whole URL such as `https://cloud.example.com/remote.php/dav/files/anna`; Manta fills in the fields. |
+| **Security** | **HTTPS** (port 443) or **HTTP (unencrypted)** (port 80). |
+| **User**, **Sign in with** | **Password** or **Anonymous**. Manta handles Basic and Digest authentication. |
+| **Server type** | **WebDAV server**, **Nextcloud** or **ownCloud**. Nextcloud and ownCloud fill in the **WebDAV path** `/remote.php/dav/files/<user name>`. |
+| **WebDAV path** | Where the WebDAV folder starts on the server, such as `/dav`. Empty: the server root. |
+| **Folder** | Optional – the folder to open inside it. |
+
+Good to know:
+
+- Certificates are checked by macOS, as in Safari. A self-signed certificate works once you trust it in Keychain Access.
+- Interrupted downloads continue where they stopped. Interrupted uploads start the file again (WebDAV can't append to a file).
+- Copying within the same server uses the server's own copy (no download and upload).
+- Modification dates can be set where the server allows it (Nextcloud, ownCloud); otherwise copies get the time of the upload.
+
+> [!TIP]
+> With two-factor authentication on Nextcloud or ownCloud, sign in with an **app password** (Settings → Security in the web interface), not your normal password.
+
+> [!WARNING]
+> With **HTTP (unencrypted)**, the password and all files travel unencrypted. Use HTTP only in a network you trust.
+
+![Connect dialog for WebDAV with the Nextcloud preset](images/connect-webdav.png)
+
+## SMB {#smb}
+
+**SMB** opens shares of Windows PCs, NAS systems and other Macs. macOS itself connects (the same way as Finder's **Connect to Server**) and mounts the share in `/Volumes`; Manta then shows it like a local folder.
+
+| Field | Meaning |
+|---|---|
+| **Server** | Name or address of the server, such as `nas.local`. `smb://server/share/folder` fills in all fields. |
+| **User**, **Sign in with** | **Password**, or **Guest** (no password – or your Kerberos ticket or the password saved in your Keychain). |
+| **Share** | The share to open. **Browse…** lists the server's shares; click one to choose it. |
+| **Folder** | Optional – a folder inside the share. |
+
+Good to know:
+
+- A share that is already mounted (by Finder, for example) is used as it is and stays mounted when you disconnect. A share Manta mounted is ejected again when you disconnect or quit Manta.
+- The location chip says, for example, "SMB · nas.local/Team".
+- Interrupted copies continue where they stopped. If the share disappears (network change, sleep), Manta mounts it again before it retries.
+- The list of shares comes from `smbutil`. If the server needs a password for it, Manta passes the password you entered to `smbutil` for a moment.
+
+![Connect dialog for SMB with the list of shares](images/connect-smb.png)
+
+### Network volumes in the sidebar {#netzwerk-volumes}
+
+Shares you connected in Finder (SMB, AFP, NFS, WebDAV) appear under **Devices** with a network icon. Hover over one and click the eject icon (**Eject**) to unmount it. Click the refresh arrow next to **Devices** after you mounted something new.
+
 ## Docker and Kubernetes {#container}
 
 Manta opens the files **inside containers** like a folder. It uses the `docker` and `kubectl` commands, which must be installed on your Mac.
@@ -139,7 +191,7 @@ To change a favorite, right-click → **Edit Connection…** (the "Edit Connecti
 
 ## Disconnect {#trennen}
 
-Hover over the connection under **Servers** in the sidebar and click the eject icon (**Disconnect**). Panes that showed the server say "Disconnected".
+Hover over the connection under **Servers** in the sidebar and click the eject icon (**Disconnect**). Panes that showed the server say "Disconnected". For an SMB share, disconnecting also ejects the share if Manta mounted it.
 
 ## When it doesn't work {#fehler}
 
@@ -164,3 +216,5 @@ More help: [Troubleshooting](19-fehlerbehebung.md).
 - Kubernetes: no port forwarding, no ephemeral debug containers; pods need `sh`.
 - Writing into containers goes through `cat`; new files belong to the user `exec` runs as.
 - You don't connect Google Drive & co. here but through your Mac's cloud folders, see [Cloud Storage](09-cloud.md). Manta comes without a Google sign-in of its own; only if you enter your **own** OAuth client in Settings does "Google Drive" appear here too, see [Google Drive for experts](09-cloud.md#experte).
+- WebDAV: no locking (`LOCK`); uploads that were interrupted start again.
+- SMB needs macOS's own SMB support; Manta has no SMB client of its own. Non-default SMB ports may not work for the list of shares.

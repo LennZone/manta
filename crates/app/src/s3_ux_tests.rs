@@ -134,6 +134,8 @@ fn s3_config() -> ConnectionConfig {
         })),
         container: None,
         ftp: None,
+        webdav: None,
+        smb: None,
     }
 }
 

@@ -380,10 +380,12 @@ can be left out.
   `"left"` and `"right"`. Watch `pane_opened` / `pane_closed` (below) and
   forget a pane's state when it closes.
 - `path` is the folder inside the pane's backend.
-- `local_path` is the real OS path, or `null` for SFTP/FTP/S3 and containers.
-  Check it before touching files.
-- `protocol` is `"Local"`, `"Sftp"`, `"Ftp"`, `"Ftps"`, `"S3"`, `"Docker"` or
-  `"Kubernetes"` (new values may be added; treat unknown ones as remote).
+- `local_path` is the real OS path, or `null` for SFTP/FTP/WebDAV/S3 and
+  containers (SMB shares are mounted, so they have one). Check it before
+  touching files.
+- `protocol` is `"Local"`, `"Sftp"`, `"Ftp"`, `"Ftps"`, `"S3"`, `"Docker"`,
+  `"Kubernetes"`, `"GoogleDrive"`, `"WebDav"`, `"WebDavs"` or `"Smb"` (new
+  values may be added; treat unknown ones as remote).
 - `selection` holds absolute paths in display order. With nothing selected
   it holds the entry under the keyboard cursor.
 - `remote` (optional, may be missing or `null`) is the server, container or

@@ -995,7 +995,14 @@
           "man-in-the-middle",
           "ssh-keygen",
           "google drive",
-          "oauth"
+          "oauth",
+          "webdav",
+          "nextcloud",
+          "owncloud",
+          "smb",
+          "freigabe",
+          "nas",
+          "volume auswerfen"
         ],
         "en": [
           "server",
@@ -1025,7 +1032,14 @@
           "man-in-the-middle",
           "ssh-keygen",
           "google drive",
-          "oauth"
+          "oauth",
+          "webdav",
+          "nextcloud",
+          "owncloud",
+          "smb",
+          "share",
+          "nas",
+          "eject volume"
         ],
         "zh-Hans": [
           "服务器",
@@ -1041,7 +1055,13 @@
           "密码",
           "钥匙串",
           "主机密钥",
-          "指纹"
+          "指纹",
+          "WebDAV",
+          "Nextcloud",
+          "SMB",
+          "共享点",
+          "NAS",
+          "推出"
         ],
         "es": [
           "servidor",
@@ -1058,7 +1078,13 @@
           "contraseña",
           "llavero",
           "known_hosts",
-          "clave del servidor"
+          "clave del servidor",
+          "webdav",
+          "nextcloud",
+          "smb",
+          "recurso compartido",
+          "nas",
+          "expulsar"
         ],
         "fr": [
           "serveur",
@@ -1078,7 +1104,13 @@
           "empreinte",
           "clé du serveur",
           "known_hosts",
-          "serveur inconnu"
+          "serveur inconnu",
+          "webdav",
+          "nextcloud",
+          "smb",
+          "partage",
+          "nas",
+          "éjecter"
         ],
         "it": [
           "sftp",
@@ -1095,7 +1127,13 @@
           "chiave ssh",
           "impronta",
           "known_hosts",
-          "canale dati"
+          "canale dati",
+          "webdav",
+          "nextcloud",
+          "smb",
+          "condivisione",
+          "nas",
+          "espelli"
         ],
         "ru": [
           "сервер",
@@ -1112,7 +1150,13 @@
           "контейнер",
           "пароль",
           "связка ключей",
-          "отпечаток"
+          "отпечаток",
+          "webdav",
+          "nextcloud",
+          "smb",
+          "общий ресурс",
+          "nas",
+          "извлечь"
         ]
       }
     },

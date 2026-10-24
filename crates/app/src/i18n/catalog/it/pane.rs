@@ -81,6 +81,7 @@ pub const ENTRIES: Translations = &[
     ("pane.drag.download_failed", "Impossibile scaricare “{name}”"),
     ("pane.drag.failed", "Impossibile trascinare gli elementi fuori da Manta"),
     ("sidebar.disconnect", "Disconnetti"),
+    ("sidebar.eject", "Espelli"),
     ("sidebar.favorites", "Preferiti"),
     ("sidebar.add_current", "Aggiungi cartella attuale"),
     ("sidebar.favorites_empty", "Premi {shortcut} per tenere qui la cartella attuale."),

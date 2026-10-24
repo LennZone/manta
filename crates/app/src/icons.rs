@@ -82,6 +82,8 @@ pub const FUNNEL_SIMPLE: &str = "\u{E268}";
 pub const GEAR_SIX: &str = "\u{E272}";
 pub const GIT_BRANCH: &str = "\u{E278}";
 pub const GLOBE: &str = "\u{E288}";
+/// SMB shares and network volumes.
+pub const NETWORK: &str = "\u{EDDE}";
 pub const HARD_DRIVE: &str = "\u{E29E}";
 pub const HARD_DRIVES: &str = "\u{E2A0}";
 pub const HOUSE: &str = "\u{E2C2}";

@@ -1638,6 +1638,23 @@ impl<'a> Runner<'a> {
                     }
                 }
             }
+            if !self.move_mode && same && job.kind == JobKind::Copy {
+                if self.progress().completed.contains(src.as_str()) {
+                    handled += 1;
+                    continue;
+                }
+                // A copy within one server (WebDAV COPY): the server copies,
+                // nothing goes through Manta. Falls back to a normal copy.
+                if matches!(dst_fs.stat(&dst), Err(VfsError::NotFound(_))) {
+                    self.set_current(src);
+                    if src_fs.server_copy(src, &dst).is_ok() {
+                        self.progress().completed.insert(src.to_string());
+                        self.slot.signal.urgent();
+                        handled += 1;
+                        continue;
+                    }
+                }
+            }
             pending.push(src);
         }
 

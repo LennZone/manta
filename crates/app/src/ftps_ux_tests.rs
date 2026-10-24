@@ -100,6 +100,8 @@ fn ftps_config(policy: FtpDataChannel) -> ConnectionConfig {
         ftp: Some(Box::new(FtpOptions {
             data_channel: policy,
         })),
+        webdav: None,
+        smb: None,
     }
 }
 

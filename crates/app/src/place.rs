@@ -139,6 +139,45 @@ fn remote_chip(loc: &Location, cfg: &ConnectionConfig, backend_label: &str) -> P
             };
             (l, tip)
         }
+        Protocol::Smb => {
+            // „SMB · nas/Team“: server and share.
+            let share = cfg
+                .smb
+                .as_ref()
+                .map(|s| s.share.trim().trim_matches('/'))
+                .unwrap_or("");
+            let target = if share.is_empty() {
+                cfg.host.clone()
+            } else {
+                format!("{}/{share}", cfg.host)
+            };
+            let l = kind_name("SMB", &target);
+            let tip = if cfg.username.is_empty() {
+                l.clone()
+            } else {
+                format!("{l} · {}", cfg.username)
+            };
+            (l, tip)
+        }
+        Protocol::WebDav | Protocol::WebDavs => {
+            let l = kind_name("WebDAV", &cfg.host);
+            let mut tip = l.clone();
+            if !cfg.username.is_empty() {
+                tip.push_str(&format!(" · {}", cfg.username));
+            }
+            let root = cfg
+                .webdav
+                .as_ref()
+                .map(|w| manta_vfs::webdav::normalize_root(&w.root))
+                .unwrap_or_default();
+            let scheme = if proto == Protocol::WebDavs {
+                "https"
+            } else {
+                "http"
+            };
+            tip.push_str(&format!("\n{scheme}://{}{root}/", cfg.host));
+            (l, tip)
+        }
         Protocol::Sftp | Protocol::Ftp | Protocol::Ftps | Protocol::Local => {
             let who = if cfg.host.is_empty() {
                 backend_label.to_string()
@@ -181,6 +220,8 @@ mod tests {
             s3: None,
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         }
     }
 
@@ -244,6 +285,31 @@ mod tests {
             assert_eq!(
                 place_chip(&remote("/img"), Some((&s3b, "x")), None).label,
                 "S3 · fixed"
+            );
+
+            let mut smb = cfg(Protocol::Smb, "nas.local", "anna");
+            smb.smb = Some(Box::new(manta_core::SmbOptions {
+                share: "Team".into(),
+            }));
+            let c = place_chip(&remote("/Docs"), Some((&smb, "x")), None);
+            assert_eq!(
+                (c.label.as_str(), c.icon, c.local),
+                ("SMB · nas.local/Team", icons::NETWORK, false)
+            );
+            assert!(c.tooltip.contains("anna"));
+
+            let mut dav = cfg(Protocol::WebDavs, "cloud.example.com", "anna");
+            dav.webdav = Some(Box::new(manta_core::WebDavOptions {
+                root: "/remote.php/dav/files/anna".into(),
+                preset: "nextcloud".into(),
+            }));
+            let c = place_chip(&remote("/"), Some((&dav, "x")), None);
+            assert_eq!(c.label, "WebDAV · cloud.example.com");
+            assert!(
+                c.tooltip
+                    .contains("https://cloud.example.com/remote.php/dav/files/anna/"),
+                "{}",
+                c.tooltip
             );
 
             assert_eq!(

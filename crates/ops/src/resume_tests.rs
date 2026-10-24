@@ -664,6 +664,8 @@ fn journal_restores_jobs_after_a_restart() {
         s3: None,
         container: None,
         ftp: None,
+        webdav: None,
+        smb: None,
     };
     let src_ep = Endpoint::remote(&server);
     let opts = || TransferOptions {

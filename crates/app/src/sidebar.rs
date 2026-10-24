@@ -18,6 +18,8 @@ pub struct Place {
     pub icon: &'static str,
     pub name: String,
     pub path: PathBuf,
+    /// A mounted network share (SMB, AFP, NFS, WebDAV): ejectable.
+    pub network: bool,
 }
 
 /// Standard user folders plus `/` and mounted volumes. Reads `/Volumes`, which
@@ -30,6 +32,7 @@ pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
                 icon,
                 name: name.to_string(),
                 path,
+                network: false,
             });
         }
     };
@@ -42,7 +45,12 @@ pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
         icon: icons::HARD_DRIVES,
         name: "Macintosh HD".into(),
         path: PathBuf::from("/"),
+        network: false,
     }];
+    let network: Vec<PathBuf> = manta_vfs::volumes::network_volumes()
+        .into_iter()
+        .map(|v| v.path)
+        .collect();
     if let Ok(rd) = std::fs::read_dir("/Volumes") {
         let mut vols: Vec<Place> = rd
             .filter_map(Result::ok)
@@ -50,10 +58,19 @@ pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
                 // Skip the symlink to the boot volume.
                 e.file_type().map(|t| !t.is_symlink()).unwrap_or(false)
             })
-            .map(|e| Place {
-                icon: icons::HARD_DRIVE,
-                name: e.file_name().to_string_lossy().into_owned(),
-                path: e.path(),
+            .map(|e| {
+                let path = e.path();
+                let network = network.contains(&path);
+                Place {
+                    icon: if network {
+                        icons::NETWORK
+                    } else {
+                        icons::HARD_DRIVE
+                    },
+                    name: e.file_name().to_string_lossy().into_owned(),
+                    path,
+                    network,
+                }
             })
             .collect();
         vols.sort_by(|a, b| a.name.cmp(&b.name));
@@ -81,6 +98,7 @@ pub fn protocol_icon(p: manta_core::Protocol) -> &'static str {
         manta_core::Protocol::GoogleDrive => icons::GOOGLE_DRIVE_LOGO,
         manta_core::Protocol::Docker => icons::SHIPPING_CONTAINER,
         manta_core::Protocol::Kubernetes => icons::STEERING_WHEEL,
+        manta_core::Protocol::Smb => icons::NETWORK,
         _ => icons::GLOBE,
     }
 }
@@ -104,6 +122,60 @@ pub struct ConnectionInfo {
     pub label: String,
     /// host, port, user, protocol (to match favorites).
     pub key: (String, u16, String, manta_core::Protocol),
+    /// SMB: where the share is mounted (left out of "Devices").
+    pub mount: Option<PathBuf>,
+}
+
+/// Tooltip of a server favorite: protocol, account, server and what it
+/// opens (bucket, share, WebDAV folder).
+pub fn favorite_hover(config: &manta_core::ConnectionConfig) -> String {
+    use manta_core::Protocol;
+    match config.protocol {
+        Protocol::S3 => {
+            let bucket = match config.s3.as_ref().map(|s| s.bucket.as_str()) {
+                Some(b) if !b.is_empty() => b,
+                _ => t!("sidebar.all_buckets"),
+            };
+            format!("S3 {} · {bucket}", config.host)
+        }
+        Protocol::Docker => t!("sidebar.docker_container", name = config.host),
+        Protocol::Kubernetes => t!(
+            "sidebar.kubernetes_pod",
+            name = config.host,
+            namespace = config.username
+        ),
+        Protocol::Smb => {
+            let share = config.smb.as_ref().map_or("", |s| s.share.as_str());
+            let who = if config.username.is_empty() {
+                String::new()
+            } else {
+                format!("{}@", config.username)
+            };
+            format!("SMB {who}{}/{share}", config.host)
+        }
+        Protocol::WebDav | Protocol::WebDavs => {
+            let root = config
+                .webdav
+                .as_ref()
+                .map(|w| manta_vfs::webdav::normalize_root(&w.root))
+                .unwrap_or_default();
+            let scheme = if config.protocol == Protocol::WebDavs {
+                "https"
+            } else {
+                "http"
+            };
+            let who = if config.username.is_empty() {
+                String::new()
+            } else {
+                format!("{}@", config.username)
+            };
+            format!("WebDAV {scheme}://{who}{}{root}/", config.host)
+        }
+        _ => format!(
+            "{} {}@{}:{}",
+            config.protocol, config.username, config.host, config.port
+        ),
+    }
 }
 
 /// What the active pane shows, to highlight the matching sidebar row.
@@ -142,6 +214,8 @@ pub(crate) struct Row<'a> {
     pub status_dot: bool,
     /// Show an eject button on hover.
     pub eject: bool,
+    /// Tooltip (and spoken name) of the eject button; default "Disconnect".
+    pub eject_tip: Option<&'a str>,
     /// Dot colour instead of green (with `status_dot`).
     pub dot: Option<egui::Color32>,
     /// Dim text after the label (e.g. a container's image).
@@ -305,7 +379,8 @@ pub(crate) fn row(ui: &mut egui::Ui, r: Row<'_>) -> (egui::Response, bool) {
                 false,
             );
         }
-        eject = widgets::tooltip(e, t!("sidebar.disconnect"), "").clicked();
+        let tip = r.eject_tip.unwrap_or(t!("sidebar.disconnect"));
+        eject = widgets::tooltip(e, tip, "").clicked();
     }
     (resp, eject)
 }
@@ -383,30 +458,7 @@ pub fn sidebar_ui(
                                     config.protocol,
                                 )
                         });
-                        let hover = match &config.s3 {
-                            Some(s3) if config.protocol == manta_core::Protocol::S3 => {
-                                let bucket = if s3.bucket.is_empty() {
-                                    t!("sidebar.all_buckets")
-                                } else {
-                                    &s3.bucket
-                                };
-                                format!("S3 {} · {bucket}", config.host)
-                            }
-                            _ if config.protocol == manta_core::Protocol::Docker => {
-                                t!("sidebar.docker_container", name = config.host)
-                            }
-                            _ if config.protocol == manta_core::Protocol::Kubernetes => {
-                                t!(
-                                    "sidebar.kubernetes_pod",
-                                    name = config.host,
-                                    namespace = config.username
-                                )
-                            }
-                            _ => format!(
-                                "{} {}@{}:{}",
-                                config.protocol, config.username, config.host, config.port
-                            ),
-                        };
+                        let hover = favorite_hover(config);
                         (protocol_icon(config.protocol), hover, false, connected)
                     }
                     Favorite::Local { path, .. } => (
@@ -519,18 +571,28 @@ pub fn sidebar_ui(
                 actions.push(Action::RescanVolumes);
             }
             for pl in devices {
-                let (resp, _) = row(
+                // An SMB connection's share is listed under "Servers".
+                if connections
+                    .iter()
+                    .any(|c| c.mount.as_deref() == Some(pl.path.as_path()))
+                {
+                    continue;
+                }
+                let (resp, eject) = row(
                     ui,
                     Row {
                         icon: pl.icon,
                         label: place_label(&pl.name),
                         selected: is_current(&pl.path),
                         status_dot: false,
-                        eject: false,
+                        eject: pl.network,
+                        eject_tip: Some(t!("sidebar.eject")),
                         ..Row::default()
                     },
                 );
-                if resp.on_hover_text(pl.path.display().to_string()).clicked() {
+                if eject {
+                    actions.push(Action::EjectVolume(pl.path.clone()));
+                } else if resp.on_hover_text(pl.path.display().to_string()).clicked() {
                     actions.push(Action::OpenLocal(pl.path.clone()));
                 }
             }

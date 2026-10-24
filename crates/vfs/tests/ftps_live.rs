@@ -82,6 +82,8 @@ fn live_config() -> Option<ConnectionConfig> {
         s3: None,
         container: None,
         ftp: Some(Box::new(FtpOptions { data_channel })),
+        webdav: None,
+        smb: None,
     };
     eprintln!("data channel policy {data_channel:?}");
     Some(cfg)

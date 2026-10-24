@@ -36,6 +36,12 @@ impl Favorite {
             Favorite::Connection { config, .. } => {
                 if !config.name.trim().is_empty() {
                     config.name.clone()
+                } else if config.protocol == manta_core::Protocol::Smb {
+                    // „nas.local/Team“: server and share.
+                    match config.smb.as_ref().map(|s| s.share.trim()) {
+                        Some(share) if !share.is_empty() => format!("{}/{share}", config.host),
+                        _ => config.host.clone(),
+                    }
                 } else if config.protocol == manta_core::Protocol::Kubernetes {
                     config
                         .container
@@ -319,6 +325,8 @@ mod tests {
                         s3: None,
                         container: None,
                         ftp: None,
+                        webdav: None,
+                        smb: None,
                     },
                 },
                 Favorite::Local {
@@ -469,6 +477,8 @@ mod tests {
             s3: None,
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         };
         let s = strip_secrets(&cfg);
         assert_eq!(s.auth, Auth::Password(String::new()));
@@ -491,6 +501,8 @@ mod tests {
                 s3: None,
                 container: None,
                 ftp: None,
+                webdav: None,
+                smb: None,
             },
         }
     }

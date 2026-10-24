@@ -1,11 +1,11 @@
 # Verbindungen {#verbindungen}
 
-Manta öffnet Ordner auf Servern (SFTP, FTP, FTPS), in S3-Speichern und in Docker- und Kubernetes-Containern wie lokale Ordner. Du kopierst, bewegst und benennst dort genauso wie auf deinem Mac.
+Manta öffnet Ordner auf Servern (SFTP, FTP, FTPS, WebDAV, SMB), in S3-Speichern und in Docker- und Kubernetes-Containern wie lokale Ordner. Du kopierst, bewegst und benennst dort genauso wie auf deinem Mac.
 
 ## So verbindest du dich mit einem Server {#verbinden}
 
 1. Drücke **⌘K** (**Mit Server verbinden …**), klicke auf **Verbinden** in der Symbolleiste oder auf das **+** neben **Server** in der Seitenleiste.
-2. Wähle oben das **Protokoll**: **SFTP**, **FTP**, **FTPS**, **S3** oder **Container**.
+2. Wähle oben das **Protokoll**: **SFTP**, **FTP**, **FTPS**, **WebDAV**, **SMB**, **S3** oder **Container**.
 3. Fülle die Felder aus (siehe unten).
 4. Optional: Klicke auf **Verbindung testen**. Manta meldet z. B. „Angemeldet. Benutzerordner: /home/anna“.
 5. Klicke auf **Verbinden**.
@@ -90,6 +90,58 @@ Gut zu wissen:
 - AWS-Profile mit SSO, `credential_process` oder Rollenwechsel (assume-role) gehen nicht, nur feste Schlüssel.
 - Geht die Uhr deines Mac mehr als 15 Minuten falsch, lehnt S3 die Anfragen ab („Die Uhr deines Mac geht falsch“).
 
+## WebDAV {#webdav}
+
+**WebDAV** verbindet dich mit Nextcloud, ownCloud, NAS-Systemen (Synology, QNAP), Apache- oder nginx-Servern und anderen WebDAV-Diensten.
+
+| Feld | Bedeutung |
+|---|---|
+| **Server**, **Port** | Die Adresse des Servers. Du kannst eine ganze URL einfügen, etwa `https://cloud.example.com/remote.php/dav/files/anna`; Manta füllt die Felder aus. |
+| **Sicherheit** | **HTTPS** (Port 443) oder **HTTP (unverschlüsselt)** (Port 80). |
+| **Benutzer**, **Anmelden mit** | **Passwort** oder **Anonym**. Manta beherrscht Basic- und Digest-Anmeldung. |
+| **Servertyp** | **WebDAV-Server**, **Nextcloud** oder **ownCloud**. Nextcloud und ownCloud tragen den **WebDAV-Pfad** `/remote.php/dav/files/<Benutzername>` ein. |
+| **WebDAV-Pfad** | Wo der WebDAV-Ordner auf dem Server beginnt, etwa `/dav`. Leer: die oberste Ebene des Servers. |
+| **Ordner** | Optional – der Ordner darin, der sich öffnen soll. |
+
+Gut zu wissen:
+
+- Zertifikate prüft macOS, wie in Safari. Ein selbst signiertes Zertifikat funktioniert, sobald du ihm in der Schlüsselbundverwaltung vertraust.
+- Abgebrochene Downloads gehen dort weiter, wo sie aufgehört haben. Abgebrochene Uploads beginnen die Datei neu (WebDAV kann nicht an eine Datei anhängen).
+- Kopieren innerhalb desselben Servers nutzt die Kopierfunktion des Servers (kein Herunter- und wieder Hochladen).
+- Änderungsdaten lassen sich setzen, wo der Server es erlaubt (Nextcloud, ownCloud); sonst bekommen Kopien die Zeit des Uploads.
+
+> [!TIP]
+> Mit Zwei-Faktor-Authentifizierung bei Nextcloud oder ownCloud meldest du dich mit einem **App-Passwort** an (Einstellungen → Sicherheit in der Weboberfläche), nicht mit deinem normalen Passwort.
+
+> [!WARNING]
+> Mit **HTTP (unverschlüsselt)** werden Passwort und Dateien unverschlüsselt übertragen. Verwende HTTP nur in einem Netzwerk, dem du vertraust.
+
+![Verbindungsdialog für WebDAV mit der Nextcloud-Vorgabe](images/connect-webdav.png)
+
+## SMB {#smb}
+
+**SMB** öffnet Freigaben von Windows-PCs, NAS-Systemen und anderen Macs. Die Verbindung stellt macOS selbst her (genau wie **Mit Server verbinden** im Finder) und aktiviert die Freigabe in `/Volumes`; Manta zeigt sie dann wie einen lokalen Ordner.
+
+| Feld | Bedeutung |
+|---|---|
+| **Server** | Name oder Adresse des Servers, etwa `nas.local`. `smb://server/freigabe/ordner` füllt alle Felder aus. |
+| **Benutzer**, **Anmelden mit** | **Passwort** oder **Gast** (ohne Passwort – oder mit deinem Kerberos-Ticket bzw. dem Passwort aus deinem Schlüsselbund). |
+| **Freigabe** | Die Freigabe, die sich öffnen soll. **Durchsuchen …** zeigt die Freigaben des Servers; ein Klick wählt eine aus. |
+| **Ordner** | Optional – ein Ordner in der Freigabe. |
+
+Gut zu wissen:
+
+- Eine Freigabe, die schon aktiviert ist (zum Beispiel vom Finder), nutzt Manta so, wie sie ist; sie bleibt beim Trennen aktiv. Eine Freigabe, die Manta aktiviert hat, wirft Manta beim Trennen oder Beenden wieder aus.
+- Der Ortschip zeigt zum Beispiel „SMB · nas.local/Team“.
+- Abgebrochene Kopien gehen dort weiter, wo sie aufgehört haben. Verschwindet die Freigabe (Netzwerkwechsel, Ruhezustand), aktiviert Manta sie vor dem nächsten Versuch neu.
+- Die Liste der Freigaben kommt von `smbutil`. Braucht der Server dafür ein Passwort, gibt Manta das eingegebene Passwort kurz an `smbutil` weiter.
+
+![Verbindungsdialog für SMB mit der Liste der Freigaben](images/connect-smb.png)
+
+### Netzwerk-Volumes in der Seitenleiste {#netzwerk-volumes}
+
+Freigaben, die du im Finder verbunden hast (SMB, AFP, NFS, WebDAV), erscheinen unter **Geräte** mit einem Netzwerk-Symbol. Fahre darüber und klicke auf das Auswerfen-Symbol (**Auswerfen**), um sie zu deaktivieren. Hast du etwas Neues verbunden, klicke auf den Pfeil neben **Geräte**.
+
 ## Docker und Kubernetes {#container}
 
 Manta öffnet Dateien **in Containern** wie einen Ordner. Dazu nutzt Manta die Befehle `docker` bzw. `kubectl`, die auf deinem Mac installiert sein müssen.
@@ -139,7 +191,7 @@ Einen Favoriten änderst du mit Rechtsklick → **Verbindung bearbeiten …** (D
 
 ## Verbindung trennen {#trennen}
 
-Fahre in der Seitenleiste unter **Server** über die Verbindung und klicke auf das Auswerfen-Symbol (**Verbindung trennen**). Bereiche, die den Server zeigten, melden „Getrennt“.
+Fahre in der Seitenleiste unter **Server** über die Verbindung und klicke auf das Auswerfen-Symbol (**Verbindung trennen**). Bereiche, die den Server zeigten, melden „Getrennt“. Bei einer SMB-Freigabe wirft das Trennen auch die Freigabe aus, wenn Manta sie aktiviert hat.
 
 ## Wenn es nicht klappt {#fehler}
 
@@ -164,3 +216,5 @@ Weitere Hilfe: [Fehlerbehebung](19-fehlerbehebung.md).
 - Kubernetes: kein Port-Forwarding, keine temporären Debug-Container; Pods brauchen `sh`.
 - Schreiben in Container geht über `cat`; neue Dateien gehören dem Benutzer, mit dem `exec` läuft.
 - Google Drive & Co. verbindest du nicht hier, sondern über die Cloud-Ordner deines Mac, siehe [Cloud-Speicher](09-cloud.md). Manta bringt keine eigene Google-Anmeldung mit; nur wer in den Einstellungen einen **eigenen** OAuth-Client einträgt, bekommt hier zusätzlich „Google Drive“, siehe [Google Drive für Experten](09-cloud.md#experte).
+- WebDAV: keine Sperren (`LOCK`); abgebrochene Uploads beginnen neu.
+- SMB braucht die SMB-Unterstützung von macOS; Manta hat keinen eigenen SMB-Client. Mit einem anderen als dem Standardport klappt die Liste der Freigaben eventuell nicht.

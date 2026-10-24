@@ -179,6 +179,8 @@ fn run() -> Result<(), String> {
         ftp: Some(Box::new(FtpOptions {
             data_channel: policy,
         })),
+        webdav: None,
+        smb: None,
     };
     println!(
         "  connecting to {}:{} as {user} (FTPS, data channel {policy:?})",

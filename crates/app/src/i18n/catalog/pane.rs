@@ -90,6 +90,7 @@ pub const ENTRIES: Entries = &[
     ("pane.drag.failed", "Couldn't drag the items out of Manta", "Die Objekte konnten nicht aus Manta gezogen werden"),
     // Sidebar
     ("sidebar.disconnect", "Disconnect", "Verbindung trennen"),
+    ("sidebar.eject", "Eject", "Auswerfen"),
     ("sidebar.favorites", "Favorites", "Favoriten"),
     ("sidebar.add_current", "Add Current Folder", "Aktuellen Ordner hinzufügen"),
     ("sidebar.favorites_empty", "Press {shortcut} to keep the current folder here.", "Drücke {shortcut}, um den aktuellen Ordner hier abzulegen."),

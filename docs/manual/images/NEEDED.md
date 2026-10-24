@@ -41,6 +41,8 @@ Window size for full-window shots: 1440 × 900 pt at 2x, accent colour Blue, def
 | `connect-ftps-data-channel.png` | 08 | Connect sheet, FTPS, Data channel segmented control with Automatic selected and its note. | light | both | ✅ generated (light) |
 | `connect-s3.png` | 08 | Connect sheet, S3, Provider "Cloudflare R2" with the Account ID field. | light | both | ✅ generated (light) |
 | `connect-container.png` | 08 | Connect sheet, Container, Docker, list of containers (one stopped, read-only). | light | both | ✅ generated (light) |
+| `connect-webdav.png` | 08 | Connect sheet, WebDAV, HTTPS, Server type "Nextcloud" with the WebDAV path filled in. | light | both | ✅ generated (light) |
+| `connect-smb.png` | 08 | Connect sheet, SMB, share "Team" chosen from the list of the server's shares. | light | both | ✅ generated (light) |
 | `cloud-sidebar-badges.png` | 09 | Cloud section in the sidebar (iCloud Drive, Google Drive, OneDrive) and a Google Drive folder with "only in cloud", "downloading" and downloaded files; context menu with Download Now / Remove Download. Built in now; `render_cloud` (crates/app/src/cloud_ux_tests.rs) renders German light/dark versions. | both | both | ✅ generated (light) |
 | `archive-as-folder.png` | 10 | A ZIP open as a folder: breadcrumb `Downloads › backup.zip › docs`, lock chip "read-only archive". | light | both | ✅ generated (light) |
 | `compress-sheet.png` | 10 | Compress sheet: format zip, name, Level slider, "Exclude .DS_Store and __MACOSX" on. | light | both | ✅ generated (light) |

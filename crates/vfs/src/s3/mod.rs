@@ -21,7 +21,7 @@
 mod client;
 mod creds;
 mod sigv4;
-mod xml;
+pub(crate) mod xml;
 
 use std::io::{self, Read, Write};
 use std::sync::Arc;
@@ -1158,6 +1158,8 @@ mod tests {
             s3: Some(Box::new(opts)),
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         }
     }
 

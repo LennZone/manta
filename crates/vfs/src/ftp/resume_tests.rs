@@ -31,6 +31,8 @@ fn config(server: &Server) -> ConnectionConfig {
         ftp: Some(Box::new(FtpOptions {
             data_channel: FtpDataChannel::Require,
         })),
+        webdav: None,
+        smb: None,
     }
 }
 

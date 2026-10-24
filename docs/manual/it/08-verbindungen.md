@@ -1,11 +1,11 @@
 # Connessioni {#verbindungen}
 
-Manta apre le cartelle sui server (SFTP, FTP, FTPS), negli archivi S3 e nei container Docker e Kubernetes come se fossero cartelle locali. Lì copi, sposti e rinomini esattamente come sul tuo Mac.
+Manta apre le cartelle sui server (SFTP, FTP, FTPS, WebDAV, SMB), negli archivi S3 e nei container Docker e Kubernetes come se fossero cartelle locali. Lì copi, sposti e rinomini esattamente come sul tuo Mac.
 
 ## Connettersi a un server {#verbinden}
 
 1. Premi **⌘K** (**Connessione al server…**), fai clic su **Connetti** nella barra degli strumenti oppure sul **+** accanto a **Server** nella barra laterale.
-2. In alto scegli il **Protocollo**: **SFTP**, **FTP**, **FTPS**, **S3** o **Container**.
+2. In alto scegli il **Protocollo**: **SFTP**, **FTP**, **FTPS**, **WebDAV**, **SMB**, **S3** o **Container**.
 3. Compila i campi (vedi sotto).
 4. Facoltativo: fai clic su **Prova connessione**. Manta segnala ad esempio “Accesso eseguito. Cartella Inizio: /home/anna”.
 5. Fai clic su **Connetti**.
@@ -90,6 +90,58 @@ Buono a sapersi:
 - I profili AWS che usano SSO, `credential_process` o assume-role non funzionano, solo le chiavi statiche.
 - Se l’orologio del tuo Mac è sfasato di più di 15 minuti, S3 rifiuta le richieste (“L’orologio del Mac non è corretto”).
 
+## WebDAV {#webdav}
+
+**WebDAV** si connette a Nextcloud, ownCloud, sistemi NAS (Synology, QNAP), server Apache o nginx e altri servizi WebDAV.
+
+| Campo | Significato |
+|---|---|
+| **Server**, **Porta** | L’indirizzo del server. Puoi incollare un URL completo come `https://cloud.example.com/remote.php/dav/files/anna`; Manta compila i campi. |
+| **Sicurezza** | **HTTPS** (porta 443) o **HTTP (non crittografato)** (porta 80). |
+| **Utente**, **Accedi con** | **Password** o **Anonimo**. Manta gestisce l’autenticazione Basic e Digest. |
+| **Tipo di server** | **Server WebDAV**, **Nextcloud** o **ownCloud**. Nextcloud e ownCloud inseriscono il **Percorso WebDAV** `/remote.php/dav/files/<nome utente>`. |
+| **Percorso WebDAV** | Dove inizia la cartella WebDAV sul server, ad esempio `/dav`. Vuoto: la radice del server. |
+| **Cartella** | Facoltativa: la cartella da aprire al suo interno. |
+
+Buono a sapersi:
+
+- I certificati vengono controllati da macOS, come in Safari. Un certificato autofirmato funziona non appena lo imposti come attendibile in Accesso Portachiavi.
+- I download interrotti riprendono da dove si erano fermati. Gli upload interrotti ricominciano il file (WebDAV non può aggiungere dati a un file).
+- Le copie all’interno dello stesso server usano la funzione di copia del server (senza scaricare e ricaricare).
+- Le date di modifica si possono impostare se il server lo consente (Nextcloud, ownCloud); altrimenti le copie ricevono l’ora dell’upload.
+
+> [!TIP]
+> Con l’autenticazione a due fattori su Nextcloud o ownCloud, accedi con una **password per app** (Impostazioni → Sicurezza nell’interfaccia web), non con la tua password normale.
+
+> [!WARNING]
+> Con **HTTP (non crittografato)**, la password e tutti i file vengono trasmessi senza crittografia. Usa HTTP solo in una rete di cui ti fidi.
+
+![Finestra di connessione WebDAV con l’impostazione Nextcloud](images/connect-webdav.png)
+
+## SMB {#smb}
+
+**SMB** apre le condivisioni di PC Windows, sistemi NAS e altri Mac. È macOS stesso a stabilire la connessione (come **Connessione al server** nel Finder) e a montare la condivisione in `/Volumes`; Manta la mostra poi come una cartella locale.
+
+| Campo | Significato |
+|---|---|
+| **Server** | Nome o indirizzo del server, ad esempio `nas.local`. `smb://server/condivisione/cartella` compila tutti i campi. |
+| **Utente**, **Accedi con** | **Password** o **Ospite** (senza password, oppure con il tuo ticket Kerberos o la password salvata nel Portachiavi). |
+| **Condivisione** | La condivisione da aprire. **Sfoglia…** mostra le condivisioni del server; fai clic su una per sceglierla. |
+| **Cartella** | Facoltativa: una cartella nella condivisione. |
+
+Buono a sapersi:
+
+- Una condivisione già montata (ad esempio dal Finder) viene usata così com’è e resta montata quando ti disconnetti. Una condivisione montata da Manta viene espulsa quando ti disconnetti o esci da Manta.
+- Il chip della posizione mostra ad esempio “SMB · nas.local/Team”.
+- Le copie interrotte riprendono da dove si erano fermate. Se la condivisione scompare (cambio di rete, stop), Manta la rimonta prima di riprovare.
+- L’elenco delle condivisioni proviene da `smbutil`. Se il server richiede una password per fornirlo, Manta passa brevemente a `smbutil` la password inserita.
+
+![Finestra di connessione SMB con l’elenco delle condivisioni](images/connect-smb.png)
+
+### Volumi di rete nella barra laterale {#netzwerk-volumes}
+
+Le condivisioni collegate nel Finder (SMB, AFP, NFS, WebDAV) compaiono in **Dispositivi** con un’icona di rete. Passa il puntatore sopra una di esse e fai clic sull’icona di espulsione (**Espelli**) per smontarla. Dopo aver montato qualcosa di nuovo, fai clic sulla freccia accanto a **Dispositivi**.
+
 ## Docker e Kubernetes {#container}
 
 Manta apre i file **all’interno dei container** come una cartella. Usa i comandi `docker` e `kubectl`, che devono essere installati sul tuo Mac.
@@ -139,7 +191,7 @@ Per modificare un preferito: clic destro → **Modifica connessione…** (la fin
 
 ## Disconnettersi {#trennen}
 
-Passa con il puntatore sulla connessione sotto **Server** nella barra laterale e fai clic sull’icona di espulsione (**Disconnetti**). I pannelli che mostravano il server indicano “Disconnesso”.
+Passa con il puntatore sulla connessione sotto **Server** nella barra laterale e fai clic sull’icona di espulsione (**Disconnetti**). I pannelli che mostravano il server indicano “Disconnesso”. Per una condivisione SMB, la disconnessione espelle anche la condivisione se l’ha montata Manta.
 
 ## Quando non funziona {#fehler}
 
@@ -164,3 +216,5 @@ Altro aiuto: [Risoluzione dei problemi](19-fehlerbehebung.md).
 - Kubernetes: niente port forwarding, niente container di debug effimeri; i pod devono avere `sh`.
 - La scrittura nei container passa da `cat`; i nuovi file appartengono all’utente con cui viene eseguito `exec`.
 - Google Drive e simili non si collegano qui, ma tramite le cartelle cloud del tuo Mac, vedi [Archiviazione cloud](09-cloud.md). Manta non ha un proprio accesso a Google; solo se inserisci nelle Impostazioni un tuo client OAuth **personale** compare qui anche “Google Drive”, vedi [Google Drive per esperti](09-cloud.md#experte).
+- WebDAV: nessun blocco (`LOCK`); gli upload interrotti ricominciano.
+- SMB richiede il supporto SMB di macOS; Manta non ha un proprio client SMB. Con una porta diversa da quella predefinita, l’elenco delle condivisioni potrebbe non funzionare.

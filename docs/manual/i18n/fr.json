@@ -154,7 +154,13 @@
         "empreinte",
         "clé du serveur",
         "known_hosts",
-        "serveur inconnu"
+        "serveur inconnu",
+        "webdav",
+        "nextcloud",
+        "smb",
+        "partage",
+        "nas",
+        "éjecter"
       ]
     },
     "cloud": {

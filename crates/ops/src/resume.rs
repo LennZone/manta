@@ -163,6 +163,17 @@ pub fn same_connection(a: &ConnectionConfig, b: &ConnectionConfig) -> bool {
         && a.s3.as_ref().map(|s| (&s.endpoint, &s.bucket, &s.profile))
             == b.s3.as_ref().map(|s| (&s.endpoint, &s.bucket, &s.profile))
         && a.container == b.container
+        && webdav_root(a) == webdav_root(b)
+        && a.smb.as_ref().map(|s| s.share.trim().to_lowercase())
+            == b.smb.as_ref().map(|s| s.share.trim().to_lowercase())
+}
+
+/// The WebDAV folder of a connection, without slashes around it.
+fn webdav_root(c: &ConnectionConfig) -> String {
+    c.webdav
+        .as_ref()
+        .map(|w| w.root.trim().trim_matches('/').to_string())
+        .unwrap_or_default()
 }
 
 /// Where an interrupted file stands (persisted in the journal).
@@ -316,6 +327,8 @@ mod tests {
             s3: None,
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         };
         let ep = Endpoint::remote(&cfg);
         let json = serde_json::to_string(&ep).unwrap();

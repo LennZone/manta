@@ -823,6 +823,8 @@ pub fn docker_config(container: &str) -> ConnectionConfig {
             ..Default::default()
         })),
         ftp: None,
+        webdav: None,
+        smb: None,
     }
 }
 
@@ -848,6 +850,8 @@ pub fn kube_config(context: &str, namespace: &str, pod: &str, container: &str) -
             pod: pod.to_string(),
         })),
         ftp: None,
+        webdav: None,
+        smb: None,
     }
 }
 

@@ -185,6 +185,8 @@ fn favorites(root: &Path) -> Favorites {
         s3: None,
         container: None,
         ftp: None,
+        webdav: None,
+        smb: None,
     };
     let mut items = vec![
         Favorite::Local {
@@ -212,6 +214,7 @@ fn places(root: &Path) -> (Vec<Place>, Vec<Place>) {
         icon,
         name: name.into(),
         path,
+        network: false,
     };
     (
         vec![
@@ -3052,6 +3055,9 @@ mod update_ux;
 
 #[path = "ftps_ux_tests.rs"]
 mod ftps_ux;
+
+#[path = "smb_webdav_ux_tests.rs"]
+mod smb_webdav_ux;
 
 /// Typing letters in the file list jumps to the first matching name, like
 /// Finder; a pause starts a new word; Space only opens Quick Look when no

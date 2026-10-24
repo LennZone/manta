@@ -311,6 +311,16 @@ pub enum Protocol {
     /// `drive.google.com`; `initial_path` is the optional starting folder.
     /// See [`ConnectionConfig::google_drive`].
     GoogleDrive,
+    /// WebDAV over plain HTTP. Settings live in [`ConnectionConfig::webdav`]
+    /// (the server's WebDAV root, e.g. Nextcloud's
+    /// `/remote.php/dav/files/<user>`).
+    WebDav,
+    /// WebDAV over HTTPS (certificates checked by macOS, like Safari).
+    WebDavs,
+    /// An SMB share, mounted through macOS (NetFS) and then browsed like a
+    /// local volume. Settings live in [`ConnectionConfig::smb`]; `host` is
+    /// the server, `username` the login.
+    Smb,
 }
 
 impl Protocol {
@@ -322,6 +332,11 @@ impl Protocol {
     /// A cloud storage API (S3 or Google Drive), not a server login.
     pub fn is_cloud(self) -> bool {
         matches!(self, Protocol::S3 | Protocol::GoogleDrive)
+    }
+
+    /// WebDAV over HTTP or HTTPS.
+    pub fn is_webdav(self) -> bool {
+        matches!(self, Protocol::WebDav | Protocol::WebDavs)
     }
 }
 
@@ -336,6 +351,9 @@ impl fmt::Display for Protocol {
             Protocol::Docker => "Docker",
             Protocol::Kubernetes => "Kubernetes",
             Protocol::GoogleDrive => "Google Drive",
+            Protocol::WebDav => "WebDAV",
+            Protocol::WebDavs => "WebDAVS",
+            Protocol::Smb => "SMB",
         })
     }
 }
@@ -396,6 +414,34 @@ pub struct ConnectionConfig {
     /// `None` means the defaults ([`FtpOptions::default`]).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ftp: Option<Box<FtpOptions>>,
+    /// WebDAV settings (only for [`Protocol::WebDav`] / [`Protocol::WebDavs`]).
+    /// `None` means the server root `/`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub webdav: Option<Box<WebDavOptions>>,
+    /// SMB settings (only for [`Protocol::Smb`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub smb: Option<Box<SmbOptions>>,
+}
+
+/// Settings of a WebDAV connection.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct WebDavOptions {
+    /// Path on the server where the WebDAV tree starts, such as
+    /// `/remote.php/dav/files/alice` (Nextcloud) or `/dav`. Manta's `/` is
+    /// this folder. Empty: the server root.
+    pub root: String,
+    /// Preset the dialog used ("generic", "nextcloud", "owncloud").
+    /// Informational only; the backend uses `root`.
+    pub preset: String,
+}
+
+/// Settings of an SMB connection.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(default)]
+pub struct SmbOptions {
+    /// The share to mount (`smb://server/<share>`).
+    pub share: String,
 }
 
 /// Settings of an FTP / FTPS connection.
@@ -479,6 +525,9 @@ impl ConnectionConfig {
             Protocol::Ftp | Protocol::Ftps => 21,
             Protocol::S3 | Protocol::GoogleDrive => 443,
             Protocol::Docker | Protocol::Kubernetes => 0,
+            Protocol::WebDav => 80,
+            Protocol::WebDavs => 443,
+            Protocol::Smb => 445,
         }
     }
 
@@ -502,6 +551,8 @@ impl ConnectionConfig {
             s3: None,
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         }
     }
 }
@@ -574,6 +625,13 @@ pub trait Vfs: Send + Sync {
     }
     /// Rename / move within the same backend.
     fn rename(&self, from: &VfsPath, to: &VfsPath) -> VfsResult<()>;
+
+    /// Copy a file or a whole folder to `to` (which must not exist) on the
+    /// server itself, without moving the data through Manta (WebDAV
+    /// `COPY`). Default `Unsupported`; callers then copy the bytes.
+    fn server_copy(&self, from: &VfsPath, _to: &VfsPath) -> VfsResult<()> {
+        Err(VfsError::Unsupported(format!("server-side copy: {from}")))
+    }
 
     fn open_read(&self, path: &VfsPath) -> VfsResult<Box<dyn Read + Send>>;
     /// Create or truncate a file for writing.

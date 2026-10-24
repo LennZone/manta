@@ -197,6 +197,21 @@ fn screens(fx: &Fixture) -> Vec<(&'static str, Go)> {
             }),
         ),
         (
+            "connect_webdav",
+            Box::new(|h: &mut H| {
+                let mut f = ConnectForm::new(Side::Left);
+                f.set_protocol_for_tests(manta_core::Protocol::WebDav);
+                f.dav.set_preset("nextcloud", "anna");
+                app(h).dialog = Some(Dialog::Connect(f));
+            }),
+        ),
+        (
+            "connect_smb",
+            Box::new(|h: &mut H| {
+                app(h).dialog = Some(Dialog::Connect(super::smb_webdav_ux::smb_form(true)));
+            }),
+        ),
+        (
             "delete",
             Box::new(move |h: &mut H| {
                 let a = app(h);

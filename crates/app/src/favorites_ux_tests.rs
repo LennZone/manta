@@ -332,6 +332,8 @@ fn remembered_passwords_live_in_the_keychain() {
         s3: None,
         container: None,
         ftp: None,
+        webdav: None,
+        smb: None,
     };
     // The connect dialog with "Add to favorites" + "Remember password".
     let a = app(&mut h);

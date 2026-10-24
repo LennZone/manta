@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 
 use manta_core::{
     Auth, ConnectionConfig, ContainerOptions, FtpDataChannel, FtpOptions, Protocol, S3Options,
-    SharedVfs, VfsPath,
+    SharedVfs, SmbOptions, VfsPath, WebDavOptions,
 };
 use manta_ops::ConflictPolicy;
 use manta_vfs::container::discover::{DockerContainer, KubePod};
@@ -162,6 +162,129 @@ impl S3Form {
         f.endpoint = o.endpoint.clone();
         f.refresh_endpoint();
         f
+    }
+}
+
+/// The WebDAV part of the connect dialog (server, user and password use
+/// the common fields).
+pub struct DavForm {
+    /// HTTPS (`Protocol::WebDavs`) or plain HTTP (`Protocol::WebDav`).
+    pub https: bool,
+    /// Server type preset id (see [`manta_vfs::webdav::PRESETS`]).
+    pub preset: &'static str,
+    /// The WebDAV folder on the server (`/remote.php/dav/files/alice`).
+    pub root: String,
+    /// The path follows the preset and the user name (not hand-edited).
+    pub root_auto: bool,
+}
+
+impl Default for DavForm {
+    fn default() -> Self {
+        DavForm {
+            https: true,
+            preset: "generic",
+            root: String::new(),
+            root_auto: true,
+        }
+    }
+}
+
+impl DavForm {
+    /// Recompute an automatic path after a preset / user name change.
+    pub fn refresh_root(&mut self, user: &str) {
+        if self.root_auto {
+            if let Some(r) = manta_vfs::webdav::preset_root(self.preset, user) {
+                self.root = r;
+            }
+        }
+    }
+
+    pub fn set_preset(&mut self, id: &'static str, user: &str) {
+        self.preset = id;
+        self.root_auto = true;
+        self.refresh_root(user);
+    }
+
+    fn from_options(o: &WebDavOptions, https: bool, user: &str) -> DavForm {
+        let preset = manta_vfs::webdav::PRESETS
+            .iter()
+            .map(|(id, _)| *id)
+            .find(|id| *id == o.preset)
+            .unwrap_or("generic");
+        let auto = manta_vfs::webdav::preset_root(preset, user).unwrap_or_default();
+        DavForm {
+            https,
+            preset,
+            root_auto: manta_vfs::webdav::normalize_root(&o.root)
+                == manta_vfs::webdav::normalize_root(&auto),
+            root: o.root.clone(),
+        }
+    }
+}
+
+fn dav_preset_name(id: &str) -> &'static str {
+    match id {
+        "nextcloud" => "Nextcloud",
+        "owncloud" => "ownCloud",
+        _ => t!("connect.webdav.preset.generic"),
+    }
+}
+
+/// Shares found on an SMB server (off the UI thread).
+#[derive(Debug, Clone, Default)]
+pub struct ShareList {
+    pub loading: bool,
+    /// The server the list is for.
+    pub server: String,
+    pub result: Option<Result<Vec<manta_vfs::smb::Share>, String>>,
+}
+
+/// The SMB part of the connect dialog.
+#[derive(Default)]
+pub struct SmbForm {
+    pub share: String,
+    found: Arc<Mutex<ShareList>>,
+    /// Show the share list below the field.
+    pub picking: bool,
+    /// Fixed data (tests): never run `smbutil`.
+    fixed: bool,
+}
+
+impl SmbForm {
+    /// Tests and renders: show these shares instead of asking the server.
+    #[cfg(test)]
+    pub fn set_found(&mut self, l: ShareList) {
+        *self.found.lock().unwrap() = l;
+        self.fixed = true;
+        self.picking = true;
+    }
+
+    fn found(&self) -> ShareList {
+        self.found.lock().map(|f| f.clone()).unwrap_or_default()
+    }
+
+    /// List the shares of `cfg`'s server on a background thread.
+    fn request(&mut self, ctx: &egui::Context, cfg: ConnectionConfig) {
+        self.picking = true;
+        if self.fixed {
+            return;
+        }
+        let slot = self.found.clone();
+        if let Ok(mut f) = slot.lock() {
+            f.loading = true;
+            f.server = cfg.host.clone();
+        }
+        let ctx = ctx.clone();
+        std::thread::spawn(move || {
+            let r = manta_vfs::smb::list_shares(&cfg).map_err(|e| e.to_string());
+            if let Ok(mut f) = slot.lock() {
+                if f.server == cfg.host {
+                    f.loading = false;
+                    f.result = Some(r);
+                }
+            }
+            ctx.request_repaint();
+        });
     }
 }
 
@@ -334,6 +457,17 @@ fn pick_list(ui: &mut egui::Ui, id: &str, rows: &[PickRow], empty: &str) -> Opti
                         let w = ui.available_width();
                         let (rect, resp) =
                             ui.allocate_exact_size(egui::vec2(w, 24.0), Sense::click());
+                        // VoiceOver: "Public, Everyone, selected".
+                        let spoken = if r.detail.is_empty() {
+                            r.title.clone()
+                        } else {
+                            format!("{}, {}", r.title, r.detail)
+                        };
+                        crate::a11y::name(&resp, egui::accesskit::Role::ListBoxOption, &spoken);
+                        if r.selected {
+                            resp.ctx
+                                .accesskit_node_builder(resp.id, |n| n.set_selected(true));
+                        }
                         if r.selected {
                             ui.painter().rect_filled(
                                 rect,
@@ -418,6 +552,8 @@ pub struct ConnectForm {
     pub ctr: Box<ContainerForm>,
     /// FTPS: protection of the data connections.
     pub ftp_data: FtpDataChannel,
+    pub dav: Box<DavForm>,
+    pub smb: Box<SmbForm>,
     /// Offer Manta's own Google Drive connection: only when the user set
     /// up an OAuth client of their own (Settings → Cloud → Expert). Manta
     /// ships none; normally Google Drive comes through Google Drive for
@@ -445,6 +581,13 @@ fn parse_host(input: &str) -> ParsedHost {
         ("ssh://", Protocol::Sftp),
         ("ftps://", Protocol::Ftps),
         ("ftp://", Protocol::Ftp),
+        ("https://", Protocol::WebDavs),
+        ("http://", Protocol::WebDav),
+        ("webdavs://", Protocol::WebDavs),
+        ("webdav://", Protocol::WebDav),
+        ("davs://", Protocol::WebDavs),
+        ("dav://", Protocol::WebDav),
+        ("smb://", Protocol::Smb),
     ] {
         if rest.len() >= scheme.len() && rest[..scheme.len()].eq_ignore_ascii_case(scheme) {
             out.protocol = Some(proto);
@@ -504,6 +647,8 @@ impl ConnectForm {
             s3: Box::default(),
             ctr: Box::default(),
             ftp_data: FtpDataChannel::default(),
+            dav: Box::default(),
+            smb: Box::default(),
             gdrive: false,
             focus_requested: false,
         }
@@ -561,6 +706,17 @@ impl ConnectForm {
             f.auth_kind = AuthKind::Anonymous;
         } else if cfg.protocol == Protocol::Docker {
             f.ctr.container = cfg.host.clone();
+        }
+        if cfg.protocol.is_webdav() {
+            let o = cfg.webdav.as_deref().cloned().unwrap_or_default();
+            f.dav = Box::new(DavForm::from_options(
+                &o,
+                cfg.protocol == Protocol::WebDavs,
+                &cfg.username,
+            ));
+        }
+        if let Some(o) = cfg.smb.as_ref().filter(|_| cfg.protocol == Protocol::Smb) {
+            f.smb.share = o.share.clone();
         }
         if let Some(o) = cfg.s3.as_ref().filter(|_| cfg.protocol == Protocol::S3) {
             f.s3 = Box::new(S3Form::from_options(o));
@@ -646,6 +802,8 @@ impl ConnectForm {
             })),
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         })
     }
 
@@ -675,6 +833,9 @@ impl ConnectForm {
         match self.protocol {
             Protocol::Docker => self.ctr.container.trim().to_string(),
             Protocol::Kubernetes => self.ctr.pod.trim().to_string(),
+            Protocol::Smb if !self.smb.share.trim().is_empty() => {
+                format!("{}/{}", self.host.trim(), self.smb.share.trim())
+            }
             _ => self.host.trim().to_string(),
         }
     }
@@ -914,6 +1075,15 @@ impl ConnectForm {
         }
     }
 
+    fn share_problem(&self) -> Option<&'static str> {
+        (self.protocol == Protocol::Smb
+            && self.smb.share.trim().trim_matches('/').is_empty()
+            && parse_host(&self.host)
+                .path
+                .is_none_or(|p| p.trim_matches('/').is_empty()))
+        .then_some(t!("connect.problem.share"))
+    }
+
     fn key_problem(&self) -> Option<&'static str> {
         (self.auth_kind == AuthKind::KeyFile && self.key_path.trim().is_empty())
             .then_some(t!("connect.problem.key_file"))
@@ -939,6 +1109,7 @@ impl ConnectForm {
             .host_problem()
             .or(self.port_problem())
             .or(self.key_problem())
+            .or(self.share_problem())
         {
             return Err(e.to_string());
         }
@@ -960,10 +1131,36 @@ impl ConnectForm {
             AuthKind::Anonymous | AuthKind::AwsProfile => Auth::None,
         };
         let initial = self.initial_path.trim();
-        let initial = if initial.is_empty() {
-            parsed.path
+        let typed_initial = (!initial.is_empty()).then(|| initial.to_string());
+        let mut webdav = None;
+        let mut smb = None;
+        let initial = if protocol.is_webdav() {
+            // A pasted URL's path is the WebDAV folder, not a start folder.
+            let root = match parsed.path {
+                Some(p) if self.dav.root.trim().is_empty() || self.dav.root_auto => p,
+                _ => self.dav.root.clone(),
+            };
+            webdav = Some(Box::new(WebDavOptions {
+                root: manta_vfs::webdav::normalize_root(&root),
+                preset: self.dav.preset.to_string(),
+            }));
+            typed_initial
+        } else if protocol == Protocol::Smb {
+            // smb://server/share/folder: the share, then the folder.
+            let mut share = self.smb.share.trim().trim_matches('/').to_string();
+            let mut rest = None;
+            if share.is_empty() {
+                if let Some(p) = parsed.path {
+                    let p = p.trim_matches('/');
+                    let (s, r) = p.split_once('/').unwrap_or((p, ""));
+                    share = manta_vfs::webdav::decode(s);
+                    rest = (!r.is_empty()).then(|| format!("/{}", manta_vfs::webdav::decode(r)));
+                }
+            }
+            smb = Some(Box::new(SmbOptions { share }));
+            typed_initial.or(rest)
         } else {
-            Some(initial.to_string())
+            typed_initial.or(parsed.path)
         };
         Ok(ConnectionConfig {
             name: self.name.trim().to_string(),
@@ -980,6 +1177,8 @@ impl ConnectForm {
                     data_channel: self.ftp_data,
                 })
             }),
+            webdav,
+            smb,
         })
     }
 
@@ -1020,6 +1219,9 @@ impl ConnectForm {
         } else if p != Protocol::S3 && self.protocol == Protocol::S3 && self.user.is_empty() {
             self.user = login;
         }
+        if p.is_webdav() {
+            self.dav.https = p == Protocol::WebDavs;
+        }
         self.protocol = p;
         let allowed = allowed_auth(p);
         if !allowed.contains(&self.auth_kind) {
@@ -1050,7 +1252,26 @@ impl ConnectForm {
             self.port = port;
         }
         if let Some(path) = parsed.path {
-            if self.initial_path.trim().is_empty() {
+            if self.protocol.is_webdav() {
+                // https://cloud.example.com/remote.php/dav/files/alice
+                let root = manta_vfs::webdav::normalize_root(&path);
+                let next = manta_vfs::webdav::preset_root("nextcloud", &self.user);
+                if next.as_deref() == Some(root.as_str()) {
+                    self.dav.preset = "nextcloud";
+                    self.dav.root_auto = true;
+                } else {
+                    self.dav.preset = "generic";
+                    self.dav.root_auto = false;
+                }
+                self.dav.root = root;
+            } else if self.protocol == Protocol::Smb {
+                let p = path.trim_matches('/').to_string();
+                let (share, rest) = p.split_once('/').unwrap_or((&p, ""));
+                self.smb.share = manta_vfs::webdav::decode(share);
+                if !rest.is_empty() && self.initial_path.trim().is_empty() {
+                    self.initial_path = format!("/{}", manta_vfs::webdav::decode(rest));
+                }
+            } else if self.initial_path.trim().is_empty() {
                 self.initial_path = path;
             }
         }
@@ -1085,22 +1306,36 @@ impl ConnectForm {
         if show {
             field_problem(ui, self.host_problem().or(self.port_problem()));
         }
+        if self.protocol.is_webdav() {
+            self.webdav_security(ui);
+        }
         field(ui, t!("connect.user"), |ui| {
             let hint = if self.auth_kind == AuthKind::Anonymous {
                 t!("connect.user.anonymous")
             } else {
                 t!("connect.user.hint")
             };
-            widgets::show_input(
+            let r = widgets::show_input(
                 ui,
                 widgets::input(&mut self.user).desired_width(f32::INFINITY),
                 hint,
             );
+            if r.changed() {
+                self.dav.refresh_root(&self.user);
+            }
         });
         field(ui, t!("connect.sign_in_with"), |ui| {
+            let smb = self.protocol == Protocol::Smb;
             let opts: Vec<(AuthKind, &str)> = allowed_auth(self.protocol)
                 .iter()
-                .map(|k| (*k, auth_label(*k)))
+                .map(|k| {
+                    let label = if smb && *k == AuthKind::Anonymous {
+                        t!("connect.auth.guest")
+                    } else {
+                        auth_label(*k)
+                    };
+                    (*k, label)
+                })
                 .collect();
             widgets::segmented(ui, "connect-auth", &mut self.auth_kind, &opts);
         });
@@ -1143,20 +1378,209 @@ impl ConnectForm {
                 });
             }
             AuthKind::Agent => field_note(ui, t!("connect.agent.note")),
+            AuthKind::Anonymous if self.protocol == Protocol::Smb => {
+                field_note_wrapped(ui, t!("connect.smb.guest.note"))
+            }
             AuthKind::Anonymous | AuthKind::AwsProfile => {
                 field_note(ui, t!("connect.anonymous.note"))
             }
+        }
+        if self.protocol.is_webdav() {
+            self.webdav_fields(ui);
+        }
+        if self.protocol == Protocol::Smb {
+            self.smb_fields(ui, show);
         }
         field(ui, t!("connect.folder"), |ui| {
             widgets::show_input(
                 ui,
                 widgets::input(&mut self.initial_path).desired_width(f32::INFINITY),
-                t!("connect.folder.hint_home"),
+                if self.protocol.is_webdav() || self.protocol == Protocol::Smb {
+                    t!("connect.folder.hint_top")
+                } else {
+                    t!("connect.folder.hint_home")
+                },
             );
         });
         if self.protocol == Protocol::Ftps {
             self.ftps_fields(ui);
         }
+    }
+
+    /// WebDAV: HTTPS or plain HTTP.
+    fn webdav_security(&mut self, ui: &mut egui::Ui) {
+        field(ui, t!("connect.webdav.security"), |ui| {
+            let mut https = self.dav.https;
+            if widgets::segmented(
+                ui,
+                "connect-webdav-security",
+                &mut https,
+                &[(true, "HTTPS"), (false, t!("connect.webdav.http"))],
+            ) {
+                self.set_protocol(if https {
+                    Protocol::WebDavs
+                } else {
+                    Protocol::WebDav
+                });
+                self.test_result = None;
+            }
+        });
+        if !self.dav.https {
+            field_note_wrapped(ui, t!("connect.webdav.http.note"));
+        }
+    }
+
+    /// WebDAV: server type preset and the WebDAV folder.
+    fn webdav_fields(&mut self, ui: &mut egui::Ui) {
+        field(ui, t!("connect.webdav.preset"), |ui| {
+            let mut chosen = self.dav.preset;
+            egui::ComboBox::from_id_salt("webdav-preset")
+                .width(ui.available_width())
+                .selected_text(dav_preset_name(self.dav.preset))
+                .show_ui(ui, |ui| {
+                    for (id, _) in manta_vfs::webdav::PRESETS {
+                        ui.selectable_value(&mut chosen, id, dav_preset_name(id));
+                    }
+                });
+            if chosen != self.dav.preset {
+                self.dav.set_preset(chosen, &self.user);
+                self.test_result = None;
+            }
+        });
+        field(ui, t!("connect.webdav.path"), |ui| {
+            let r = widgets::show_input(
+                ui,
+                widgets::input(&mut self.dav.root).desired_width(f32::INFINITY),
+                t!("connect.webdav.path.hint"),
+            )
+            .accessible_name(t!("connect.webdav.path"));
+            if r.changed() {
+                self.dav.root_auto = false;
+                self.test_result = None;
+            }
+        });
+        if self.dav.preset != "generic" {
+            field_note_wrapped(ui, t!("connect.webdav.nextcloud.note"));
+        }
+    }
+
+    /// The SMB server of the form, for the share list.
+    fn smb_browse_config(&self) -> ConnectionConfig {
+        let anonymous = self.auth_kind == AuthKind::Anonymous;
+        ConnectionConfig {
+            name: String::new(),
+            protocol: Protocol::Smb,
+            host: parse_host(&self.host).host,
+            port: self.port.trim().parse().unwrap_or(0),
+            username: if anonymous {
+                String::new()
+            } else {
+                self.user.trim().to_string()
+            },
+            auth: if anonymous {
+                Auth::None
+            } else {
+                Auth::Password(self.password.clone())
+            },
+            initial_path: None,
+            s3: None,
+            container: None,
+            ftp: None,
+            webdav: None,
+            smb: None,
+        }
+    }
+
+    /// SMB: the share, with a list of the server's shares.
+    fn smb_fields(&mut self, ui: &mut egui::Ui, show: bool) {
+        let mut browse = false;
+        let can_browse = !parse_host(&self.host).host.is_empty();
+        field(ui, t!("connect.smb.share"), |ui| {
+            // The button's width (measured last frame) decides the field's.
+            let bw_id = egui::Id::unique("connect-smb-browse-width");
+            let bw: f32 = ui.data(|d| d.get_temp(bw_id)).unwrap_or(120.0);
+            let w = (ui.available_width() - bw - ui.spacing().item_spacing.x - 2.0).max(80.0);
+            let r = widgets::show_input(
+                ui,
+                widgets::input(&mut self.smb.share).desired_width(w),
+                t!("connect.smb.share.hint"),
+            )
+            .accessible_name(t!("connect.smb.share"));
+            if r.changed() {
+                self.test_result = None;
+            }
+            let button = widgets::button(
+                ui,
+                t!("connect.smb.browse"),
+                ButtonKind::Secondary,
+                can_browse,
+            );
+            let measured = button.rect.width();
+            if (measured - bw).abs() > 0.5 {
+                ui.data_mut(|d| d.insert_temp(bw_id, measured));
+                ui.ctx().request_repaint();
+            }
+            browse = widgets::tooltip(button, t!("connect.smb.browse.tip"), "").clicked();
+        });
+        if browse {
+            let cfg = self.smb_browse_config();
+            self.smb.request(ui.ctx(), cfg);
+        }
+        if show {
+            field_problem(ui, self.share_problem());
+        }
+        if self.smb.picking {
+            let found = self.smb.found();
+            match &found.result {
+                _ if found.loading => {
+                    field(ui, "", |ui| {
+                        ui.add(egui::Spinner::new().size(12.0));
+                        ui.label(
+                            RichText::new(t!("connect.smb.loading"))
+                                .font(theme::regular(text::SMALL))
+                                .color(pal(ui).text_secondary),
+                        );
+                    });
+                }
+                Some(Ok(shares)) => {
+                    let p = pal(ui);
+                    let rows: Vec<PickRow> = shares
+                        .iter()
+                        .map(|s| PickRow {
+                            title: s.name.clone(),
+                            detail: s.comment.clone(),
+                            dot: p.accent,
+                            dimmed: false,
+                            selected: s.name == self.smb.share.trim(),
+                        })
+                        .collect();
+                    let mut picked = None;
+                    field(ui, "", |ui| {
+                        picked = pick_list(ui, "smb-shares", &rows, t!("connect.smb.none"));
+                    });
+                    if let Some(i) = picked {
+                        self.smb.share = shares[i].name.clone();
+                        self.smb.picking = false;
+                        self.test_result = None;
+                    }
+                }
+                Some(Err(e)) => {
+                    let msg = t!("connect.smb.list_failed", error = e);
+                    field(ui, "", |ui| {
+                        ui.add(
+                            egui::Label::new(
+                                RichText::new(msg)
+                                    .font(theme::regular(text::SMALL))
+                                    .color(pal(ui).danger),
+                            )
+                            .wrap(),
+                        );
+                    });
+                }
+                None => {}
+            }
+        }
+        field_note_wrapped(ui, t!("connect.smb.note"));
     }
 
     /// FTPS options: the data channel policy.
@@ -1354,6 +1778,7 @@ impl ConnectForm {
                     Protocol::GoogleDrive => icons::GOOGLE_DRIVE_LOGO,
                     Protocol::Docker => icons::SHIPPING_CONTAINER,
                     Protocol::Kubernetes => icons::STEERING_WHEEL,
+                    Protocol::Smb => icons::NETWORK,
                     _ => icons::GLOBE,
                 },
                 p.accent_text,
@@ -1366,8 +1791,11 @@ impl ConnectForm {
             ui.add_enabled_ui(!busy, |ui| {
                 field(ui, t!("connect.protocol"), |ui| {
                     // Docker and Kubernetes share the Container tab.
+                    // WebDAV over HTTP and HTTPS share the WebDAV tab.
                     let shown = if self.protocol.is_container() {
                         Protocol::Docker
+                    } else if self.protocol.is_webdav() {
+                        Protocol::WebDavs
                     } else {
                         self.protocol
                     };
@@ -1376,6 +1804,8 @@ impl ConnectForm {
                         (Protocol::Sftp, "SFTP"),
                         (Protocol::Ftp, "FTP"),
                         (Protocol::Ftps, "FTPS"),
+                        (Protocol::WebDavs, "WebDAV"),
+                        (Protocol::Smb, "SMB"),
                         (Protocol::S3, "S3"),
                         (Protocol::Docker, t!("connect.protocol.container")),
                     ];
@@ -1385,7 +1815,11 @@ impl ConnectForm {
                     if widgets::segmented(ui, "connect-protocol", &mut proto, &tabs)
                         && proto != shown
                     {
+                        if proto == Protocol::WebDavs && !self.dav.https {
+                            proto = Protocol::WebDav;
+                        }
                         self.set_protocol(proto);
+                        self.dav.refresh_root(&self.user);
                     }
                 });
                 let show = self.show_validation;
@@ -1452,6 +1886,10 @@ impl ConnectForm {
                             (p, home) if p.is_container() => {
                                 t!("connect.test.container", home = home)
                             }
+                            (Protocol::Smb, _) => {
+                                t!("connect.test.smb", share = self.smb.share.trim())
+                            }
+                            (p, _) if p.is_webdav() => t!("connect.test.webdav").to_string(),
                             _ => t!("connect.test.home", home = home),
                         };
                         banner(ui, Banner::Success, t!("connect.test.works"), &msg, None)
@@ -1471,6 +1909,8 @@ impl ConnectForm {
                     Protocol::Sftp => "08-verbindungen.md#sftp",
                     Protocol::Ftp | Protocol::Ftps => "08-verbindungen.md#ftp",
                     Protocol::S3 => "08-verbindungen.md#s3",
+                    Protocol::WebDav | Protocol::WebDavs => "08-verbindungen.md#webdav",
+                    Protocol::Smb => "08-verbindungen.md#smb",
                     p if p.is_container() => "08-verbindungen.md#container",
                     _ => "08-verbindungen.md#verbinden",
                 };
@@ -1530,6 +1970,15 @@ pub fn friendly_connect_error(err: &str, host: &str, port: u16) -> (String, &'st
     let has = |words: &[&str]| words.iter().any(|w| e.contains(w));
     if let Some(r) = container_error(&e) {
         return r;
+    }
+    if has(&["no such share"]) {
+        return (t!("connect.err.share").into(), t!("connect.err.share.hint"));
+    }
+    if has(&["not a webdav folder", "no webdav folder"]) {
+        return (
+            t!("connect.err.webdav_path").into(),
+            t!("connect.err.webdav_path.hint"),
+        );
     }
     if has(&["clock is too far off", "requesttimetooskewed"]) {
         return (t!("connect.err.clock").into(), t!("connect.err.clock.hint"));
@@ -2767,6 +3216,106 @@ mod tests {
         assert_eq!(
             (f.user.as_str(), f.host.as_str(), f.port.as_str()),
             ("anna", "files.example.org", "2121")
+        );
+    }
+
+    #[test]
+    fn webdav_form() {
+        let mut f = ConnectForm::new(Side::Left);
+        f.set_protocol(Protocol::WebDavs);
+        assert_eq!(f.port, "443");
+        assert!(f.dav.https);
+        f.host = "cloud.example.com".into();
+        f.user = "anna".into();
+        f.password = "pw".into();
+        f.dav.set_preset("nextcloud", &f.user);
+        assert_eq!(f.dav.root, "/remote.php/dav/files/anna");
+        // The path follows the user name until it is edited.
+        f.user = "ben".into();
+        f.dav.refresh_root(&f.user);
+        assert_eq!(f.dav.root, "/remote.php/dav/files/ben");
+        let cfg = f.to_config().unwrap();
+        assert_eq!(cfg.protocol, Protocol::WebDavs);
+        assert_eq!(cfg.port, 443);
+        let o = cfg.webdav.as_ref().unwrap();
+        assert_eq!(
+            (o.root.as_str(), o.preset.as_str()),
+            ("/remote.php/dav/files/ben", "nextcloud")
+        );
+        let back = ConnectForm::from_config(&cfg, Side::Left, None);
+        assert!(back.dav.root_auto && back.dav.https);
+        assert_eq!(back.to_config().unwrap(), cfg);
+
+        // Plain HTTP switches the default port.
+        f.set_protocol(Protocol::WebDav);
+        assert_eq!((f.port.as_str(), f.dav.https), ("80", false));
+        f.dav.root = "/dav/".into();
+        f.dav.root_auto = false;
+        let cfg = f.to_config().unwrap();
+        assert_eq!(cfg.protocol, Protocol::WebDav);
+        assert_eq!(cfg.webdav.unwrap().root, "/dav");
+
+        // A pasted URL: scheme, host, port and WebDAV path.
+        let mut f = ConnectForm::new(Side::Left);
+        f.user = "anna".into();
+        f.host = "https://cloud.example.com:8443/remote.php/dav/files/anna/".into();
+        f.absorb_pasted_address();
+        assert_eq!(f.protocol, Protocol::WebDavs);
+        assert_eq!(
+            (f.host.as_str(), f.port.as_str()),
+            ("cloud.example.com", "8443")
+        );
+        assert_eq!(f.dav.preset, "nextcloud");
+        assert_eq!(f.dav.root, "/remote.php/dav/files/anna");
+        let mut f = ConnectForm::new(Side::Left);
+        f.host = "http://nas.local/dav".into();
+        f.absorb_pasted_address();
+        assert_eq!((f.protocol, f.dav.preset), (Protocol::WebDav, "generic"));
+        assert_eq!(f.dav.root, "/dav");
+    }
+
+    #[test]
+    fn smb_form() {
+        let mut f = ConnectForm::new(Side::Left);
+        f.set_protocol(Protocol::Smb);
+        assert_eq!(f.port, "445");
+        f.host = "nas.local".into();
+        f.user = "anna".into();
+        f.password = "pw".into();
+        assert_eq!(f.to_config().unwrap_err(), t!("connect.problem.share"));
+        f.smb.share = "Team".into();
+        let cfg = f.to_config().unwrap();
+        assert_eq!(cfg.protocol, Protocol::Smb);
+        assert_eq!(cfg.smb.as_ref().unwrap().share, "Team");
+        assert_eq!(f.target_label(), "nas.local/Team");
+        let back = ConnectForm::from_config(&cfg, Side::Left, None);
+        assert_eq!(back.smb.share, "Team");
+        assert_eq!(back.to_config().unwrap(), cfg);
+        // Guest: no user, no password.
+        f.auth_kind = AuthKind::Anonymous;
+        assert_eq!(f.to_config().unwrap().auth, Auth::None);
+
+        // smb://server/share/folder
+        let mut f = ConnectForm::new(Side::Left);
+        f.host = "smb://anna@nas.local/Team%20Files/Projects/2026".into();
+        f.absorb_pasted_address();
+        assert_eq!(f.protocol, Protocol::Smb);
+        assert_eq!(
+            (f.host.as_str(), f.user.as_str(), f.smb.share.as_str()),
+            ("nas.local", "anna", "Team Files")
+        );
+        assert_eq!(f.initial_path, "/Projects/2026");
+        // Not absorbed yet (Enter right away): to_config splits it too.
+        let mut f = ConnectForm::new(Side::Left);
+        f.set_protocol(Protocol::Smb);
+        f.host = "nas.local/Media/Movies".into();
+        let cfg = f.to_config().unwrap();
+        assert_eq!(cfg.smb.unwrap().share, "Media");
+        assert_eq!(cfg.initial_path.as_deref(), Some("/Movies"));
+        let browse = f.smb_browse_config();
+        assert_eq!(
+            (browse.host.as_str(), browse.protocol),
+            ("nas.local", Protocol::Smb)
         );
     }
 

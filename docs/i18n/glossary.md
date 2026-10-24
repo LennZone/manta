@@ -201,6 +201,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `pane.drag.download_failed` | Couldn't download “{name}” | „{name}“ konnte nicht geladen werden | 无法下载“{name}” | No se ha podido descargar “{name}” | Impossible de télécharger « {name} » | Impossibile scaricare “{name}” | Не удалось загрузить «{name}» |
 | `pane.drag.failed` | Couldn't drag the items out of Manta | Die Objekte konnten nicht aus Manta gezogen werden | 无法将项目拖出 Manta | No se han podido arrastrar los ítems fuera de Manta | Impossible de faire glisser les éléments hors de Manta | Impossibile trascinare gli elementi fuori da Manta | Не удалось перетащить объекты из Manta |
 | `sidebar.disconnect` | Disconnect | Verbindung trennen | 断开连接 | Desconectar | Déconnecter | Disconnetti | Отключить |
+| `sidebar.eject` | Eject | Auswerfen | 推出 | Expulsar | Éjecter | Espelli | Извлечь |
 | `sidebar.favorites` | Favorites | Favoriten | 个人收藏 | Favoritos | Favoris | Preferiti | Избранное |
 | `sidebar.add_current` | Add Current Folder | Aktuellen Ordner hinzufügen | 添加当前文件夹 | Añadir carpeta actual | Ajouter le dossier actuel | Aggiungi cartella attuale | Добавить текущую папку |
 | `sidebar.all_buckets` | all buckets | alle Buckets | 所有 Bucket | todos los buckets | tous les buckets | tutti i bucket | все бакеты |
@@ -333,6 +334,16 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `connect.ftps.data.auto` | Automatic | Automatisch | 自动 | Automático | Automatique | Automatico | Автоматически |
 | `connect.ftps.data.require` | Required | Erforderlich | 必需 | Obligatorio | Obligatoire | Obbligatorio | Обязательно |
 | `connect.ftps.data.off` | Off | Aus | 关闭 | Desactivado | Désactivé | Disattivato | Выкл. |
+| `connect.webdav.security` | Security | Sicherheit | 安全性 | Seguridad | Sécurité | Sicurezza | Безопасность |
+| `connect.webdav.http` | HTTP (unencrypted) | HTTP (unverschlüsselt) | HTTP（未加密） | HTTP (sin cifrar) | HTTP (non chiffré) | HTTP (non crittografato) | HTTP (без шифрования) |
+| `connect.webdav.preset` | Server type | Servertyp | 服务器类型 | Tipo de servidor | Type de serveur | Tipo di server | Тип сервера |
+| `connect.webdav.preset.generic` | WebDAV server | WebDAV-Server | WebDAV 服务器 | Servidor WebDAV | Serveur WebDAV | Server WebDAV | Сервер WebDAV |
+| `connect.webdav.path` | WebDAV path | WebDAV-Pfad | WebDAV 路径 | Ruta WebDAV | Chemin WebDAV | Percorso WebDAV | Путь WebDAV |
+| `connect.smb.share` | Share | Freigabe | 共享点 | Recurso compartido | Partage | Condivisione | Общий ресурс |
+| `connect.smb.browse` | Browse… | Durchsuchen … | 浏览… | Explorar… | Parcourir… | Sfoglia… | Обзор… |
+| `connect.smb.loading` | Looking for shares… | Freigaben werden gesucht … | 正在查找共享点… | Buscando recursos compartidos… | Recherche des partages… | Ricerca delle condivisioni… | Поиск общих ресурсов… |
+| `connect.smb.none` | No shares found | Keine Freigaben gefunden | 未找到共享点 | No se han encontrado recursos compartidos | Aucun partage trouvé | Nessuna condivisione trovata | Общие ресурсы не найдены |
+| `connect.smb.list_failed` | Couldn't list the shares: {error} | Die Freigaben konnten nicht angezeigt werden: {error} | 无法列出共享点：{error} | No se han podido mostrar los recursos compartidos: {error} | Impossible d’afficher les partages : {error} | Impossibile mostrare le condivisioni: {error} | Не удалось показать общие ресурсы: {error} |
 | `connect.auth.password` | Password | Passwort | 密码 | Contraseña | Mot de passe | Password | Пароль |
 | `connect.auth.key_file` | Key File | Schlüsseldatei | 密钥文件 | Archivo de clave | Fichier de clé | File chiave | Файл ключа |
 | `connect.auth.agent` | SSH Agent | SSH-Agent | SSH 代理 | Agente SSH | Agent SSH | Agente SSH | Агент SSH |
@@ -340,6 +351,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `connect.auth.aws_profile` | AWS Profile | AWS-Profil | AWS 配置文件 | Perfil de AWS | Profil AWS | Profilo AWS | Профиль AWS |
 | `connect.auth.access_key` | Access Key | Zugriffsschlüssel | 访问密钥 | Clave de acceso | Clé d’accès | Chiave di accesso | Ключ доступа |
 | `connect.auth.public` | Public | Öffentlich | 公开 | Público | Public | Pubblico | Публичный |
+| `connect.auth.guest` | Guest | Gast | 客人 | Invitado | Invité | Ospite | Гость |
 | `connect.add_favorite` | Add to Favorites | Zu Favoriten hinzufügen | 添加到个人收藏 | Añadir a Favoritos | Ajouter aux Favoris | Aggiungi ai Preferiti | Добавить в Избранное |
 | `connect.remember.password` | Remember password | Passwort merken | 记住密码 | Recordar contraseña | Mémoriser le mot de passe | Ricorda password | Запомнить пароль |
 | `connect.remember.passphrase` | Remember passphrase | Passphrase merken | 记住密码短语 | Recordar frase de contraseña | Mémoriser la phrase de passe | Ricorda passphrase | Запомнить парольную фразу |
@@ -359,6 +371,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `connect.problem.secret_key` | Enter the secret access key | Gib den geheimen Zugriffsschlüssel ein. | 输入私密访问密钥 | Introduce la clave de acceso secreta | Saisissez la clé d’accès secrète. | Inserisci la chiave di accesso segreta | Введите секретный ключ доступа. |
 | `connect.problem.container` | Choose a container | Wähle einen Container aus. | 选择容器 | Elige un contenedor | Choisissez un conteneur. | Scegli un container | Выберите контейнер. |
 | `connect.problem.pod` | Choose a pod | Wähle einen Pod aus. | 选择 Pod | Elige un pod | Choisissez un pod. | Scegli un pod | Выберите под. |
+| `connect.problem.share` | Enter the name of the share | Gib den Namen der Freigabe ein. | 输入共享点的名称 | Introduce el nombre del recurso compartido | Saisissez le nom du partage. | Inserisci il nome della condivisione | Введите имя общего ресурса. |
 | `connect.s3.provider` | Provider | Anbieter | 提供商 | Proveedor | Fournisseur | Fornitore | Поставщик |
 | `connect.s3.provider.custom` | Other S3-compatible | Anderer S3-kompatibler | 其他 S3 兼容服务 | Otro compatible con S3 | Autre service compatible S3 | Altro compatibile S3 | Другой, совместимый с S3 |
 | `connect.s3.account` | Account ID | Account-ID | 账户 ID | ID de cuenta | ID de compte | ID account | ID учетной записи |

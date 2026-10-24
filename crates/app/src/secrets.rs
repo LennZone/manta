@@ -222,6 +222,8 @@ mod tests {
             s3: None,
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         }
     }
 

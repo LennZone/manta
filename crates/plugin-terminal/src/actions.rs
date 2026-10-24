@@ -142,7 +142,9 @@ fn is_default_port(ep: &RemoteEndpoint) -> bool {
     match ep.protocol {
         Protocol::Sftp => ep.port == 22 || ep.port == 0,
         Protocol::Ftp | Protocol::Ftps => ep.port == 21 || ep.port == 0,
-        Protocol::S3 => ep.port == 443 || ep.port == 0,
+        Protocol::S3 | Protocol::WebDavs => ep.port == 443 || ep.port == 0,
+        Protocol::WebDav => ep.port == 80 || ep.port == 0,
+        Protocol::Smb => ep.port == 445 || ep.port == 0,
         Protocol::Local | Protocol::Docker | Protocol::Kubernetes | Protocol::GoogleDrive => true,
     }
 }
@@ -936,6 +938,27 @@ fn connect_cmd(ep: &RemoteEndpoint) -> String {
         // No shell client for the Drive API; open the web UI instead.
         Protocol::GoogleDrive => "open https://drive.google.com".to_string(),
         Protocol::Docker | Protocol::Kubernetes => format!("{} sh", ctr_exec_prefix(ep, true)),
+        // No interactive shell client: open the server in the browser /
+        // Finder instead.
+        Protocol::WebDav | Protocol::WebDavs => {
+            let scheme = if ep.protocol == Protocol::WebDavs {
+                "https"
+            } else {
+                "http"
+            };
+            let port = if is_default_port(ep) {
+                String::new()
+            } else {
+                format!(":{}", ep.port)
+            };
+            let host = if ep.host.contains(':') {
+                format!("[{}]", ep.host)
+            } else {
+                ep.host.clone()
+            };
+            format!("open {scheme}://{host}{port}/")
+        }
+        Protocol::Smb => format!("open smb://{}", user_host(ep)),
         Protocol::Sftp | Protocol::Local => {
             let port = if is_default_port(ep) {
                 String::new()

@@ -186,6 +186,8 @@ pub enum Action {
     GoLocal(Side),
     /// Read `/Volumes` and look for cloud folders again.
     RescanVolumes,
+    /// Eject a mounted network volume (Devices).
+    EjectVolume(PathBuf),
     /// "Download Now" for the selection (cloud folders).
     CloudDownload(Side),
     /// "Remove Download" for the selection (cloud folders).
@@ -1628,6 +1630,7 @@ impl MantaApp {
                 } => self.on_trashed(action, refresh, outcome),
                 WorkResult::TrashMeasured(summary) => self.on_trash_measured(summary),
                 WorkResult::TrashEmptied(result) => self.on_trash_emptied(result),
+                WorkResult::Ejected { path, name, result } => self.on_ejected(path, name, result),
                 WorkResult::FileOp {
                     description,
                     failure,
@@ -2692,6 +2695,7 @@ impl MantaApp {
                 self.cloud.rediscover();
                 self.tags.reload_finder();
             }
+            Action::EjectVolume(path) => self.eject_volume(path),
             Action::OpenConnection(id) => {
                 if let Some(c) = self.connections.iter().find(|c| c.id == id) {
                     let loc = Location {
@@ -3546,7 +3550,71 @@ impl MantaApp {
             }
         }
         self.set_info(t!("status.disconnected_from", label = conn.label));
+        // An SMB share Manta mounted is ejected now (the transfer manager
+        // keeps the backend for later retries, so it isn't dropped).
+        if smb_mount(&conn.fs).is_some() {
+            let fs = conn.fs.clone();
+            let _ = std::thread::Builder::new()
+                .name("smb-unmount".into())
+                .spawn(move || {
+                    if let Some(s) = fs
+                        .as_any()
+                        .and_then(|a| a.downcast_ref::<manta_vfs::SmbFs>())
+                    {
+                        if let Err(e) = s.unmount_now() {
+                            log::warn!("SMB: unmounting {}: {e}", s.mount_point().display());
+                        }
+                    }
+                });
+        }
         // Dropping the last Arc closes the connection (transfers may still hold one).
+    }
+
+    /// Eject a network volume from the sidebar (`diskutil unmount`, off
+    /// the UI thread). Panes showing it go back to the home folder.
+    fn eject_volume(&mut self, path: PathBuf) {
+        let name = path
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_else(|| path.display().to_string());
+        self.set_info(t!("status.ejecting", name = name));
+        let p = path.clone();
+        self.worker.spawn(
+            "eject",
+            move || manta_vfs::volumes::eject(&p).map_err(|e| e.to_string()),
+            move |result| WorkResult::Ejected { path, name, result },
+        );
+    }
+
+    /// The volume is gone: leave it in every tab, rescan the devices.
+    fn on_ejected(&mut self, path: PathBuf, name: String, result: Result<(), String>) {
+        if let Err(e) = result {
+            self.set_error_detail(t!("error.eject", name = name), e);
+            return;
+        }
+        let gone = local_vfs_path(&path);
+        let home = dirs::home_dir()
+            .map(|h| local_vfs_path(&h))
+            .unwrap_or_else(VfsPath::root);
+        let local = self.local.clone();
+        let worker = &self.worker;
+        for pane in &mut self.panes {
+            for tab in &mut pane.tabs {
+                if tab.loc.conn.is_none() && tab.loc.path.starts_with(&gone) {
+                    let loc = Location {
+                        fs: local.clone(),
+                        conn: None,
+                        path: home.clone(),
+                        archive: None,
+                    };
+                    navigate_tab(worker, tab, loc, false, false);
+                }
+            }
+        }
+        let (l, d) = sidebar::discover_places();
+        self.locations = l;
+        self.devices = d;
+        self.set_success(t!("status.ejected", name = name));
     }
 
     fn open_selected(&mut self, side: Side) {
@@ -6251,6 +6319,13 @@ impl MantaApp {
 }
 
 /// "Read-only" chip of a stopped (or shell-less) container.
+/// Where an SMB connection's share is mounted.
+fn smb_mount(fs: &SharedVfs) -> Option<PathBuf> {
+    fs.as_any()
+        .and_then(|a| a.downcast_ref::<manta_vfs::SmbFs>())
+        .map(|s| s.mount_point())
+}
+
 fn container_chip(fs: &SharedVfs) -> Option<manta_plugin::Chip> {
     use manta_vfs::container::{ContainerFs, Mode};
     let c = fs.as_any()?.downcast_ref::<ContainerFs>()?;
@@ -6462,6 +6537,19 @@ impl eframe::App for MantaApp {
 
     fn on_exit(&mut self) {
         self.save_session();
+        // SMB shares Manta mounted go away with Manta (as on disconnect;
+        // the background unmount of a drop would not finish in time).
+        for c in &self.connections {
+            if let Some(smb) =
+                c.fs.as_any()
+                    .and_then(|a| a.downcast_ref::<manta_vfs::SmbFs>())
+                    .filter(|s| s.mounted_by_manta())
+            {
+                if let Err(e) = smb.unmount_now() {
+                    log::warn!("SMB: unmounting at exit: {e}");
+                }
+            }
+        }
         // Send `shutdown` to every plugin; external processes get a short
         // grace period, then their supervisors kill them.
         self.plugins.shutdown(Duration::from_millis(300));
@@ -6660,6 +6748,7 @@ impl MantaApp {
                     c.config.username.clone(),
                     c.config.protocol,
                 ),
+                mount: smb_mount(&c.fs),
             })
             .collect();
         let tab = self.pane(self.active).tab();

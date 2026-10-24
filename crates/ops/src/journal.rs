@@ -195,6 +195,8 @@ mod tests {
             s3: None,
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         };
         let mut progress = Progress::default();
         progress.completed.insert("/a/1.txt".into());

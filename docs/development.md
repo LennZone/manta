@@ -188,6 +188,9 @@ MANTA_TEST_CONTAINERS=1 scripts/test.sh full            # also the Docker / Kube
   - S3 (`s3_minio.rs`): a local `minio` binary, or MinIO in Docker (only with `MANTA_TEST_CONTAINERS=1`); `MANTA_S3_TEST_REQUIRE=1`
     turns a skip into a failure.
   - SFTP (`sftp_local.rs`): a throwaway, unprivileged `sshd` on 127.0.0.1.
+  - WebDAV (`webdav_apache.rs`): the Apache `httpd` with `mod_dav` that ships with macOS, on a free
+    127.0.0.1 port with a throwaway config (Digest and Basic sign-in), stopped afterwards.
+    Unit tests use an in-memory WebDAV server; SMB tests use a fake mounter and never mount anything.
 - **Live tests** against real accounts are ignored by default and never run in CI:
   `ftps_live.rs` (read-only; server from `MANTA_FTPS_LIVE_HOST`, credentials from the
   Keychain) and `gdrive_live.rs` (needs your own OAuth client); see the comments at the top

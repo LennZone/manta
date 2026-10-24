@@ -145,7 +145,13 @@
         "contraseña",
         "llavero",
         "known_hosts",
-        "clave del servidor"
+        "clave del servidor",
+        "webdav",
+        "nextcloud",
+        "smb",
+        "recurso compartido",
+        "nas",
+        "expulsar"
       ]
     },
     "cloud": {

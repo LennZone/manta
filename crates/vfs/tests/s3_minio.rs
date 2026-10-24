@@ -151,6 +151,8 @@ fn cfg(port: u16, secret: &str, bucket: &str) -> ConnectionConfig {
         })),
         container: None,
         ftp: None,
+        webdav: None,
+        smb: None,
     }
 }
 

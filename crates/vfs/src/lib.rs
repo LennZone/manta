@@ -1,6 +1,7 @@
 //! VFS backends: local file system, SFTP, FTP/FTPS, S3 (and S3-compatible
 //! object stores, see [`s3`]), Docker containers and Kubernetes pods (see
-//! [`container`]), Google Drive (see [`gdrive`]), and read-only archives
+//! [`container`]), Google Drive (see [`gdrive`]), WebDAV (see [`webdav`]),
+//! SMB shares mounted through macOS (see [`smb`]), and read-only archives
 //! ([`ArchiveFs`]: zip, tar, compressed tar, single compressed files).
 //!
 //! PUBLIC API CONTRACT (used by `manta-ops` and `manta-app`; do not change signatures):
@@ -33,6 +34,9 @@ pub mod known_hosts;
 pub mod local;
 pub mod s3;
 pub mod sftp;
+pub mod smb;
+pub mod volumes;
+pub mod webdav;
 
 pub use archive::{ArchiveFormat, ArchiveFs};
 pub use cloud_local::{discover_cloud_locations, CloudLocation, CloudProvider, SyncState};
@@ -42,6 +46,8 @@ pub use gdrive::GDriveFs;
 pub use local::LocalFs;
 pub use s3::S3Fs;
 pub use sftp::SftpFs;
+pub use smb::SmbFs;
+pub use webdav::WebDavFs;
 
 /// Default timeout for establishing network connections.
 pub(crate) const CONNECT_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15);
@@ -58,6 +64,8 @@ pub fn connect(cfg: &ConnectionConfig) -> VfsResult<SharedVfs> {
         Protocol::S3 => Arc::new(S3Fs::connect(cfg)?),
         Protocol::Docker | Protocol::Kubernetes => Arc::new(ContainerFs::connect(cfg)?),
         Protocol::GoogleDrive => Arc::new(gdrive::connect(cfg)?),
+        Protocol::WebDav | Protocol::WebDavs => Arc::new(WebDavFs::connect(cfg)?),
+        Protocol::Smb => Arc::new(SmbFs::connect(cfg)?),
     })
 }
 
@@ -114,6 +122,8 @@ mod tests {
             s3: None,
             container: None,
             ftp: None,
+            webdav: None,
+            smb: None,
         }
     }
 
