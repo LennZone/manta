@@ -1,7 +1,7 @@
 //! Command palette (⇧⌘P / ⌘P): type to find any command, see its shortcut,
 //! run it with Enter.
 
-use eframe::egui::{self, Color32, CornerRadius, Key, Modifiers, RichText, Sense};
+use eframe::egui::{self, CornerRadius, Key, Modifiers, RichText, Sense};
 
 use crate::commands::{self, Cmd};
 
@@ -133,11 +133,13 @@ impl CommandPalette {
             .order(egui::Order::Middle)
             .fixed_pos(screen.min)
             .show(ctx, |ui| {
-                let (rect, resp) = ui.allocate_exact_size(screen.size(), Sense::click());
+                // A click beside the sheet closes it (VoiceOver: "Close").
+                let (rect, resp) = ui.allocate_exact_size(screen.size(), Sense::CLICK);
+                crate::a11y::name(&resp, egui::accesskit::Role::Button, t!("common.close"));
                 ui.painter().rect_filled(
                     rect,
                     CornerRadius::ZERO,
-                    Color32::from_black_alpha(if p.dark { 90 } else { 40 }),
+                    crate::a11y::scrim(p.dark, 40, 90),
                 );
                 resp
             });
@@ -224,10 +226,37 @@ impl CommandPalette {
                             .show(ui, |ui| {
                                 ui.spacing_mut().item_spacing.y = 0.0;
                                 for (idx, (cmd, en)) in results.iter().enumerate() {
+                                    // Rows are picked with ↑/↓ in the search field, not
+                                    // Tab; VoiceOver follows the selected one (the
+                                    // field's active descendant).
                                     let (rect, resp) = ui.allocate_exact_size(
                                         egui::vec2(ui.available_width(), ROW_H),
-                                        if *en { Sense::click() } else { Sense::hover() },
+                                        if *en { Sense::CLICK } else { Sense::hover() },
                                     );
+                                    let mut spoken = format!("{}, {}", cmd.label, cmd.category);
+                                    if !cmd.shortcut.is_empty() {
+                                        spoken.push_str(", ");
+                                        spoken.push_str(&cmd.shortcut);
+                                    }
+                                    resp.widget_info(|| {
+                                        egui::WidgetInfo::labeled(
+                                            egui::Role::ListBoxOption,
+                                            *en,
+                                            &spoken,
+                                        )
+                                    });
+                                    resp.ctx.accesskit_node_builder(resp.id, |n| {
+                                        n.set_selected(idx == self.selected);
+                                        n.set_position_in_set(idx + 1);
+                                        n.set_size_of_set(results.len());
+                                    });
+                                    if idx == self.selected {
+                                        let row = resp.id.accesskit_id();
+                                        resp.ctx.accesskit_node_builder(
+                                            egui::Id::unique("palette-query"),
+                                            |n| n.set_active_descendant(row),
+                                        );
+                                    }
                                     if resp.hovered()
                                         && ui.input(|i| i.pointer.delta() != egui::Vec2::ZERO)
                                     {

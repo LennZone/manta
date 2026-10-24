@@ -22,7 +22,7 @@ Zeichen: **⌘** Befehl · **⇧** Umschalt · **⌥** Wahl · **⌃** Control �
 
 | Kürzel | Befehl |
 |---|---|
-| ⇥ | Bereich wechseln (zum nächsten, ringsum) |
+| ⇥ / ⇧⇥ | Bereich wechseln (zum nächsten / vorherigen, ringsum) |
 | ⌥⌘← / ⌥⌘→ | Bereich links / rechts aktivieren |
 | ⌘D | Bereich teilen |
 | ⇧⌘D | Bereich schließen |
@@ -121,6 +121,24 @@ Eigene Schnellaktionen können ein eigenes Kürzel bekommen (Feld `shortcut` in 
 - In einem **Textfeld** (Filter, Pfad, Dialogfelder) funktionieren nur **⇧⌘P**, **⇧⌘G**, **⌘,** und **⌘?**; alle anderen Tasten gehören dem Textfeld.
 - Im **Terminal** gehören **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** und **⌘⌫** dem Terminal. Klicke in die Dateiliste, um Manta die Tastatur zurückzugeben.
 - In den Fenstern **Einstellungen**, **Vergleichen und synchronisieren** und **Vorschau** wirken nur deren eigene Kürzel.
+
+## Bedienung ohne Maus {#tastatur}
+
+Manta lässt sich vollständig mit der Tastatur bedienen.
+
+| Taste | Wirkung |
+|---|---|
+| ⌃F5 | Tastaturfokus in die Steuerelemente: beginnt in der Symbolleiste (wie in macOS „Fokus auf Symbolleiste“) |
+| ⇥ / ⇧⇥ | In den Steuerelementen: weiter / zurück – Symbolleiste → Seitenleiste → Bereiche (Pfadleiste, Spaltenköpfe, Dateiliste) → Statusleiste, dann wieder von vorn |
+| ↑ ↓ ← → | In Seitenleiste, Dialogen und Optionslisten: zum nächsten Steuerelement in dieser Richtung |
+| Leertaste / ↩ | Fokussierte Taste, Option oder Schalter auslösen |
+| esc | Steuerelemente verlassen – die Dateiliste hat wieder die Tastatur; in Dialogen: abbrechen |
+| ⇥ / ⇧⇥ in der Dateiliste | Zum nächsten / vorherigen Bereich |
+
+- Die **Dateiliste** ist ein einziger Tabulator-Halt pro Bereich (nicht jede Zeile). Hat sie den Fokus, gelten alle Dateilisten-Kürzel: Pfeile, ↩, Leertaste, Buchstaben zum Springen.
+- Ein **Fokusring** in der Akzentfarbe zeigt, welches Steuerelement die Tastatur hat. Mausklicks setzen keinen Fokusring.
+- **Dialoge** halten den Fokus: ⇥ wandert nur durch ihre Felder und Tasten. Nach dem Schließen (auch von Einstellungen) kehrt der Fokus dorthin zurück, wo er vorher war.
+- Mit **Tastaturnavigation** in den Systemeinstellungen (Tastatur) funktionieren die Kürzel genauso; ⌃F5 ist dort ebenfalls „Fokus auf Symbolleiste“.
 
 ## Unterschiede zum Finder {#finder}
 

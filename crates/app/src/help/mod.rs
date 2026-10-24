@@ -515,8 +515,13 @@ impl Help {
             let caret_resp = ui.interact(
                 caret,
                 ui.scope_id().with(("toc-caret", &ch.file)),
-                Sense::click(),
+                if subs.is_empty() {
+                    Sense::CLICK
+                } else {
+                    Sense::click()
+                },
             );
+            crate::a11y::disclosure(&caret_resp, &t!("a11y.sections", chapter = ch.title), open);
             if !subs.is_empty() {
                 widgets::paint_icon(
                     ui,

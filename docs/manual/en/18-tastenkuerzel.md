@@ -22,7 +22,7 @@ Symbols: **⌘** Command · **⇧** Shift · **⌥** Option · **⌃** Control �
 
 | Shortcut | Command |
 |---|---|
-| ⇥ | Switch Pane (to the next one, wrapping around) |
+| ⇥ / ⇧⇥ | Switch Pane (to the next / previous one, wrapping around) |
 | ⌥⌘← / ⌥⌘→ | Focus Pane on the Left / Right |
 | ⌘D | Split Pane |
 | ⇧⌘D | Close Pane |
@@ -121,6 +121,24 @@ Your own Quick Actions can have a shortcut of their own (the `shortcut` field in
 - In a **text field** (filter, path, dialog fields) only **⇧⌘P**, **⇧⌘G**, **⌘,** and **⌘?** work; all other keys belong to the field.
 - In the **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** and **⌘⌫** belong to the terminal. Click into the file list to give the keyboard back to Manta.
 - In the **Settings**, **Compare & Sync** and **preview** windows only their own shortcuts work.
+
+## Keyboard-only use {#tastatur}
+
+You can use Manta entirely from the keyboard.
+
+| Key | What it does |
+|---|---|
+| ⌃F5 | Move the keyboard focus into the controls, starting in the toolbar (like macOS "Move focus to the window toolbar") |
+| ⇥ / ⇧⇥ | In the controls: next / previous – toolbar → sidebar → panes (path bar, column headers, file list) → status bar, then round again |
+| ↑ ↓ ← → | In the sidebar, dialogs and option lists: to the next control in that direction |
+| Space / ↩ | Press the focused button, option or switch |
+| esc | Leave the controls – the file list has the keyboard again; in dialogs: cancel |
+| ⇥ / ⇧⇥ in the file list | To the next / previous pane |
+
+- The **file list** is one Tab stop per pane (not every row). While it has the focus, all file list shortcuts work: arrows, ↩, Space, typing to jump.
+- A **focus ring** in the accent colour shows which control has the keyboard. Mouse clicks don't show it.
+- **Dialogs** keep the focus: ⇥ only moves through their fields and buttons. When they close (Settings too), the focus goes back to where it was.
+- With **Keyboard navigation** turned on in System Settings (Keyboard) everything works the same; ⌃F5 is "Move focus to the window toolbar" there too.
 
 ## Differences from Finder {#finder}
 

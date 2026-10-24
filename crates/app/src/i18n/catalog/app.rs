@@ -101,6 +101,18 @@ pub const ENTRIES: Entries = &[
     ("toast.items_failed.one", "{count} item skipped or failed — see Transfers (⌘T).", "{count} Objekt übersprungen oder fehlgeschlagen – siehe Übertragungen (⌘T)."),
     ("toast.items_failed.other", "{count} items skipped or failed — see Transfers (⌘T).", "{count} Objekte übersprungen oder fehlgeschlagen – siehe Übertragungen (⌘T)."),
     ("toast.dismiss", "Dismiss", "Schließen"),
+    // Accessibility (a11y.rs): what VoiceOver says.
+    ("a11y.modified", "modified {when}", "geändert {when}"),
+    ("a11y.file_list", "Files in {folder}", "Dateien in {folder}"),
+    ("a11y.connected", "connected", "verbunden"),
+    ("a11y.pane_divider", "Pane divider", "Trennlinie zwischen Bereichen"),
+    ("a11y.resize_panel", "Resize panel", "Bereichsgröße ändern"),
+    ("a11y.toolbar", "Toolbar", "Symbolleiste"),
+    ("a11y.sidebar", "Sidebar", "Seitenleiste"),
+    ("a11y.status_bar", "Status bar", "Statusleiste"),
+    ("a11y.pane", "Pane: {folder}", "Bereich: {folder}"),
+    ("a11y.active", "active", "aktiv"),
+    ("a11y.sections", "Sections of {chapter}", "Abschnitte von {chapter}"),
     // Technical error texts (i18n/errors.rs)
     ("error.vfs.not_found", "not found: {detail}", "Nicht gefunden: {detail}"),
     ("error.vfs.already_exists", "already exists: {detail}", "Existiert bereits: {detail}"),

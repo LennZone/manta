@@ -22,7 +22,7 @@ Símbolos: **⌘** Comando · **⇧** Mayúsculas · **⌥** Opción · **⌃** 
 
 | Atajo | Comando |
 |---|---|
-| ⇥ | Cambiar de panel (al siguiente; después del último, vuelve al primero) |
+| ⇥ / ⇧⇥ | Cambiar de panel (al siguiente o, con ⇧, al anterior; después del último, vuelve al primero) |
 | ⌥⌘← / ⌥⌘→ | Activar el panel de la izquierda / de la derecha |
 | ⌘D | Dividir panel |
 | ⇧⌘D | Cerrar panel |
@@ -121,6 +121,24 @@ Tus propias acciones rápidas pueden tener un atajo propio (el campo `shortcut` 
 - En un **campo de texto** (filtro, ruta, campos de diálogo) solo funcionan **⇧⌘P**, **⇧⌘G**, **⌘,** y **⌘?**; todas las demás teclas pertenecen al campo.
 - En el **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** y **⌘⌫** pertenecen al terminal. Haz clic en la lista de archivos para devolver el teclado a Manta.
 - En las ventanas **Ajustes**, **Comparar y sincronizar** y **vista previa** solo funcionan sus propios atajos.
+
+## Uso solo con teclado {#tastatur}
+
+Puedes usar Manta por completo con el teclado.
+
+| Tecla | Qué hace |
+|---|---|
+| ⌃F5 | Llevar el foco del teclado a los controles, empezando por la barra de herramientas (como «Mover el foco a la barra de herramientas» de macOS) |
+| ⇥ / ⇧⇥ | En los controles: siguiente / anterior – barra de herramientas → barra lateral → paneles (barra de ruta, encabezados de columna, lista de archivos) → barra de estado, y vuelta a empezar |
+| ↑ ↓ ← → | En la barra lateral, los diálogos y las listas de opciones: al siguiente control en esa dirección |
+| Espacio / ↩ | Pulsar el botón, la opción o el interruptor con el foco |
+| esc | Salir de los controles: la lista de archivos vuelve a tener el teclado; en diálogos: cancelar |
+| ⇥ / ⇧⇥ en la lista de archivos | Al panel siguiente / anterior |
+
+- La **lista de archivos** es una sola parada de tabulación por panel (no cada fila). Mientras tiene el foco funcionan todos sus atajos: flechas, ↩, Espacio, escribir para saltar.
+- Un **anillo de foco** en el color de resalte muestra qué control tiene el teclado. Los clics del ratón no lo muestran.
+- Los **diálogos** retienen el foco: ⇥ solo recorre sus campos y botones. Al cerrarlos (también Ajustes), el foco vuelve a donde estaba.
+- Con la **navegación con el teclado** activada en Ajustes del Sistema (Teclado) todo funciona igual; ⌃F5 también es allí «Mover el foco a la barra de herramientas».
 
 ## Diferencias con Finder {#finder}
 

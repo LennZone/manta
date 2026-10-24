@@ -146,15 +146,18 @@ pub fn scrim(ctx: &egui::Context, catch: bool) -> egui::LayerId {
         .interactable(catch)
         .show(ctx, |ui| {
             let sense = if catch {
-                egui::Sense::click_and_drag()
+                egui::Sense::CLICK | egui::Sense::DRAG
             } else {
                 egui::Sense::hover()
             };
-            let (rect, _) = ui.allocate_exact_size(screen.size(), sense);
+            let (rect, resp) = ui.allocate_exact_size(screen.size(), sense);
+            // Only dims and catches clicks: not something VoiceOver should
+            // stop at.
+            resp.ctx.accesskit_node_builder(resp.id, |n| n.set_hidden());
             ui.painter().rect_filled(
                 rect,
                 egui::CornerRadius::ZERO,
-                egui::Color32::from_black_alpha(if p.dark { 80 } else { 36 }),
+                crate::a11y::scrim(p.dark, 36, 80),
             );
         })
         .response

@@ -473,10 +473,14 @@ impl<'a> Env<'a> {
             return;
         }
         job.wrap.max_width = ui.available_width();
+        // Clicks follow links; text is no Tab stop. VoiceOver reads it as
+        // static text.
         let (pos, galley, resp) = egui::Label::new(job)
-            .sense(Sense::click())
+            .sense(Sense::CLICK)
             .selectable(false)
             .layout_in_ui(ui);
+        let text = galley.text().to_string();
+        resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Label, true, &text));
         let hover = self.hit(&resp, pos, &galley, &hits);
         ui.painter().galley(pos, galley, tx.color);
         self.follow(ui, &resp, hover);

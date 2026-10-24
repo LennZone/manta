@@ -3,83 +3,391 @@
   "chapters": {
     "erste-schritte": {
       "title": "Premiers pas",
-      "keywords": ["installer", "installation", "dmg", "applications", "gatekeeper", "ouvrir quand même", "autorisations", "confidentialité", "accès complet au disque", "gestionnaire de fichiers par défaut", "palette de commandes", "premier lancement"]
+      "keywords": [
+        "installer",
+        "installation",
+        "dmg",
+        "applications",
+        "gatekeeper",
+        "ouvrir quand même",
+        "autorisations",
+        "confidentialité",
+        "accès complet au disque",
+        "gestionnaire de fichiers par défaut",
+        "palette de commandes",
+        "premier lancement"
+      ]
     },
     "bereiche-tabs": {
       "title": "Sous-fenêtres et onglets",
-      "keywords": ["sous-fenêtre", "diviser", "fermer", "sous-fenêtre active", "sous-fenêtre cible", "autre sous-fenêtre", "largeur", "séparateur", "onglet", "nouvel onglet", "session", "restaurer"]
+      "keywords": [
+        "sous-fenêtre",
+        "diviser",
+        "fermer",
+        "sous-fenêtre active",
+        "sous-fenêtre cible",
+        "autre sous-fenêtre",
+        "largeur",
+        "séparateur",
+        "onglet",
+        "nouvel onglet",
+        "session",
+        "restaurer"
+      ]
     },
     "ansichten": {
       "title": "Présentations",
-      "keywords": ["présentation", "icônes", "liste", "colonnes", "galerie", "trier", "vignettes", "par dossier", "options de présentation", "taille des icônes", "zoom", "bandeau", "colonne d’aperçu", "vignettes serveur", "⌘1", "⌘4"]
+      "keywords": [
+        "présentation",
+        "icônes",
+        "liste",
+        "colonnes",
+        "galerie",
+        "trier",
+        "vignettes",
+        "par dossier",
+        "options de présentation",
+        "taille des icônes",
+        "zoom",
+        "bandeau",
+        "colonne d’aperçu",
+        "vignettes serveur",
+        "⌘1",
+        "⌘4"
+      ]
     },
     "navigation": {
       "title": "Navigation",
-      "keywords": ["barre du chemin d’accès", "chemin", "aller au chemin", "modifier le chemin", "local", "historique", "précédent", "suivant", "saisir pour sélectionner", "filtrer", "fichiers masqués", "fichiers cachés", "actualiser", "ouvrir", "actualisation automatique"]
+      "keywords": [
+        "barre du chemin d’accès",
+        "chemin",
+        "aller au chemin",
+        "modifier le chemin",
+        "local",
+        "historique",
+        "précédent",
+        "suivant",
+        "saisir pour sélectionner",
+        "filtrer",
+        "fichiers masqués",
+        "fichiers cachés",
+        "actualiser",
+        "ouvrir",
+        "actualisation automatique"
+      ]
     },
     "dateien": {
       "title": "Gérer les fichiers",
-      "keywords": ["copier", "déplacer", "f5", "f6", "glisser-déposer", "renommer", "nouveau dossier", "supprimer", "corbeille", "conflit", "remplacer", "transferts", "suspendre", "reprendre", "hors ligne", "manta-part", "fichier partiel", "remettre", "vider la corbeille"]
+      "keywords": [
+        "copier",
+        "déplacer",
+        "f5",
+        "f6",
+        "glisser-déposer",
+        "renommer",
+        "nouveau dossier",
+        "supprimer",
+        "corbeille",
+        "conflit",
+        "remplacer",
+        "transferts",
+        "suspendre",
+        "reprendre",
+        "hors ligne",
+        "manta-part",
+        "fichier partiel",
+        "remettre",
+        "vider la corbeille"
+      ]
     },
     "schnellansicht": {
       "title": "Coup d’œil et aperçu",
-      "keywords": ["coup d’œil", "quick look", "aperçu", "barre d’espace", "espace", "aperçu intégré", "image", "texte"]
+      "keywords": [
+        "coup d’œil",
+        "quick look",
+        "aperçu",
+        "barre d’espace",
+        "espace",
+        "aperçu intégré",
+        "image",
+        "texte"
+      ]
     },
     "seitenleiste": {
       "title": "Favoris et barre latérale",
-      "keywords": ["favoris", "barre latérale", "emplacements", "appareils", "volumes", "serveurs", "conteneurs", "ajouter aux favoris", "réorganiser", "dossier de départ", "⌃⌘T", "trousseau", "cloud", "corbeille", "vider la corbeille", "accès complet au disque"]
+      "keywords": [
+        "favoris",
+        "barre latérale",
+        "emplacements",
+        "appareils",
+        "volumes",
+        "serveurs",
+        "conteneurs",
+        "ajouter aux favoris",
+        "réorganiser",
+        "dossier de départ",
+        "⌃⌘T",
+        "trousseau",
+        "cloud",
+        "corbeille",
+        "vider la corbeille",
+        "accès complet au disque"
+      ]
     },
     "verbindungen": {
       "title": "Connexions",
-      "keywords": ["serveur", "se connecter", "sftp", "ssh", "ftp", "ftps", "canal de données", "s3", "bucket", "docker", "kubernetes", "conteneur", "mot de passe", "trousseau", "empreinte", "clé du serveur", "known_hosts", "serveur inconnu"]
+      "keywords": [
+        "serveur",
+        "se connecter",
+        "sftp",
+        "ssh",
+        "ftp",
+        "ftps",
+        "canal de données",
+        "s3",
+        "bucket",
+        "docker",
+        "kubernetes",
+        "conteneur",
+        "mot de passe",
+        "trousseau",
+        "empreinte",
+        "clé du serveur",
+        "known_hosts",
+        "serveur inconnu"
+      ]
     },
     "cloud": {
       "title": "Stockage cloud",
-      "keywords": ["cloud", "icloud", "google drive", "onedrive", "dropbox", "télécharger maintenant", "supprimer le téléchargement", "synchronisation", "pastilles", "libérer de l’espace", "google drive pour ordinateur", "client oauth", "expert"]
+      "keywords": [
+        "cloud",
+        "icloud",
+        "google drive",
+        "onedrive",
+        "dropbox",
+        "télécharger maintenant",
+        "supprimer le téléchargement",
+        "synchronisation",
+        "pastilles",
+        "libérer de l’espace",
+        "google drive pour ordinateur",
+        "client oauth",
+        "expert"
+      ]
     },
     "archive": {
       "title": "Archives",
-      "keywords": ["archive", "zip", "tar", "extraire", "décompresser", "compresser", "extraire ici", "gz", "zst", "lecture seule"]
+      "keywords": [
+        "archive",
+        "zip",
+        "tar",
+        "extraire",
+        "décompresser",
+        "compresser",
+        "extraire ici",
+        "gz",
+        "zst",
+        "lecture seule"
+      ]
     },
     "terminal": {
       "title": "Terminal",
-      "keywords": ["terminal", "shell", "cd", "suivre", "ssh", "docker exec", "kubectl exec", "actions sur fichier", "touche méta", "touche option"]
+      "keywords": [
+        "terminal",
+        "shell",
+        "cd",
+        "suivre",
+        "ssh",
+        "docker exec",
+        "kubectl exec",
+        "actions sur fichier",
+        "touche méta",
+        "touche option"
+      ]
     },
     "git": {
       "title": "Git",
-      "keywords": ["git", "branche", "commit", "indexer", "désindexer", "diff", "conflit", "fusion", "état", "dépôt"]
+      "keywords": [
+        "git",
+        "branche",
+        "commit",
+        "indexer",
+        "désindexer",
+        "diff",
+        "conflit",
+        "fusion",
+        "état",
+        "dépôt"
+      ]
     },
     "vergleichen": {
       "title": "Comparer et synchroniser",
-      "keywords": ["comparer", "synchroniser", "synchronisation", "miroir", "sous-fenêtre a", "sous-fenêtre b", "fichier le plus récent", "supprimer les fichiers en trop", "seulement dans a", "seulement dans b", "trois sous-fenêtres"]
+      "keywords": [
+        "comparer",
+        "synchroniser",
+        "synchronisation",
+        "miroir",
+        "sous-fenêtre a",
+        "sous-fenêtre b",
+        "fichier le plus récent",
+        "supprimer les fichiers en trop",
+        "seulement dans a",
+        "seulement dans b",
+        "trois sous-fenêtres"
+      ]
     },
     "plugins": {
       "title": "Plug-ins intégrés",
-      "keywords": ["plug-ins", "plugins", "tailles des dossiers", "utilisation du disque", "renommage par lot", "actions rapides", "actions.json", "infos projet", "markdown", "outils d’image", "exif", "doublons", "treemap", "charge du système", "processeur", "cpu", "gpu", "ram", "mémoire", "moniteur d’activité", "barre d’état"]
+      "keywords": [
+        "plug-ins",
+        "plugins",
+        "tailles des dossiers",
+        "utilisation du disque",
+        "renommage par lot",
+        "actions rapides",
+        "actions.json",
+        "infos projet",
+        "markdown",
+        "outils d’image",
+        "exif",
+        "doublons",
+        "treemap",
+        "charge du système",
+        "processeur",
+        "cpu",
+        "gpu",
+        "ram",
+        "mémoire",
+        "moniteur d’activité",
+        "barre d’état"
+      ]
     },
     "eigene-plugins": {
       "title": "Vos propres plug-ins",
-      "keywords": ["installer un plug-in", "plugin.toml", "développer", "sécurité", "journal", "hello python", "plug-in externe"]
+      "keywords": [
+        "installer un plug-in",
+        "plugin.toml",
+        "développer",
+        "sécurité",
+        "journal",
+        "hello python",
+        "plug-in externe"
+      ]
     },
     "einstellungen": {
       "title": "Réglages",
-      "keywords": ["réglages", "préférences", "apparence", "mode sombre", "couleur d’accentuation", "langue", "français", "mises à jour", "plug-ins", "settings.json", "vignettes serveur", "mémoriser la présentation", "cloud", "à propos de manta", "don", "licences"]
+      "keywords": [
+        "réglages",
+        "préférences",
+        "apparence",
+        "mode sombre",
+        "couleur d’accentuation",
+        "langue",
+        "français",
+        "mises à jour",
+        "plug-ins",
+        "settings.json",
+        "vignettes serveur",
+        "mémoriser la présentation",
+        "cloud",
+        "à propos de manta",
+        "don",
+        "licences",
+        "accessibilité",
+        "voiceover",
+        "augmenter le contraste",
+        "réduire les animations",
+        "réduire la transparence"
+      ]
     },
     "updates": {
       "title": "Mises à jour",
-      "keywords": ["mise à jour", "mettre à jour", "mise à jour de logiciels", "bêta", "canal", "signature", "confidentialité", "adresse ip"]
+      "keywords": [
+        "mise à jour",
+        "mettre à jour",
+        "mise à jour de logiciels",
+        "bêta",
+        "canal",
+        "signature",
+        "confidentialité",
+        "adresse ip"
+      ]
     },
     "tastenkuerzel": {
       "title": "Raccourcis clavier",
-      "keywords": ["raccourcis clavier", "raccourcis", "clavier", "touches", "différences avec le finder", "touche fn", "présentation", "par icônes", "taille des icônes", "nouvel onglet", "transferts", "vider la corbeille", "⇧⌘⌫"]
+      "keywords": [
+        "raccourcis clavier",
+        "raccourcis",
+        "clavier",
+        "touches",
+        "différences avec le finder",
+        "touche fn",
+        "présentation",
+        "par icônes",
+        "taille des icônes",
+        "nouvel onglet",
+        "transferts",
+        "vider la corbeille",
+        "⇧⌘⌫",
+        "clavier seul",
+        "navigation au clavier",
+        "focus",
+        "voiceover"
+      ]
     },
     "fehlerbehebung": {
       "title": "Dépannage",
-      "keywords": ["erreur", "problème", "journal", "log", "gatekeeper", "accès bloqué", "autorisation", "ftp", "tls", "conteneur sans shell", "réinitialiser", "transfert bloqué", "en attente de connexion", "aucune connexion à internet", "manta-part", "trousseau", "signaler un bug", "bug", "ticket", "issue", "github", "commentaires", "idée", "faille de sécurité"]
+      "keywords": [
+        "erreur",
+        "problème",
+        "journal",
+        "log",
+        "gatekeeper",
+        "accès bloqué",
+        "autorisation",
+        "ftp",
+        "tls",
+        "conteneur sans shell",
+        "réinitialiser",
+        "transfert bloqué",
+        "en attente de connexion",
+        "aucune connexion à internet",
+        "manta-part",
+        "trousseau",
+        "signaler un bug",
+        "bug",
+        "ticket",
+        "issue",
+        "github",
+        "commentaires",
+        "idée",
+        "faille de sécurité"
+      ]
     },
     "faq": {
       "title": "Questions fréquentes",
-      "keywords": ["faq", "questions", "corbeille", "mots de passe", "google drive", "remplacer le finder", "wi-fi coupé", "interrompu", "manta-part", "trousseau", "don", "café", "buy me a coffee", "soutenir", "licences", "signaler un bug", "bug", "idée", "commentaires", "contribuer"]
+      "keywords": [
+        "faq",
+        "questions",
+        "corbeille",
+        "mots de passe",
+        "google drive",
+        "remplacer le finder",
+        "wi-fi coupé",
+        "interrompu",
+        "manta-part",
+        "trousseau",
+        "don",
+        "café",
+        "buy me a coffee",
+        "soutenir",
+        "licences",
+        "signaler un bug",
+        "bug",
+        "idée",
+        "commentaires",
+        "contribuer"
+      ]
     }
   }
 }

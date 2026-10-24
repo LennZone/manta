@@ -124,7 +124,11 @@ pub struct Palette {
 
     pub text: Color32,
     pub text_secondary: Color32,
+    /// Faint text (captions, hints). Still 4.5:1 on every surface.
     pub text_tertiary: Color32,
+    /// Disabled controls only (exempt from the contrast minimum, WCAG
+    /// 1.4.3): clearly fainter than anything that can be used.
+    pub text_disabled: Color32,
     pub text_on_accent: Color32,
 
     pub accent: Color32,
@@ -178,8 +182,9 @@ pub const LIGHT: Palette = Palette {
     separator: rgb(220, 220, 224),
     border: rgb(200, 200, 206),
     text: rgb(29, 29, 31),
-    text_secondary: rgb(104, 104, 110),
-    text_tertiary: rgb(150, 150, 156),
+    text_secondary: rgb(88, 88, 94),
+    text_tertiary: rgb(102, 102, 108),
+    text_disabled: rgb(160, 160, 166),
     text_on_accent: rgb(255, 255, 255),
     accent: rgb(0, 122, 255),
     accent_text: rgb(0, 95, 204),
@@ -219,8 +224,9 @@ pub const DARK: Palette = Palette {
     separator: rgb(58, 58, 62),
     border: rgb(78, 78, 84),
     text: rgb(242, 242, 245),
-    text_secondary: rgb(160, 160, 167),
-    text_tertiary: rgb(112, 112, 118),
+    text_secondary: rgb(172, 172, 178),
+    text_tertiary: rgb(150, 150, 157),
+    text_disabled: rgb(104, 104, 110),
     text_on_accent: rgb(255, 255, 255),
     accent: rgb(10, 132, 255),
     accent_text: rgb(100, 170, 255),
@@ -251,20 +257,62 @@ pub const DARK: Palette = Palette {
 };
 
 impl Palette {
-    /// The palette for `dark` with the current accent colour.
+    /// The palette for `dark` with the current accent colour (and the
+    /// high-contrast variant while macOS asks for more contrast).
     pub fn of(dark: bool) -> &'static Palette {
         Palette::with_accent(dark, current_accent())
     }
 
     pub fn with_accent(dark: bool, accent: Accent) -> &'static Palette {
+        Palette::variant(dark, accent, crate::a11y::increase_contrast())
+    }
+
+    /// One of the precomputed palettes; `high_contrast`: System Settings →
+    /// Accessibility → Display → Increase contrast.
+    pub fn variant(dark: bool, accent: Accent, high_contrast: bool) -> &'static Palette {
         static ALL: OnceLock<Vec<Palette>> = OnceLock::new();
         let all = ALL.get_or_init(|| {
             Accent::ALL
                 .iter()
-                .flat_map(|&a| [a.palette(false), a.palette(true)])
+                .flat_map(|&a| {
+                    [false, true].into_iter().flat_map(move |d| {
+                        let p = a.palette(d);
+                        [p, p.high_contrast()]
+                    })
+                })
                 .collect()
         });
-        &all[accent as usize * 2 + dark as usize]
+        &all[accent as usize * 4 + dark as usize * 2 + high_contrast as usize]
+    }
+
+    /// Increase contrast: darker (lighter) borders and separators, secondary
+    /// and faint text close to the body text, stronger hover.
+    fn high_contrast(self) -> Palette {
+        if self.dark {
+            Palette {
+                separator: rgb(118, 118, 126),
+                border: rgb(150, 150, 158),
+                text: rgb(255, 255, 255),
+                text_secondary: rgb(212, 212, 218),
+                text_tertiary: rgb(190, 190, 196),
+                text_disabled: rgb(128, 128, 134),
+                hover: Color32::from_rgba_premultiplied(30, 30, 30, 30),
+                selection_inactive: rgb(84, 84, 90),
+                ..self
+            }
+        } else {
+            Palette {
+                separator: rgb(140, 140, 146),
+                border: rgb(104, 104, 110),
+                text: rgb(0, 0, 0),
+                text_secondary: rgb(52, 52, 58),
+                text_tertiary: rgb(72, 72, 78),
+                text_disabled: rgb(140, 140, 146),
+                hover: Color32::from_black_alpha(24),
+                selection_inactive: rgb(200, 200, 206),
+                ..self
+            }
+        }
     }
 }
 
@@ -922,13 +970,39 @@ mod tests {
     }
 
     #[test]
+    fn increase_contrast_is_stronger() {
+        for dark in [false, true] {
+            let n = Palette::variant(dark, Accent::Blue, false);
+            let h = Palette::variant(dark, Accent::Blue, true);
+            assert!(contrast(h.separator, h.content) > contrast(n.separator, n.content));
+            assert!(
+                contrast(h.border, h.content) >= 3.0,
+                "borders 3:1 (dark={dark})"
+            );
+            assert!(
+                contrast(h.separator, h.content) >= 3.0,
+                "separators 3:1 (dark={dark})"
+            );
+            for bg in [h.content, h.stripe, h.sidebar, h.chrome, h.elevated] {
+                assert!(
+                    contrast(h.text_secondary, bg) >= 7.0,
+                    "secondary AAA (dark={dark})"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn text_tokens_meet_wcag_aa() {
+        // Every accent, light and dark, normal and Increase contrast.
         let all: Vec<&Palette> = Accent::ALL
             .iter()
             .flat_map(|&a| {
                 [
-                    Palette::with_accent(false, a),
-                    Palette::with_accent(true, a),
+                    Palette::variant(false, a, false),
+                    Palette::variant(true, a, false),
+                    Palette::variant(false, a, true),
+                    Palette::variant(true, a, true),
                 ]
             })
             .collect();
@@ -949,6 +1023,20 @@ mod tests {
                 assert!(
                     contrast(p.text_secondary, bg) >= 4.5,
                     "secondary on {bg:?} (dark={})",
+                    p.dark
+                );
+                // Faint text (captions, hints, placeholders) too.
+                assert!(
+                    contrast(p.text_tertiary, bg) >= 4.5,
+                    "tertiary {:?} on {bg:?}: {:.2} (dark={})",
+                    p.text_tertiary,
+                    contrast(p.text_tertiary, bg),
+                    p.dark
+                );
+                // Disabled stays visibly fainter than usable text.
+                assert!(
+                    contrast(p.text_disabled, bg) < contrast(p.text_tertiary, bg),
+                    "disabled vs tertiary on {bg:?} (dark={})",
                     p.dark
                 );
             }

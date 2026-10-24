@@ -344,7 +344,9 @@ pub fn show(ui: &mut egui::Ui, pill: &Pill) -> egui::Response {
         (_, Some(f)) => paint_ring(ui.painter(), c, 5.0, f, fg.gamma_multiply(0.25), fg),
         (PillKind::Uploading, None) => {
             let a = crate::cloud::upload_pulse(ui.input(|i| i.time));
-            ui.ctx().request_repaint_after(Duration::from_millis(80));
+            if !crate::a11y::reduce_motion() {
+                ui.ctx().request_repaint_after(Duration::from_millis(80));
+            }
             widgets::paint_icon(
                 ui,
                 icon_rect,

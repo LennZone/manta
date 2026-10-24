@@ -796,7 +796,7 @@ pub fn pane_ui(
     let t = ui.ctx().animate_bool_with_time(
         egui::Id::unique(("pane-active", side)),
         info.is_active,
-        0.12,
+        crate::a11y::anim(0.12),
     );
     let stroke_color = lerp_color(p.separator, p.accent.gamma_multiply(0.85), t);
     let r = CornerRadius::same(radius::PANEL);
@@ -805,6 +805,12 @@ pub fn pane_ui(
     let mut rect = outer_rect.shrink(1.0);
     ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
         ui.set_clip_rect(rect);
+        let mut region = t!("a11y.pane", folder = pane.tab().title());
+        if info.is_active && info.count > 1 {
+            region.push_str(", ");
+            region.push_str(t!("a11y.active"));
+        }
+        crate::a11y::region(ui, egui::accesskit::Role::Group, &region);
         if pane.tabs.len() > 1 {
             let bar = egui::Rect::from_min_size(rect.min, egui::vec2(rect.width(), TAB_BAR_H));
             tabs_bar(ui, bar, side, pane, actions);
@@ -1667,6 +1673,8 @@ fn breadcrumb(
             egui::vec2(w, size::FIELD),
         );
         let resp = ui.interact(r, egui::Id::unique(("crumb", side, i)), Sense::click());
+        // VoiceOver: the folder's name (the tooltip adds the full path).
+        crate::a11y::name(&resp, egui::accesskit::Role::Link, &c.label);
         if resp.hovered() {
             ui.painter()
                 .rect_filled(r, CornerRadius::same(radius::CONTROL), p.hover);
@@ -1727,7 +1735,8 @@ fn breadcrumb(
     // Empty space after the crumbs: double-click edits the path, like Finder's path bar.
     if x < area.right() {
         let rest = egui::Rect::from_min_max(egui::pos2(x, area.top()), area.max);
-        let resp = ui.interact(rest, egui::Id::unique(("crumb-rest", side)), Sense::click());
+        // Double-click only (⌘L does the same from the keyboard): no Tab stop.
+        let resp = ui.interact(rest, egui::Id::unique(("crumb-rest", side)), Sense::CLICK);
         if resp.double_clicked() {
             tab.path_edit = Some(tab.loc.path.to_string());
         }
@@ -1797,6 +1806,7 @@ fn file_list(
     if bg.clicked() {
         tab.selected.clear();
     }
+    list_anchor(&bg, side, tab, actions);
     let menu = MenuCtx::of(ui.ctx(), tab, info.count < 2);
     bg.context_menu(|ui| background_menu(ui, side, actions, &menu));
 
@@ -1842,14 +1852,18 @@ fn file_list(
                 ui.spacing_mut().item_spacing.y = 0.0;
                 scroll.show_rows(ui, size::ROW, tab.view.len(), |ui, range| {
                     ui.spacing_mut().item_spacing.y = 0.0;
+                    crate::a11y::list(ui, &list_name(tab), tab.view.len());
                     for vi in range {
+                        // Rows are not Tab stops (the list is one, see
+                        // `list_anchor`); VoiceOver reaches them as rows.
                         let (row, resp) = ui.allocate_exact_size(
                             egui::vec2(ui.available_width(), size::ROW),
-                            Sense::click_and_drag(),
+                            Sense::CLICK | Sense::DRAG,
                         );
                         let Some(entry) = tab.entry_at(vi) else {
                             continue;
                         };
+                        a11y_entry(&resp, info, tab, vi, now);
                         if entry.is_dir() {
                             note_folder_target(ui, side, row, &entry.path);
                         }
@@ -1970,6 +1984,103 @@ fn file_list(
             egui::DragAndDrop::set_payload(ui.ctx(), payload);
         }
     }
+}
+
+/// The AccessKit node of the file at view index `vi` (a row in every view):
+/// its spoken description, selection and position; the cursor row of the
+/// active pane is what VoiceOver follows.
+pub(crate) fn a11y_entry(
+    resp: &egui::Response,
+    info: &PaneInfo<'_>,
+    tab: &Tab,
+    vi: usize,
+    now: chrono::DateTime<chrono::Local>,
+) {
+    let Some(e) = tab.entry_at(vi) else {
+        return;
+    };
+    let label = crate::a11y::entry_label(
+        e,
+        now,
+        e.is_dir().then(|| tab.dir_sizes.get(&e.name)).flatten(),
+        tab.cloud
+            .as_ref()
+            .and_then(|c| c.get(&e.name))
+            .map(|i| i.state),
+        info.decorations.get(&e.name),
+    );
+    crate::a11y::file_item(
+        resp,
+        &label,
+        tab.selected.contains(&e.name),
+        vi,
+        tab.view.len(),
+    );
+    if info.is_active && tab.cursor == Some(vi) {
+        crate::a11y::set_active_descendant(&resp.ctx, resp.id);
+        let row = resp.id.accesskit_id();
+        if let Some(anchor) = resp
+            .ctx
+            .data(|d| d.get_temp::<egui::Id>(anchor_key(info.side)))
+        {
+            resp.ctx
+                .accesskit_node_builder(anchor, |n| n.set_active_descendant(row));
+        }
+    }
+}
+
+/// The accessible name of a pane's file list: "Files in Projects".
+pub(crate) fn list_name(tab: &Tab) -> String {
+    t!("a11y.file_list", folder = tab.title())
+}
+
+/// The file list's single Tab stop (the background behind the rows, in
+/// every view). While it has the keyboard focus the pane is active and the
+/// file list keys work as usual (arrows, Return, Space, typing; see
+/// [`list_has_focus`]); Tab moves on to the next control. VoiceOver follows
+/// the cursor row (the list's active descendant, see [`a11y_entry`]).
+pub(crate) fn list_anchor(bg: &egui::Response, side: Side, tab: &Tab, actions: &mut Vec<Action>) {
+    crate::a11y::name(bg, egui::accesskit::Role::List, &list_name(tab));
+    let ctx = &bg.ctx;
+    ctx.data_mut(|d| d.insert_temp(anchor_key(side), bg.id));
+    // The arrow keys move the cursor, not the focus.
+    ctx.memory_mut(|m| {
+        m.set_focus_lock_filter(
+            bg.id,
+            egui::EventFilter {
+                horizontal_arrows: true,
+                vertical_arrows: true,
+                tab: false,
+                escape: false,
+            },
+        )
+    });
+    if bg.has_focus() {
+        ctx.data_mut(|d| d.insert_temp(focused_anchor_key(), bg.id));
+        if bg.gained_focus() {
+            actions.push(Action::Activate(side));
+        }
+    }
+}
+
+fn anchor_key(side: Side) -> egui::Id {
+    egui::Id::unique(("manta-list-anchor", side.index()))
+}
+
+fn focused_anchor_key() -> egui::Id {
+    egui::Id::unique("manta-focused-list-anchor")
+}
+
+/// The file list Tab stop that had the focus most recently.
+pub(crate) fn list_anchor_focus(ctx: &egui::Context) -> Option<egui::Id> {
+    ctx.data(|d| d.get_temp::<egui::Id>(focused_anchor_key()))
+}
+
+/// Does a file list (its Tab stop) hold the keyboard focus? Then the file
+/// list shortcuts apply as if no control had focus.
+pub(crate) fn list_has_focus(ctx: &egui::Context) -> bool {
+    let focused = ctx.memory(|m| m.focused());
+    focused.is_some() && focused == ctx.data(|d| d.get_temp::<egui::Id>(focused_anchor_key()))
 }
 
 /// An archive being opened or a listing error: drawn over the whole list
@@ -2315,11 +2426,7 @@ fn header_row(
                 egui::Rangef::new(range.min - 9.0, range.min - 3.0),
                 rect.y_range(),
             );
-            let hr = ui.interact(
-                h,
-                egui::Id::unique(("hdr-resize", side, idx)),
-                Sense::drag(),
-            );
+            let hr = ui.interact(h, egui::Id::unique(("hdr-resize", side, idx)), Sense::DRAG);
             if hr.hovered() || hr.dragged() {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
                 ui.painter().vline(

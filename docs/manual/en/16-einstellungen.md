@@ -94,6 +94,17 @@ Each card shows the name, description, status (**Running**, **Starting…**, **O
 | **Duplicates** | **Skip packages (.app, .photoslibrary, …)**, **Include hidden files**, **Edit settings.json …** for exclusions and a custom trash command. |
 | **System Load** | **Show GPU load** – see [System Load](14-plugins.md#systemauslastung). |
 
+## Accessibility {#bedienungshilfen}
+
+Manta follows **System Settings › Accessibility** – no switches of its own:
+
+- **VoiceOver**: every button, field, list and dialog has a name in your language. File rows are read in full, e.g. "README.md, Text, 214 bytes, modified Today 09:41, selected" – including cloud and Git status. As you move with the arrow keys, VoiceOver reads the current row. Messages such as "3 items copied" and errors are announced.
+- **Reduce motion** (Display): no animations – the flash of a favourite, the pulsing upload badge and fades are off.
+- **Increase contrast** (Display): stronger borders and separators, darker (in Dark Mode lighter) secondary text, a bolder focus ring.
+- **Reduce transparency** (Display): no translucent dimming behind dialogs.
+
+Manta picks up changes right away, without a restart. Even without these settings, text has a contrast ratio of at least 4.5:1. For keyboard-only use see [Keyboard Shortcuts](18-tastenkuerzel.md#tastatur).
+
 ## Where Manta keeps its settings {#dateien-speicherort}
 
 Everything is in `~/Library/Application Support/Manta/`:

@@ -2066,20 +2066,27 @@ fn setting_row_w(
 ) {
     let p = pal(ui);
     ui.horizontal(|ui| {
-        ui.vertical(|ui| {
-            ui.set_width((ui.available_width() - control_w).max(160.0));
-            ui.spacing_mut().item_spacing.y = space::XXS;
-            ui.label(RichText::new(title).color(p.text));
-            ui.add(
-                egui::Label::new(
-                    RichText::new(note)
-                        .font(theme::regular(text::SMALL))
-                        .color(p.text_secondary),
-                )
-                .wrap(),
-            );
+        let title_id = ui
+            .vertical(|ui| {
+                ui.set_width((ui.available_width() - control_w).max(160.0));
+                ui.spacing_mut().item_spacing.y = space::XXS;
+                let t = ui.label(RichText::new(title).color(p.text));
+                ui.add(
+                    egui::Label::new(
+                        RichText::new(note)
+                            .font(theme::regular(text::SMALL))
+                            .color(p.text_secondary),
+                    )
+                    .wrap(),
+                );
+                t.id
+            })
+            .inner;
+        // The row's title names its control for VoiceOver ("Show hidden
+        // files, switch, off").
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            ui.label_inputs_by(title_id, control)
         });
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), control);
     });
 }
 
@@ -2214,6 +2221,7 @@ fn disclosure(ui: &mut egui::Ui, label: &str, open: bool) -> bool {
         .painter()
         .layout_no_wrap(label.to_string(), font, p.accent_text);
     let (r, resp) = ui.allocate_exact_size(egui::vec2(g.size().x + 16.0, 20.0), Sense::click());
+    crate::a11y::disclosure(&resp, label, open);
     if resp.hovered() {
         ui.painter().rect_filled(
             r.expand2(egui::vec2(3.0, 0.0)),

@@ -115,7 +115,7 @@ impl Toasts {
         let width = 340.0_f32.min(ctx.content_rect().width() - 2.0 * space::XL);
         for t in self.items.iter_mut().rev() {
             let anim_id = egui::Id::unique(("toast", t.id));
-            let alpha = ctx.animate_bool_with_time(anim_id, t.seen, 0.18);
+            let alpha = ctx.animate_bool_with_time(anim_id, t.seen, crate::a11y::anim(0.18));
             t.seen = true;
             let area = egui::Area::new(anim_id)
                 .order(egui::Order::Foreground)
@@ -124,9 +124,10 @@ impl Toasts {
                 .interactable(true)
                 // Clicks on the body (one response per id: a second
                 // `interact` with the area's id is a widget-id clash).
-                .sense(Sense::click())
+                .sense(Sense::CLICK)
                 .show(ctx, |ui| {
                     ui.set_opacity(alpha);
+
                     let (glyph, color) = match t.kind {
                         ToastKind::Info => (icons::INFO, p.accent_text),
                         ToastKind::Success => (icons::CHECK_CIRCLE, p.success),
@@ -204,6 +205,18 @@ impl Toasts {
                             });
                         });
                 });
+            // VoiceOver reads a new toast at once (errors interrupt).
+            let spoken = match &t.detail {
+                Some(d) => format!("{}. {d}", t.title),
+                None => t.title.clone(),
+            };
+            let urgent = t.kind == ToastKind::Error;
+            let role = if urgent {
+                egui::accesskit::Role::Alert
+            } else {
+                egui::accesskit::Role::Status
+            };
+            crate::a11y::live(ctx, area.response.id, role, &spoken, urgent);
             // A click on the toast body dismisses info toasts.
             if area.response.clicked() && t.kind != ToastKind::Error {
                 dismiss = Some(t.id);

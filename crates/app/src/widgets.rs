@@ -30,7 +30,13 @@ pub fn icon(ui: &mut Ui, glyph: &str, size: f32, color: Color32) -> Response {
 }
 
 /// Tooltip with a label and an optional keyboard shortcut, Finder style.
+///
+/// Also names the widget for VoiceOver when nothing else did (icon-only
+/// buttons): the tooltip text becomes its accessible name, the shortcut its
+/// keyboard shortcut, and a painted click target without a role becomes a
+/// button.
 pub fn tooltip(resp: Response, label: &str, shortcut: &str) -> Response {
+    describe(&resp, label, shortcut);
     if shortcut.is_empty() {
         return resp.on_hover_text(label);
     }
@@ -45,6 +51,35 @@ pub fn tooltip(resp: Response, label: &str, shortcut: &str) -> Response {
     })
 }
 
+/// Accessible name, role and shortcut from a tooltip (see [`tooltip`]).
+fn describe(resp: &Response, label: &str, shortcut: &str) {
+    if !resp.ctx.has_accesskit_node(resp.id) {
+        return;
+    }
+    // The first line names the widget; further lines describe it.
+    let label = crate::a11y::strip_icons(label);
+    let (name, rest) = label.split_once('\n').unwrap_or((&label, ""));
+    let senses_click = resp.sense.senses_click();
+    resp.ctx.accesskit_node_builder(resp.id, |n| {
+        use egui::accesskit::Role;
+        if n.role() == Role::Unknown && senses_click {
+            n.set_role(Role::Button);
+        }
+        if n.role() != Role::Label
+            && n.labelled_by().is_empty()
+            && n.label().is_none_or(|l| l.trim().is_empty())
+        {
+            n.set_label(name.trim());
+        }
+        if !rest.trim().is_empty() && n.description().is_none() {
+            n.set_description(rest.trim());
+        }
+        if !shortcut.is_empty() {
+            n.set_keyboard_shortcut(shortcut);
+        }
+    });
+}
+
 /// Toolbar-style borderless icon button. `selected` shows a toggled state.
 pub fn icon_button(ui: &mut Ui, glyph: &str, enabled: bool, selected: bool) -> Response {
     let p = pal(ui);
@@ -55,11 +90,16 @@ pub fn icon_button(ui: &mut Ui, glyph: &str, enabled: bool, selected: bool) -> R
         Sense::hover()
     };
     let (rect, resp) = ui.allocate_exact_size(size, sense);
+    if !enabled {
+        // Still on VoiceOver's map, dimmed ("dimmed button"); named by its
+        // tooltip (see [`tooltip`]).
+        resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, false, ""));
+    }
     let hovered = enabled && resp.hovered();
     let pressed = enabled && resp.is_pointer_button_down_on();
-    let t = ui
-        .ctx()
-        .animate_bool_with_time(resp.id.with("hover"), hovered, 0.08);
+    let t =
+        ui.ctx()
+            .animate_bool_with_time(resp.id.with("hover"), hovered, crate::a11y::anim(0.08));
     let r = CornerRadius::same(radius::CONTROL + 1);
     if selected {
         ui.painter().rect_filled(rect, r, p.accent_soft);
@@ -69,15 +109,21 @@ pub fn icon_button(ui: &mut Ui, glyph: &str, enabled: bool, selected: bool) -> R
         ui.painter().rect_filled(rect, r, p.hover.gamma_multiply(t));
     }
     let color = if !enabled {
-        p.text_tertiary
+        p.text_disabled
     } else if selected {
         p.accent_text
     } else {
         p.text_secondary
     };
     paint_icon(ui, rect, glyph, 17.0, color, false);
-    if resp.has_focus() {
-        focus_ring(ui, rect, r);
+    // A toggle (e.g. "Show hidden files") says whether it is on; the name
+    // comes from the tooltip (see [`tooltip`]). The focus ring is drawn by
+    // `a11y::paint_focus_ring`.
+    if selected {
+        resp.ctx.accesskit_node_builder(resp.id, |n| {
+            n.set_role(egui::accesskit::Role::Button);
+            n.set_toggled(egui::accesskit::Toggled::True);
+        });
     }
     resp
 }
@@ -173,7 +219,8 @@ pub fn button(ui: &mut Ui, label: &str, kind: ButtonKind, enabled: bool) -> Resp
         Sense::hover()
     };
     let (rect, resp) = ui.allocate_exact_size(size, sense);
-    resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, enabled, label));
+    let spoken = crate::a11y::strip_icons(label);
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, enabled, &spoken));
     let r = CornerRadius::same(radius::CONTROL + 1);
     let mut fill = fill;
     if !enabled {
@@ -195,9 +242,6 @@ pub fn button(ui: &mut Ui, label: &str, kind: ButtonKind, enabled: bool) -> Resp
     let fg = if enabled { fg } else { fg.gamma_multiply(0.7) };
     ui.painter()
         .galley(rect.center() - galley.size() / 2.0, galley, fg);
-    if resp.has_focus() {
-        focus_ring(ui, rect, r);
-    }
     resp
 }
 
@@ -423,8 +467,12 @@ pub fn show_with_hint(
     if !hint_text.is_empty() {
         // The placeholder is what VoiceOver reads for a field without a label.
         let hint_owned = hint_text.to_string();
-        ui.ctx()
-            .accesskit_node_builder(resp.id, |node| node.set_placeholder(hint_owned));
+        ui.ctx().accesskit_node_builder(resp.id, |node| {
+            if node.label().is_none_or(|l| l.trim().is_empty()) && node.labelled_by().is_empty() {
+                node.set_label(hint_owned.clone());
+            }
+            node.set_placeholder(hint_owned);
+        });
     }
     resp
 }
@@ -684,7 +732,9 @@ pub fn toggle_switch(ui: &mut Ui, on: bool, enabled: bool) -> Response {
     };
     let (rect, resp) = ui.allocate_exact_size(size, sense);
     resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::CheckBox, enabled, on, ""));
-    let t = ui.ctx().animate_bool_with_time(resp.id, on, 0.12);
+    let t = ui
+        .ctx()
+        .animate_bool_with_time(resp.id, on, crate::a11y::anim(0.12));
     let off_track = if p.dark {
         Color32::from_rgb(72, 72, 78)
     } else {
@@ -710,9 +760,6 @@ pub fn toggle_switch(ui: &mut Ui, on: bool, enabled: bool) -> Response {
         Color32::from_black_alpha(40),
     );
     ui.painter().circle_filled(c, knob_r, Color32::WHITE);
-    if resp.has_focus() {
-        focus_ring(ui, rect, r);
-    }
     resp.on_hover_cursor(if enabled {
         egui::CursorIcon::PointingHand
     } else {
@@ -723,11 +770,17 @@ pub fn toggle_switch(ui: &mut Ui, on: bool, enabled: bool) -> Response {
 /// Section title in sidebars and panels: sentence case, semibold caption.
 pub fn section_title(ui: &mut Ui, title: &str) -> Response {
     let p = pal(ui);
-    ui.label(
+    let resp = ui.label(
         RichText::new(title)
             .font(theme::semibold(text::CAPTION))
             .color(p.text_secondary),
-    )
+    );
+    // A heading for VoiceOver's rotor (jump from section to section).
+    resp.ctx.accesskit_node_builder(resp.id, |n| {
+        n.set_role(egui::accesskit::Role::Heading);
+        n.set_label(title);
+    });
+    resp
 }
 
 #[cfg(test)]

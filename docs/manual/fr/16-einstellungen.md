@@ -94,6 +94,17 @@ Chaque carte affiche le nom, la description, l’état (**Actif**, **Démarrage�
 | **Doublons** | **Ignorer les paquets (.app, .photoslibrary, …)**, **Inclure les fichiers masqués**, **Modifier settings.json…** pour les exclusions et une commande de corbeille personnalisée. |
 | **Charge du système** | **Afficher la charge de la carte graphique** – voir [Charge du système](14-plugins.md#systemauslastung). |
 
+## Accessibilité {#bedienungshilfen}
+
+Manta suit **Réglages Système › Accessibilité**, sans réglage propre :
+
+- **VoiceOver** : chaque bouton, champ, liste et dialogue porte un nom dans ta langue. Les lignes de fichiers sont lues en entier, p. ex. « README.md, Texte, 214 octets, modifié Aujourd’hui 09:41, sélectionné », état du cloud et de Git compris. Quand tu te déplaces avec les flèches, VoiceOver lit la ligne courante. Les messages comme « 3 éléments copiés » et les erreurs sont annoncés.
+- **Réduire les animations** (Affichage) : plus d’animations – le clignotement d’un favori, la pulsation du badge d’envoi et les fondus disparaissent.
+- **Augmenter le contraste** (Affichage) : bordures et séparateurs plus marqués, texte secondaire plus foncé (plus clair en mode sombre), anneau de focus plus visible.
+- **Réduire la transparence** (Affichage) : plus d’assombrissement translucide derrière les dialogues.
+
+Manta applique les changements aussitôt, sans redémarrage. Même sans ces réglages, le texte atteint un rapport de contraste d’au moins 4,5:1. Pour l’utilisation au clavier seul, voir [Raccourcis clavier](18-tastenkuerzel.md#tastatur).
+
 ## Où Manta conserve ses réglages {#dateien-speicherort}
 
 Tout se trouve dans `~/Library/Application Support/Manta/` :

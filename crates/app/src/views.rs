@@ -828,6 +828,7 @@ pub fn icons_view(
     if bg.clicked() {
         tab.selected.clear();
     }
+    pane::list_anchor(&bg, side, tab, actions);
     let menu = MenuCtx::of(ui.ctx(), tab, info.count < 2);
     bg.context_menu(|ui| pane::background_menu(ui, side, actions, &menu));
     if pane::empty_states(ui, body, side, tab, actions) {
@@ -875,6 +876,7 @@ pub fn icons_view(
     let p = pal(ui);
     let active = info.is_active;
     let multi = tab.selected.len() > 1;
+    let now = chrono::Local::now();
     let mut ev = Events::default();
     let out = ui
         .scope_builder(egui::UiBuilder::new().max_rect(inner), |ui| {
@@ -883,6 +885,7 @@ pub fn icons_view(
                 ui.spacing_mut().item_spacing.y = 0.0;
                 let top = ui.max_rect().top() - range.start as f32 * grid.row_h;
                 let origin = egui::pos2(ui.max_rect().left(), top);
+                crate::a11y::list(ui, &pane::list_name(tab), n);
                 // Rows are positioned from the content origin; reserve them.
                 ui.allocate_exact_size(
                     egui::vec2(ui.available_width(), grid.row_h * range.len() as f32),
@@ -896,8 +899,9 @@ pub fn icons_view(
                         let resp = ui.interact(
                             hit,
                             egui::Id::unique(("icon-cell", side, tab.id, vi)),
-                            Sense::click_and_drag(),
+                            Sense::CLICK | Sense::DRAG,
                         );
+                        pane::a11y_entry(&resp, info, tab, vi, now);
                         if e.is_dir() {
                             pane::note_folder_target(ui, side, hit, &e.path);
                         }
@@ -1150,6 +1154,7 @@ pub fn gallery_view(
         egui::Id::unique(("gallery-bg", side, tab.id)),
         Sense::click(),
     );
+    pane::list_anchor(&bg, side, tab, actions);
     let menu = MenuCtx::of(ui.ctx(), tab, info.count < 2);
     bg.context_menu(|ui| pane::background_menu(ui, side, actions, &menu));
     if pane::empty_states(ui, rect, side, tab, actions) {
@@ -1214,7 +1219,12 @@ pub fn gallery_view(
                 let resp = ui.interact(
                     shown,
                     egui::Id::unique(("gallery-stage", side, tab.id)),
-                    Sense::click_and_drag(),
+                    Sense::CLICK | Sense::DRAG,
+                );
+                crate::a11y::name(
+                    &resp,
+                    egui::accesskit::Role::Image,
+                    &crate::a11y::entry_label(&e, chrono::Local::now(), None, None, None),
                 );
                 ev.from(ci, &resp);
                 resp.context_menu(|ui| {
@@ -1280,6 +1290,8 @@ pub fn gallery_view(
     let out = ui
         .scope_builder(egui::UiBuilder::new().max_rect(strip_inner), |ui| {
             scroll.show_viewport(ui, |ui, viewport| {
+                crate::a11y::list(ui, &pane::list_name(tab), n);
+                let now = chrono::Local::now();
                 let (full, _) = ui.allocate_exact_size(
                     egui::vec2(n as f32 * STRIP_CELL, strip_inner.height() - 4.0),
                     Sense::hover(),
@@ -1299,8 +1311,9 @@ pub fn gallery_view(
                     let resp = ui.interact(
                         tr.expand(4.0),
                         egui::Id::unique(("strip", side, tab.id, vi)),
-                        Sense::click_and_drag(),
+                        Sense::CLICK | Sense::DRAG,
                     );
+                    pane::a11y_entry(&resp, info, tab, vi, now);
                     if e.is_dir() {
                         pane::note_folder_target(ui, side, resp.rect, &e.path);
                     }
@@ -1881,7 +1894,7 @@ fn column_edge(
     let r = ui.interact(
         h,
         egui::Id::unique(("col-resize", side, tab_id, i)),
-        Sense::click_and_drag(),
+        Sense::CLICK | Sense::DRAG,
     );
     if r.hovered() || r.dragged() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeColumn);
@@ -2019,6 +2032,7 @@ fn active_column(
     if bg.clicked() {
         tab.selected.clear();
     }
+    pane::list_anchor(&bg, side, tab, actions);
     bg.context_menu(|ui| pane::background_menu(ui, side, actions, menu));
     if tab.view.is_empty() {
         column_note(ui, col, tab.loading, &tab.filter, tab.loading_since);
@@ -2044,11 +2058,14 @@ fn active_column(
             ui.spacing_mut().item_spacing.y = 0.0;
             scroll.show_rows(ui, COL_ROW, tab.view.len(), |ui, range| {
                 ui.spacing_mut().item_spacing.y = 0.0;
+                crate::a11y::list(ui, &pane::list_name(tab), tab.view.len());
+                let now = chrono::Local::now();
                 for vi in range {
                     let (r, resp) = ui.allocate_exact_size(
                         egui::vec2(ui.available_width(), COL_ROW),
-                        Sense::click_and_drag(),
+                        Sense::CLICK | Sense::DRAG,
                     );
+                    pane::a11y_entry(&resp, info, tab, vi, now);
                     let Some(e) = tab.entry_at(vi) else { continue };
                     if e.is_dir() {
                         pane::note_folder_target(ui, side, r, &e.path);
@@ -2178,7 +2195,7 @@ fn other_column(
     let bg = ui.interact(
         col,
         egui::Id::unique(("col-bg", side, tab_id, path.as_str())),
-        Sense::click(),
+        Sense::CLICK,
     );
     // Files from another app dropped onto this column go into its folder.
     pane::note_folder_target(ui, side, col, path);
@@ -2243,12 +2260,20 @@ fn other_column(
         ui.spacing_mut().item_spacing.y = 0.0;
         scroll.show_rows(ui, COL_ROW, order.len(), |ui, range| {
             ui.spacing_mut().item_spacing.y = 0.0;
+            crate::a11y::list(ui, path.file_name(), order.len());
             for k in range {
-                let (r, resp) = ui
-                    .allocate_exact_size(egui::vec2(ui.available_width(), COL_ROW), Sense::click());
+                let (r, resp) =
+                    ui.allocate_exact_size(egui::vec2(ui.available_width(), COL_ROW), Sense::CLICK);
                 let Some(e) = order.get(k).and_then(|&i| entries.get(i)) else {
                     continue;
                 };
+                crate::a11y::file_item(
+                    &resp,
+                    &crate::a11y::entry_label(e, chrono::Local::now(), None, None, None),
+                    hl_index == Some(k),
+                    k,
+                    order.len(),
+                );
                 if e.is_dir() {
                     pane::note_folder_target(ui, side, r, &e.path);
                 }

@@ -104,6 +104,17 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `toolbar.commands` | Commands | Befehle | 命令 | Comandos | Commandes | Comandi | Команды |
 | `toolbar.transfers_active` | Show Transfers – {n} active | Übertragungen einblenden – {n} aktiv | 显示传输（{n} 个进行中） | Mostrar transferencias – {n} activas | Afficher les transferts – actifs : {n} | Mostra trasferimenti – {n} attivi | Показать передачи – активно: {n} |
 | `toolbar.connect` | Connect | Verbinden | 连接 | Conectar | Se connecter | Connetti | Подключиться |
+| `a11y.modified` | modified {when} | geändert {when} | 修改于 {when} | modificado {when} | modifié {when} | modificato {when} | изменено {when} |
+| `a11y.file_list` | Files in {folder} | Dateien in {folder} | “{folder}”中的文件 | Archivos en {folder} | Fichiers dans {folder} | File in {folder} | Файлы в «{folder}» |
+| `a11y.connected` | connected | verbunden | 已连接 | conectado | connecté | connesso | подключено |
+| `a11y.pane_divider` | Pane divider | Trennlinie zwischen Bereichen | 面板分隔线 | Divisor de paneles | Séparateur de sous-fenêtres | Divisore dei pannelli | Разделитель панелей |
+| `a11y.resize_panel` | Resize panel | Bereichsgröße ändern | 调整面板大小 | Cambiar tamaño del panel | Redimensionner le panneau | Ridimensiona pannello | Изменить размер панели |
+| `a11y.toolbar` | Toolbar | Symbolleiste | 工具栏 | Barra de herramientas | Barre d’outils | Barra strumenti | Панель инструментов |
+| `a11y.sidebar` | Sidebar | Seitenleiste | 边栏 | Barra lateral | Barre latérale | Barra laterale | Боковое меню |
+| `a11y.status_bar` | Status bar | Statusleiste | 状态栏 | Barra de estado | Barre d’état | Barra di stato | Строка состояния |
+| `a11y.pane` | Pane: {folder} | Bereich: {folder} | 面板：{folder} | Panel: {folder} | Sous-fenêtre : {folder} | Pannello: {folder} | Панель: {folder} |
+| `a11y.active` | active | aktiv | 当前 | activo | sélectionnée | attivo | активна |
+| `a11y.sections` | Sections of {chapter} | Abschnitte von {chapter} | “{chapter}”的小节 | Secciones de {chapter} | Sections de {chapter} | Sezioni di {chapter} | Разделы главы «{chapter}» |
 | `app.job.copy_to` | Copying {what} to {dst} | {what} nach {dst} kopieren | 正在将 {what} 拷贝到 {dst} | Copiando {what} a {dst} | Copie de {what} vers {dst} | Copia di {what} in {dst} | Копирование {what} в {dst} |
 | `app.job.move_to` | Moving {what} to {dst} | {what} nach {dst} bewegen | 正在将 {what} 移到 {dst} | Moviendo {what} a {dst} | Déplacement de {what} vers {dst} | Spostamento di {what} in {dst} | Перемещение {what} в {dst} |
 | `app.job.extract_to` | Extracting {what} to {dst} | {what} nach {dst} entpacken | 正在将 {what} 解压缩到 {dst} | Extrayendo {what} en {dst} | Extraction de {what} vers {dst} | Estrazione di {what} in {dst} | Извлечение {what} в {dst} |

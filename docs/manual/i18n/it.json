@@ -275,7 +275,12 @@
         "copia e spostamento",
         "aggiornamenti",
         "configurazione",
-        "settings.json"
+        "settings.json",
+        "accessibilità",
+        "voiceover",
+        "aumenta contrasto",
+        "riduci movimento",
+        "riduci trasparenza"
       ]
     },
     "updates": {
@@ -305,7 +310,11 @@
         "f6",
         "finder",
         "tasti funzione",
-        "fn"
+        "fn",
+        "solo tastiera",
+        "navigazione da tastiera",
+        "focus",
+        "voiceover"
       ]
     },
     "fehlerbehebung": {

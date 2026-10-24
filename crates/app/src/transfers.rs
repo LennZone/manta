@@ -410,6 +410,15 @@ impl TransfersView {
                 detail.push_str(&format!(" · {cur}"));
             }
         }
+        // VoiceOver: one item per job, "Copy 3 items, 20 %, 10 B of 50 B …";
+        // its Stop / Retry buttons follow.
+        let mut spoken = crate::i18n::localize_job_title(&job.title);
+        if !finished {
+            spoken.push_str(&format!(", {} %", (fraction(job) * 100.0).round() as u32));
+        }
+        spoken.push_str(". ");
+        spoken.push_str(&detail);
+        crate::a11y::name(&row, egui::accesskit::Role::ListItem, &spoken);
         let mut dj = egui::text::LayoutJob::simple_singleline(
             detail,
             theme::regular(text::CAPTION + 0.5),

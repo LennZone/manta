@@ -22,7 +22,7 @@ Simboli: **⌘** Comando · **⇧** Maiuscole · **⌥** Opzione · **⌃** Cont
 
 | Scorciatoia | Comando |
 |---|---|
-| ⇥ | Cambia pannello (al successivo, ricominciando dal primo) |
+| ⇥ / ⇧⇥ | Cambia pannello (al successivo o, con ⇧, al precedente, ricominciando dal primo) |
 | ⌥⌘← / ⌥⌘→ | Attiva pannello a sinistra / a destra |
 | ⌘D | Dividi pannello |
 | ⇧⌘D | Chiudi pannello |
@@ -121,6 +121,24 @@ Le tue azioni rapide possono avere una scorciatoia propria (il campo `shortcut` 
 - In un **campo di testo** (filtro, percorso, campi delle finestre di dialogo) funzionano solo **⇧⌘P**, **⇧⌘G**, **⌘,** e **⌘?**; tutti gli altri tasti appartengono al campo.
 - Nel **terminale**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** e **⌘⌫** appartengono al terminale. Fai clic nell’elenco dei file per restituire la tastiera a Manta.
 - Nelle finestre **Impostazioni**, **Confronta e sincronizza** e **anteprima** funzionano solo le loro scorciatoie.
+
+## Uso solo da tastiera {#tastatur}
+
+Manta si usa interamente da tastiera.
+
+| Tasto | Effetto |
+|---|---|
+| ⌃F5 | Porta il focus della tastiera sui controlli, a partire dalla barra strumenti (come «Sposta il focus sulla barra strumenti» di macOS) |
+| ⇥ / ⇧⇥ | Nei controlli: successivo / precedente – barra strumenti → barra laterale → pannelli (barra del percorso, intestazioni di colonna, elenco dei file) → barra di stato, poi da capo |
+| ↑ ↓ ← → | Nella barra laterale, nei dialoghi e negli elenchi di opzioni: al controllo successivo in quella direzione |
+| Spazio / ↩ | Premi il pulsante, l’opzione o l’interruttore con il focus |
+| esc | Esci dai controlli: l’elenco dei file riprende la tastiera; nei dialoghi: annulla |
+| ⇥ / ⇧⇥ nell’elenco dei file | Al pannello successivo / precedente |
+
+- L’**elenco dei file** è un’unica fermata di tabulazione per pannello (non ogni riga). Quando ha il focus funzionano tutte le sue abbreviazioni: frecce, ↩, Spazio, digitazione per saltare.
+- Un **anello di focus** nel colore di evidenziazione mostra quale controllo ha la tastiera. I clic del mouse non lo mostrano.
+- I **dialoghi** trattengono il focus: ⇥ si sposta solo tra i loro campi e pulsanti. Alla chiusura (anche Impostazioni) il focus torna dov’era.
+- Con la **navigazione da tastiera** attiva in Impostazioni di Sistema (Tastiera) tutto funziona allo stesso modo; anche lì ⌃F5 è «Sposta il focus sulla barra strumenti».
 
 ## Differenze rispetto al Finder {#finder}
 

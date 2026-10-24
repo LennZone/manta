@@ -94,6 +94,17 @@ Ogni scheda mostra nome, descrizione, stato (**Attivo**, **Avvio…**, **Disatti
 | **Duplicati** | **Salta i pacchetti (.app, .photoslibrary, …)**, **Includi file nascosti**, **Modifica settings.json…** per le esclusioni e un comando personalizzato per il cestino. |
 | **Carico di sistema** | **Mostra il carico della GPU**; vedi [Carico di sistema](14-plugins.md#systemauslastung). |
 
+## Accessibilità {#bedienungshilfen}
+
+Manta segue **Impostazioni di Sistema › Accessibilità**, senza interruttori propri:
+
+- **VoiceOver**: ogni pulsante, campo, elenco e dialogo ha un nome nella tua lingua. Le righe dei file vengono lette per intero, ad es. «README.md, Testo, 214 byte, modificato Oggi 09:41, selezionato», compreso lo stato cloud e Git. Quando ti sposti con le frecce, VoiceOver legge la riga corrente. Messaggi come «3 elementi copiati» ed errori vengono annunciati.
+- **Riduci movimento** (Schermo): niente animazioni – il lampeggio di un preferito, la pulsazione del badge di caricamento e le dissolvenze sono disattivati.
+- **Aumenta contrasto** (Schermo): bordi e separatori più marcati, testo secondario più scuro (più chiaro in modalità scura), anello di focus più evidente.
+- **Riduci trasparenza** (Schermo): niente oscuramenti traslucidi dietro i dialoghi.
+
+Manta applica le modifiche subito, senza riavvio. Anche senza queste impostazioni il testo ha un rapporto di contrasto di almeno 4,5:1. Per l’uso solo da tastiera vedi [Abbreviazioni da tastiera](18-tastenkuerzel.md#tastatur).
+
 ## Dove Manta conserva le impostazioni {#dateien-speicherort}
 
 Tutto si trova in `~/Library/Application Support/Manta/`:

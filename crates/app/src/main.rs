@@ -2,6 +2,7 @@
 
 #[macro_use]
 mod i18n;
+mod a11y;
 mod app;
 mod app_menu;
 mod aux_window;

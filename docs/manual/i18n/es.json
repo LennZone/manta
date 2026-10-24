@@ -285,7 +285,12 @@
         "nube",
         "acerca de manta",
         "donativo",
-        "licencias"
+        "licencias",
+        "accesibilidad",
+        "voiceover",
+        "aumentar contraste",
+        "reducir movimiento",
+        "reducir transparencia"
       ]
     },
     "updates": {
@@ -316,7 +321,11 @@
         "nueva pestaña",
         "transferencias",
         "vaciar papelera",
-        "⇧⌘⌫"
+        "⇧⌘⌫",
+        "solo teclado",
+        "navegación con el teclado",
+        "foco",
+        "voiceover"
       ]
     },
     "fehlerbehebung": {

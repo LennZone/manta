@@ -2357,7 +2357,7 @@ pub(crate) fn folder_name(dir: &VfsPath) -> String {
 pub(crate) fn dialog_modal(id: &str, ctx: &egui::Context) -> egui::Modal {
     let p = theme::pal_ctx(ctx);
     egui::Modal::new(egui::Id::unique(id))
-        .backdrop_color(Color32::from_black_alpha(if p.dark { 110 } else { 60 }))
+        .backdrop_color(crate::a11y::scrim(p.dark, 60, 110))
         .frame(
             egui::Frame::new()
                 .fill(p.elevated)

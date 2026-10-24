@@ -1939,7 +1939,12 @@
           "oauth-client",
           "über manta",
           "spenden",
-          "lizenzen"
+          "lizenzen",
+          "bedienungshilfen",
+          "voiceover",
+          "kontrast erhöhen",
+          "bewegung reduzieren",
+          "transparenz reduzieren"
         ],
         "en": [
           "settings",
@@ -1961,7 +1966,12 @@
           "oauth client",
           "about manta",
           "donate",
-          "licenses"
+          "licenses",
+          "accessibility",
+          "voiceover",
+          "increase contrast",
+          "reduce motion",
+          "reduce transparency"
         ],
         "zh-Hans": [
           "设置",
@@ -2166,7 +2176,11 @@
           "übertragungen",
           "neu in manta",
           "papierkorb entleeren",
-          "⇧⌘⌫"
+          "⇧⌘⌫",
+          "ohne maus",
+          "tastaturnavigation",
+          "fokus",
+          "voiceover"
         ],
         "en": [
           "keyboard shortcuts",
@@ -2183,7 +2197,11 @@
           "transfers",
           "what's new",
           "empty trash",
-          "⇧⌘⌫"
+          "⇧⌘⌫",
+          "keyboard only",
+          "keyboard navigation",
+          "focus",
+          "voiceover"
         ],
         "zh-Hans": [
           "键盘快捷键",

@@ -41,7 +41,8 @@ fn cmd_question_mark_opens_help() {
         "starts at the first chapter"
     );
     assert!(
-        h.query_by_label("Getting Started").is_some(),
+        // (The contents entry and the page's own heading.)
+        h.query_all_by_label("Getting Started").next().is_some(),
         "TOC in English"
     );
 
@@ -68,8 +69,8 @@ fn palette_opens_the_manual() {
     h.run_steps(3);
     assert!(app(&mut h).help.open, "palette command opens the manual");
     // German UI: the German manual.
-    assert!(h.query_by_label("Erste Schritte").is_some());
-    assert!(h.query_by_label("Getting Started").is_none());
+    assert!(h.query_all_by_label("Erste Schritte").next().is_some());
+    assert!(h.query_all_by_label("Getting Started").next().is_none());
     set_locale(Locale::En);
 }
 
@@ -360,10 +361,11 @@ fn links_navigate_inside_the_help_window_and_back() {
     assert!(out.open_url.is_none());
 
     // Back / Forward buttons in the toolbar.
-    h.get_by_label("Back").click();
+    // (The main window's toolbar has a "Back" too; the help window's comes last.)
+    h.query_all_by_label("Back").last().unwrap().click();
     h.run_steps(3);
     assert_eq!(page(&mut h), chapter("05-dateien.md"));
-    h.get_by_label("Forward").click();
+    h.query_all_by_label("Forward").last().unwrap().click();
     h.run_steps(3);
     assert_eq!(page(&mut h), chapter("02-bereiche-tabs.md"));
     // ⌘[ goes back too.

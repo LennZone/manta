@@ -3292,3 +3292,6 @@ mod settings_scroll_ux_tests;
 
 #[path = "modal_ux_tests.rs"]
 mod modal_ux_tests;
+
+#[path = "a11y_ux_tests.rs"]
+mod a11y_ux_tests;

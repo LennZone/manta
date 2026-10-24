@@ -169,6 +169,22 @@ pub(crate) fn row(ui: &mut egui::Ui, r: Row<'_>) -> (egui::Response, bool) {
         Sense::click()
     };
     let (rect, resp) = ui.allocate_exact_size(egui::vec2(w, size::SIDEBAR_ROW), sense);
+    // VoiceOver: "Projects, button, selected" / "web-01, connected". The
+    // tooltip (path, server) becomes the description.
+    let mut spoken = r.label.to_string();
+    if let Some(d) = r.detail.filter(|d| !d.is_empty()) {
+        spoken.push_str(", ");
+        spoken.push_str(d);
+    }
+    if r.status_dot && r.dot.is_none() {
+        spoken.push_str(", ");
+        spoken.push_str(t!("a11y.connected"));
+    }
+    crate::a11y::name(&resp, egui::accesskit::Role::Button, &spoken);
+    if r.selected {
+        resp.ctx
+            .accesskit_node_builder(resp.id, |n| n.set_selected(true));
+    }
     let hovered = resp.hovered();
     if r.flash > 0.0 {
         let a = r.flash.clamp(0.0, 1.0);

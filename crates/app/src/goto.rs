@@ -507,11 +507,13 @@ impl GotoPopup {
             .order(egui::Order::Middle)
             .fixed_pos(screen.min)
             .show(ctx, |ui| {
-                let (rect, resp) = ui.allocate_exact_size(screen.size(), Sense::click());
+                // A click beside the sheet closes it (VoiceOver: "Close").
+                let (rect, resp) = ui.allocate_exact_size(screen.size(), Sense::CLICK);
+                crate::a11y::name(&resp, egui::accesskit::Role::Button, t!("common.close"));
                 ui.painter().rect_filled(
                     rect,
                     CornerRadius::ZERO,
-                    Color32::from_black_alpha(if p.dark { 90 } else { 40 }),
+                    crate::a11y::scrim(p.dark, 40, 90),
                 );
                 resp
             });

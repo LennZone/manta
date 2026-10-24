@@ -49,8 +49,8 @@ manta-updater.workspace = true
 security-framework = "3"
 objc2 = "0.6.3"
 block2 = "0.6.2"
-objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSString", "NSURL", "NSObject", "NSArray", "NSError", "NSFileManager", "NSGeometry", "NSOperation", "NSDictionary", "NSValue", "NSProcessInfo"] }
-objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "block2", "NSApplication", "NSEvent", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSPanel", "NSResponder", "NSWindow", "NSView", "NSDragging", "NSDraggingItem", "NSDraggingSession", "NSFilePromiseProvider", "NSPasteboard", "NSImage", "NSWorkspace"] }
+objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSString", "NSURL", "NSObject", "NSArray", "NSError", "NSFileManager", "NSGeometry", "NSOperation", "NSDictionary", "NSValue", "NSProcessInfo", "NSNotification", "block2"] }
+objc2-app-kit = { version = "0.3.2", default-features = false, features = ["std", "block2", "NSApplication", "NSEvent", "NSGraphicsContext", "NSMenu", "NSMenuItem", "NSPanel", "NSResponder", "NSWindow", "NSView", "NSDragging", "NSDraggingItem", "NSDraggingSession", "NSFilePromiseProvider", "NSPasteboard", "NSImage", "NSWorkspace", "NSAccessibility"] }
 objc2-quick-look-ui = { version = "0.3.2", default-features = false, features = ["std", "QLPreviewItem", "QLPreviewPanel", "objc2-app-kit"] }
 # Thumbnails of PDFs, videos and other documents (the Icons / Columns /
 # Gallery views), made on background threads.

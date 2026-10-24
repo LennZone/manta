@@ -94,6 +94,17 @@ Jede Karte zeigt Name, Beschreibung, Status (**Aktiv**, **Wird gestartet …**, 
 | **Duplikate** | **Pakete überspringen (.app, .photoslibrary, …)**, **Unsichtbare Dateien einbeziehen**, **settings.json bearbeiten …** für Ausschlüsse und einen eigenen Papierkorb-Befehl. |
 | **Systemauslastung** | **GPU-Last anzeigen** – siehe [Systemauslastung](14-plugins.md#systemauslastung). |
 
+## Bedienungshilfen {#bedienungshilfen}
+
+Manta folgt den Einstellungen unter **Systemeinstellungen › Bedienungshilfen** – ohne eigene Schalter:
+
+- **VoiceOver**: Alle Tasten, Felder, Listen und Dialoge haben Namen in deiner Sprache. Dateizeilen werden vollständig vorgelesen, z. B. „README.md, Textdatei, 214 Byte, geändert Heute 09:41, ausgewählt“ – samt Cloud- und Git-Status. Beim Bewegen mit den Pfeiltasten liest VoiceOver die aktuelle Zeile. Meldungen wie „3 Objekte kopiert“ oder Fehler werden angesagt.
+- **Bewegung reduzieren** (Anzeige): keine Animationen – das Aufleuchten eines Favoriten, das Pulsieren des Upload-Symbols und Einblendungen entfallen.
+- **Kontrast erhöhen** (Anzeige): kräftigere Rahmen und Trennlinien, dunklerer (im dunklen Modus hellerer) Zweittext, deutlicherer Fokusring.
+- **Transparenz reduzieren** (Anzeige): keine durchscheinenden Abdunklungen hinter Dialogen.
+
+Manta übernimmt Änderungen sofort, ohne Neustart. Auch ohne diese Einstellungen erreicht Text mindestens ein Kontrastverhältnis von 4,5 : 1. Zur Bedienung ohne Maus siehe [Tastenkürzel](18-tastenkuerzel.md#tastatur).
+
 ## Wo Manta Einstellungen speichert {#dateien-speicherort}
 
 Alles liegt in `~/Library/Application Support/Manta/`:

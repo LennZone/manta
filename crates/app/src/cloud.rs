@@ -630,7 +630,11 @@ const PULSE: f64 = 1.6;
 
 /// Opacity of the "uploading" badge at `time` (seconds): a slow, subtle
 /// pulse between 45 % and 100 %.
+/// Steady (1.0) with Reduce motion.
 pub fn upload_pulse(time: f64) -> f32 {
+    if crate::a11y::reduce_motion() {
+        return 1.0;
+    }
     let phase = (time % PULSE) / PULSE * std::f64::consts::TAU;
     (0.725 + 0.275 * phase.cos()) as f32
 }
@@ -651,7 +655,9 @@ pub fn paint_badge(
     let color = match state {
         SyncState::UploadError => pal(ui).danger,
         SyncState::Uploading => {
-            ui.ctx().request_repaint_after(Duration::from_millis(80));
+            if !crate::a11y::reduce_motion() {
+                ui.ctx().request_repaint_after(Duration::from_millis(80));
+            }
             // Accent (unlike the grey "only in the cloud"), except on a
             // selected row's accent background.
             let p = pal(ui);

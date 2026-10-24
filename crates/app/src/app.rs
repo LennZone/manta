@@ -335,7 +335,18 @@ pub struct MantaApp {
     /// Folders opened with "Go to Path", most recent first, per connection.
     goto_recent: Vec<(Option<u64>, VfsPath)>,
     /// Tab key presses intercepted in `raw_input_hook` (switch panes).
-    pending_tab_switch: bool,
+    /// Tab (+1) / ⇧Tab (-1) pressed while the file list had the keyboard.
+    pending_tab_switch: isize,
+    /// Keyboard focus to give back when the modal that is open now closes
+    /// (`Some(None)`: the file list had it).
+    focus_before_modal: Option<Option<egui::Id>>,
+    /// The widget that had keyboard focus last frame (Esc then only leaves
+    /// it; a dialog opening takes it away).
+    last_focus: Option<egui::Id>,
+    /// Focus to give back next frame (a dialog just closed).
+    focus_restore: Option<Option<egui::Id>>,
+    /// The first toolbar button that can take focus (⌃F5 goes there).
+    toolbar_first: Option<egui::Id>,
     /// A press outside an open popup was swallowed: drop its release too.
     popup_swallow_release: bool,
     /// `modal_open()` when the menu bar was last updated.
@@ -585,6 +596,7 @@ impl MantaApp {
         let ctx = ctx.clone();
         egui_extras::install_image_loaders(&ctx);
         theme::install(&ctx);
+        ctx.add_plugin(crate::a11y::SpeechCleanup);
 
         let local: SharedVfs = std::sync::Arc::new(manta_vfs::LocalFs::new());
         let home = init
@@ -712,7 +724,11 @@ impl MantaApp {
             palette: CommandPalette::default(),
             goto: None,
             goto_recent: Vec::new(),
-            pending_tab_switch: false,
+            pending_tab_switch: 0,
+            focus_before_modal: None,
+            last_focus: None,
+            focus_restore: None,
+            toolbar_first: None,
             popup_swallow_release: false,
             menu_modal: false,
             plugins,
@@ -2773,6 +2789,10 @@ impl MantaApp {
             return None;
         }
         ctx.request_repaint();
+        // Reduce motion: a steady highlight instead of the pulses.
+        if crate::a11y::reduce_motion() {
+            return Some((i, 1.0));
+        }
         let pulse = (t / DUR * 2.0 * std::f32::consts::PI).cos() * -0.5 + 0.5;
         Some((i, pulse.max(0.15) * (1.0 - t / DUR).sqrt()))
     }
@@ -5004,11 +5024,7 @@ impl MantaApp {
         );
         let (plugin, id) = (panel.plugin_id.clone(), panel.spec.id.clone());
         let modal = egui::Modal::new(egui::Id::unique(("plugin-modal", &plugin, &id)))
-            .backdrop_color(egui::Color32::from_black_alpha(if p.dark {
-                110
-            } else {
-                60
-            }))
+            .backdrop_color(crate::a11y::scrim(p.dark, 60, 110))
             .frame(
                 egui::Frame::new()
                     .fill(p.elevated)
@@ -5086,9 +5102,54 @@ impl MantaApp {
 
     // ------------------------------------------------------------ keyboard
 
+    /// Keyboard focus bookkeeping at the end of a frame: give the focus
+    /// back to where it was when a dialog, sheet or modal window closes (no
+    /// keyboard trap, no lost place), and draw the focus ring.
+    fn keyboard_focus_frame(&mut self, ctx: &egui::Context) {
+        // Give the focus back one frame after the dialog closed: until then
+        // egui still treats its (gone) layer as modal and ignores focus
+        // requests behind it.
+        if let Some(before) = self.focus_restore.take() {
+            match before {
+                Some(id) => ctx.memory_mut(|m| m.request_focus(id)),
+                None => {
+                    if let Some(id) = ctx.memory(|m| m.focused()) {
+                        ctx.memory_mut(|m| m.surrender_focus(id));
+                    }
+                }
+            }
+        }
+        let focused = ctx.memory(|m| m.focused());
+        match (self.modal_open(), self.focus_before_modal) {
+            (true, None) => {
+                // Remember where the keyboard was; a control behind the
+                // dialog lets go, so Tab starts inside the dialog (egui's
+                // modal layer keeps it there).
+                let before = self.last_focus;
+                self.focus_before_modal = Some(before);
+                if let Some(id) = before.filter(|id| focused == Some(*id)) {
+                    ctx.memory_mut(|m| m.surrender_focus(id));
+                }
+            }
+            (false, Some(before)) => {
+                self.focus_before_modal = None;
+                self.focus_restore = Some(before);
+                ctx.request_repaint();
+            }
+            _ => {}
+        }
+        self.last_focus = ctx.memory(|m| m.focused());
+        crate::a11y::paint_focus_ring(ctx);
+    }
+
     fn handle_keys(&mut self, ctx: &egui::Context, actions: &mut Vec<Action>) {
-        if std::mem::take(&mut self.pending_tab_switch) && !self.modal_open() {
-            self.activate(crate::pane_set::cycle(&self.pane_order(), self.active, 1));
+        let step = std::mem::take(&mut self.pending_tab_switch);
+        if step != 0 && !self.modal_open() {
+            self.activate(crate::pane_set::cycle(
+                &self.pane_order(),
+                self.active,
+                step,
+            ));
         }
         // Sheets handle their own keys (Esc, ↩, typing).
         if self.sheet_open() {
@@ -5116,7 +5177,8 @@ impl MantaApp {
         //   plugin chords work (the field needs ⌘A, ⌘←, ⌘⌫ …);
         // - in a plugin panel ⌘-shortcuts work except ⌘C, ⌘V, ⌘A, ⌘K,
         //   ⌘←, ⌘→ and ⌘⌫, which the panel (the terminal) handles.
-        let any_focus = ctx.memory(|m| m.focused().is_some());
+        // A file list's own Tab stop counts as "no control has focus".
+        let any_focus = ctx.memory(|m| m.focused().is_some()) && !pane::list_has_focus(ctx);
         let text_focus = ctx.text_edit_focused();
         let panel_focus = self.plugin_focus && any_focus;
         let cmd_shift = Modifiers::COMMAND | Modifiers::SHIFT;
@@ -5145,6 +5207,15 @@ impl MantaApp {
         }
         if help_key(ctx) {
             actions.push(Action::ShowHelp(String::new()));
+            return;
+        }
+        // ⌃F5 (macOS: "Move focus to the window toolbar") moves the keyboard
+        // from the file list into the window's controls; Tab / ⇧Tab then go
+        // through toolbar, sidebar, panes and status bar, Esc comes back.
+        if key(Modifiers::CTRL, Key::F5) {
+            if let Some(id) = self.toolbar_first {
+                ctx.memory_mut(|m| m.request_focus(id));
+            }
             return;
         }
         if text_focus {
@@ -5310,6 +5381,14 @@ impl MantaApp {
         if key(Modifiers::NONE, Key::Space) {
             actions.push(Action::Preview(side));
         }
+        // Esc that just took the focus from a control (egui drops it) hands
+        // the keyboard back to the list and does nothing else.
+        if self.last_focus.is_some()
+            && self.last_focus != pane::list_anchor_focus(ctx)
+            && key(Modifiers::NONE, Key::Escape)
+        {
+            return;
+        }
         if key(Modifiers::NONE, Key::Escape) {
             if let Some(p) = self.preview.take() {
                 p.release(ctx);
@@ -5365,9 +5444,13 @@ impl MantaApp {
         let mut rects = Vec::new();
         ui.horizontal_centered(|ui| {
             ui.spacing_mut().item_spacing.x = 2.0;
+            let mut first: Option<egui::Id> = None;
             let mut tb = |ui: &mut egui::Ui, cmd: Cmd, glyph: &str, selected: bool, label: &str| {
                 let enabled = self.cmd_enabled(cmd);
                 let r = widgets::icon_button(ui, glyph, enabled, selected);
+                if enabled && first.is_none() {
+                    first = Some(r.id);
+                }
                 rects.push((cmd, r.rect));
                 // A two-pane command with one pane says why it is off.
                 // Quick Look: Space and ⌘Y, as in Finder.
@@ -5376,7 +5459,7 @@ impl MantaApp {
                     _ => cmd.shortcut().to_string(),
                 };
                 let r = match self.cmd_disabled_reason(cmd) {
-                    Some(why) => r.on_hover_text(format!("{label}\n{why}")),
+                    Some(why) => widgets::tooltip(r, &format!("{label}\n{why}"), ""),
                     None => widgets::tooltip(r, label, &shortcut),
                 };
                 if r.clicked() {
@@ -5470,6 +5553,7 @@ impl MantaApp {
                 self.sync.open,
                 Cmd::CompareSync.label(),
             );
+            self.toolbar_first = first;
 
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 ui.spacing_mut().item_spacing.x = space::SM;
@@ -5739,6 +5823,14 @@ impl MantaApp {
                     .sense(Sense::click())
                     .selectable(false),
                 );
+                crate::a11y::name(
+                    &hint,
+                    egui::accesskit::Role::Button,
+                    Cmd::CommandPalette.label(),
+                );
+                hint.ctx.accesskit_node_builder(hint.id, |n| {
+                    n.set_keyboard_shortcut(Cmd::CommandPalette.shortcut())
+                });
                 let hint = if hint_form == HintForm::Short {
                     hint.on_hover_text(&hint_full)
                 } else {
@@ -5806,7 +5898,12 @@ impl MantaApp {
             let resp = ui.interact(
                 handle.expand2(egui::vec2(2.0, 0.0)),
                 egui::Id::unique(("pane-splitter", i)),
-                Sense::click_and_drag(),
+                Sense::CLICK | Sense::DRAG,
+            );
+            crate::a11y::name(
+                &resp,
+                egui::accesskit::Role::Splitter,
+                t!("a11y.pane_divider"),
             );
             if resp.hovered() || resp.dragged() {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
@@ -6157,15 +6254,16 @@ impl eframe::App for MantaApp {
         {
             return;
         }
+        // ⇧Tab goes to the previous pane (egui would focus the last widget).
         raw_input.events.retain(|e| match e {
             egui::Event::Key {
                 key: Key::Tab,
                 pressed,
                 modifiers,
                 ..
-            } if modifiers.is_none() => {
+            } if modifiers.is_none() || modifiers.shift_only() => {
                 if *pressed {
-                    self.pending_tab_switch = true;
+                    self.pending_tab_switch += if modifiers.shift { -1 } else { 1 };
                 }
                 false
             }
@@ -6219,6 +6317,7 @@ impl MantaApp {
     /// can drive it without an `eframe::Frame`).
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
+        crate::a11y::frame(&ctx);
         crate::native_drag::set_drops_move_by_default(
             &ctx,
             self.prefs.drop_action.moves_by_default(),
@@ -6326,15 +6425,22 @@ impl MantaApp {
                         space::SM as i8,
                     )),
             )
-            .show(ui, |ui| self.toolbar(ui, &mut actions));
-        egui::Panel::bottom("statusbar")
+            .show(ui, |ui| {
+                crate::a11y::region(ui, egui::accesskit::Role::Toolbar, t!("a11y.toolbar"));
+                self.toolbar(ui, &mut actions)
+            });
+        // The status bar's room is taken now (it spans the window's width);
+        // its contents are drawn after the panes, so Tab reaches them last:
+        // toolbar → sidebar → panes → status bar.
+        let status_rect = egui::Panel::bottom("statusbar")
             .exact_size(24.0)
             .frame(
                 egui::Frame::new()
                     .fill(p.chrome)
                     .inner_margin(egui::Margin::symmetric(space::MD as i8 + 4, 0)),
             )
-            .show(ui, |ui| self.status_bar(ui, &mut actions));
+            .show(ui, |ui| ui.max_rect())
+            .inner;
 
         if self.show_transfers {
             egui::Panel::bottom("transfers")
@@ -6387,6 +6493,7 @@ impl MantaApp {
             .show(ui, |ui| {
                 // See plugin_sidebar: keep the panel from shrinking.
                 ui.set_min_size(ui.max_rect().size());
+                crate::a11y::region(ui, egui::accesskit::Role::Navigation, t!("a11y.sidebar"));
                 let trash = self.trash.dir.clone().map(|dir| sidebar::TrashRow {
                     dir,
                     items: self.trash.status.items,
@@ -6419,6 +6526,20 @@ impl MantaApp {
                     .inner_margin(egui::Margin::same(space::SM as i8)),
             )
             .show(ui, |ui| self.panes_ui(ui, &mut actions));
+        {
+            let mut status_ui = ui.new_child(
+                egui::UiBuilder::new()
+                    .id_salt("statusbar-content")
+                    .max_rect(status_rect)
+                    .layout(egui::Layout::top_down(egui::Align::Min)),
+            );
+            crate::a11y::region(
+                &status_ui,
+                egui::accesskit::Role::Group,
+                t!("a11y.status_bar"),
+            );
+            self.status_bar(&mut status_ui, &mut actions);
+        }
 
         // Floating windows.
         if self.sync.open {
@@ -6494,6 +6615,7 @@ impl MantaApp {
         for a in actions {
             self.handle_action(&ctx, a);
         }
+        self.keyboard_focus_frame(&ctx);
         self.native_drag_frame(&ctx);
 
         // An open Quick Look panel follows the cursor (and closes when the

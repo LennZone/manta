@@ -4,7 +4,7 @@
 //! (see mod.rs).
 
 use eframe::egui::{self, Theme};
-use egui_kittest::kittest::Queryable;
+use egui_kittest::kittest::{NodeT as _, Queryable};
 use manta_plugin_sysstats::{FakeSampler, MemInfo, Pressure, SysStatsPlugin, PLUGIN_ID};
 
 use super::super::*;
@@ -61,19 +61,22 @@ fn shown(h: &H, label: &str) -> bool {
     h.query_by_label(label).is_some()
 }
 
+/// The palette hint at the right of the status bar: a button named
+/// "Command Palette" whose visible text is the value.
+fn hint_shown(h: &H, text: &str) -> bool {
+    h.query_all_by_role(egui::accesskit::Role::Button)
+        .any(|n| n.accesskit_node().value().as_deref() == Some(text))
+}
+
 #[test]
 fn status_bar_shows_fake_loads_and_hides_when_switched_off() {
     let fx = fixture();
     let mut h = harness_full(&fx, WIDE, Theme::Light, false, plugin(0.42, Some(0.03)));
     wait_for_items(&mut h);
-    for label in [
-        "CPU 42%",
-        "GPU 3%",
-        "RAM 12.4 / 16 GB",
-        "⇧⌘P  Command Palette",
-    ] {
+    for label in ["CPU 42%", "GPU 3%", "RAM 12.4 / 16 GB"] {
         assert!(shown(&h, label), "{label} in the status bar");
     }
+    assert!(hint_shown(&h, "⇧⌘P  Command Palette"));
     // A click opens Activity Monitor (recorded in tests, not run).
     h.get_by_label("CPU 42%").click();
     h.run_steps(2);
@@ -85,7 +88,7 @@ fn status_bar_shows_fake_loads_and_hides_when_switched_off() {
     app(&mut h).plugins.set_enabled(PLUGIN_ID, false);
     h.run_steps(4);
     assert!(!shown(&h, "CPU 42%") && !shown(&h, "RAM 12.4 / 16 GB"));
-    assert!(shown(&h, "⇧⌘P  Command Palette"));
+    assert!(hint_shown(&h, "⇧⌘P  Command Palette"));
     // On again: back.
     app(&mut h).plugins.set_enabled(PLUGIN_ID, true);
     wait_for_items(&mut h);
@@ -108,7 +111,7 @@ fn narrow_windows_drop_the_gpu_then_shrink() {
     while w >= 330.0 {
         h.set_size(egui::vec2(w, 600.0));
         h.run_steps(3);
-        let hint = shown(&h, "⇧⌘P  Command Palette") || shown(&h, "⇧⌘P");
+        let hint = hint_shown(&h, "⇧⌘P  Command Palette") || hint_shown(&h, "⇧⌘P");
         if !hint && hint_gone.is_none() {
             hint_gone = Some(w);
         }

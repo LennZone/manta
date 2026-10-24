@@ -22,7 +22,7 @@ Symboles : **⌘** Commande · **⇧** Maj · **⌥** Option · **⌃** Contrô
 
 | Raccourci | Commande |
 |---|---|
-| ⇥ | Changer de sous-fenêtre (vers la suivante, en revenant au début après la dernière) |
+| ⇥ / ⇧⇥ | Changer de sous-fenêtre (vers la suivante ou, avec ⇧, la précédente, en revenant au début après la dernière) |
 | ⌥⌘← / ⌥⌘→ | Activer la sous-fenêtre de gauche / de droite |
 | ⌘D | Diviser la sous-fenêtre |
 | ⇧⌘D | Fermer la sous-fenêtre |
@@ -121,6 +121,24 @@ Vos propres actions rapides peuvent avoir leur propre raccourci (le champ `short
 - Dans un **champ de texte** (filtre, chemin, champs de zone de dialogue), seuls **⇧⌘P**, **⇧⌘G**, **⌘,** et **⌘?** fonctionnent ; toutes les autres touches s’adressent au champ.
 - Dans le **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** et **⌘⌫** s’adressent au terminal. Cliquez dans la liste des fichiers pour rendre le clavier à Manta.
 - Dans les fenêtres **Réglages**, **Comparer et synchroniser** et **aperçu**, seuls leurs propres raccourcis fonctionnent.
+
+## Utilisation au clavier seul {#tastatur}
+
+Manta s’utilise entièrement au clavier.
+
+| Touche | Effet |
+|---|---|
+| ⌃F5 | Placer le focus clavier dans les commandes, en commençant par la barre d’outils (comme « Placer le focus sur la barre d’outils » de macOS) |
+| ⇥ / ⇧⇥ | Dans les commandes : suivante / précédente – barre d’outils → barre latérale → sous-fenêtres (barre du chemin, en-têtes de colonne, liste des fichiers) → barre d’état, puis on recommence |
+| ↑ ↓ ← → | Dans la barre latérale, les dialogues et les listes d’options : vers la commande suivante dans cette direction |
+| Espace / ↩ | Activer le bouton, l’option ou l’interrupteur qui a le focus |
+| esc | Quitter les commandes : la liste des fichiers reprend le clavier ; dans un dialogue : annuler |
+| ⇥ / ⇧⇥ dans la liste des fichiers | Vers la sous-fenêtre suivante / précédente |
+
+- La **liste des fichiers** est un seul arrêt de tabulation par sous-fenêtre (pas chaque ligne). Quand elle a le focus, tous ses raccourcis fonctionnent : flèches, ↩, Espace, saisie pour sauter.
+- Un **anneau de focus** dans la couleur d’accentuation montre quelle commande a le clavier. Les clics de souris ne l’affichent pas.
+- Les **dialogues** gardent le focus : ⇥ ne parcourt que leurs champs et boutons. À leur fermeture (Réglages aussi), le focus revient là où il était.
+- Avec la **navigation au clavier** activée dans Réglages Système (Clavier), tout fonctionne de la même façon ; ⌃F5 y est aussi « Placer le focus sur la barre d’outils ».
 
 ## Différences avec le Finder {#finder}
 
