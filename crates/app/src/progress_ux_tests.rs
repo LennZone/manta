@@ -13,7 +13,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use eframe::egui::{self, Theme};
+use eframe::egui::Theme;
 use egui_kittest::kittest::Queryable;
 use manta_ops::{JobKind, JobState, JobStatus};
 use manta_vfs::cloud_local::{self, SyncInfo, SyncState};
@@ -22,7 +22,7 @@ use super::cloud_ux_tests::harness_cloud;
 use super::{
     app, fixture, render_dir, save_to, select, settle, wait_until, wgpu_available, Fixture, H,
 };
-use crate::app::{Action, Side};
+use crate::app::{Action, Dialog, Side};
 use crate::cloud::{Cloud, FakeProbe};
 
 fn job(id: u64, kind: JobKind, title: &str, state: JobState, done: u64, total: u64) -> JobStatus {
@@ -141,18 +141,7 @@ fn copy_into_google_drive_shows_done_then_the_upload() {
     // "Done" lingers on the wall clock; keep it until the test lets it go, so a
     // slow machine (CI) can't miss it.
     app(&mut h).transfer_pill.linger = Duration::from_secs(3600);
-    let ctx = h.ctx.clone();
-    app(&mut h).handle_action(&ctx, Action::CopyToOther(Side::Right, false));
-    if app(&mut h).dialog.is_some() {
-        h.key_press(egui::Key::Enter);
-        h.run_steps(1);
-    }
-    assert!(app(&mut h).show_transfers, "a new job opens the panel");
-    // The user hides it right away.
-    app(&mut h).show_transfers = false;
-    // "Done" stays until the test moves on (a loaded machine may take
-    // longer than the real few seconds between the copy and the check).
-    app(&mut h).transfer_pill.linger = Duration::from_secs(3600);
+    start_copy_panel_hidden(&mut h);
     wait_until(&mut h, "the copy", |_| {
         d.my.join("Brand Guide.pdf").exists()
     });
@@ -191,6 +180,72 @@ fn copy_into_google_drive_shows_done_then_the_upload() {
         h.query_by_label_contains("is uploading").is_none()
             && h.query_by_label_contains("upload error").is_none()
     );
+}
+
+/// F5 and confirming the dialog (what Enter does), then the user hides the
+/// transfers panel the copy opened, before any frame sees the job.
+///
+/// Not Enter plus a frame: that frame confirms the dialog in its first pass
+/// and egui runs a second pass (the dialog closing requests a discard), whose
+/// job snapshot may already show the tiny copy finished while the panel is
+/// still open. The panel showing it counts as seen: no "Done" pill afterwards
+/// (correct for the app, a race for the test: it timed out on CI).
+fn start_copy_panel_hidden(h: &mut H) {
+    let ctx = h.ctx.clone();
+    app(h).handle_action(&ctx, Action::CopyToOther(Side::Right, false));
+    assert!(
+        matches!(app(h).dialog, Some(Dialog::Transfer(_))),
+        "the copy dialog"
+    );
+    app(h).submit_dialog();
+    assert!(app(h).show_transfers, "a new job opens the panel");
+    app(h).show_transfers = false;
+}
+
+/// Wait (without frames) until the transfer manager reports every job done.
+fn wait_jobs_done(h: &mut H) {
+    let start = std::time::Instant::now();
+    loop {
+        let jobs = app(h).transfers.snapshot();
+        if !jobs.is_empty() && jobs.iter().all(|j| j.state == JobState::Done) {
+            return;
+        }
+        assert!(
+            start.elapsed() < crate::test_support::wait(),
+            "timed out waiting for the copy job: {jobs:?}"
+        );
+        std::thread::sleep(Duration::from_millis(5));
+    }
+}
+
+/// The CI race made deterministic: the copy is already finished when the app
+/// first looks at the jobs. With the panel hidden that look still shows
+/// "Done".
+#[test]
+fn copy_finished_before_the_first_frame_still_shows_done() {
+    let fx = fixture();
+    let (mut h, d) = harness(&fx, Theme::Light, false);
+    open_drive(&mut h, &d);
+    select(&mut h, Side::Right, &["Brand Guide.pdf"]);
+    app(&mut h).transfer_pill.linger = Duration::from_secs(3600);
+    start_copy_panel_hidden(&mut h);
+    wait_jobs_done(&mut h);
+    assert!(d.my.join("Brand Guide.pdf").exists());
+    h.run_steps(2);
+    assert!(has(&h, "Done"), "a job that finished unseen shows Done");
+
+    // A job that finished while the panel was open was seen there: hiding
+    // the panel afterwards shows no "Done" (why Enter + a frame raced).
+    app(&mut h).transfers.clear_finished();
+    h.run_steps(2);
+    select(&mut h, Side::Right, &["app-icon.svg"]);
+    start_copy_panel_hidden(&mut h);
+    app(&mut h).show_transfers = true;
+    wait_jobs_done(&mut h);
+    h.run_steps(1);
+    app(&mut h).show_transfers = false;
+    h.run_steps(2);
+    assert!(!has(&h, "Done"), "seen in the panel: no pill");
 }
 
 #[test]
