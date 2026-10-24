@@ -710,13 +710,17 @@ fn paint_200x60_is_fast() {
         h.step();
     }
     let t = times.borrow();
-    let steady = t[t.len() / 2..].iter().max().unwrap();
+    // The median of the steady frames: on a loaded machine single frames
+    // are preempted (100 ms and more), which says nothing about the paint.
+    let mut steady: Vec<_> = t[t.len() / 2..].to_vec();
+    steady.sort();
+    let median = steady[steady.len() / 2];
     eprintln!(
-        "paint 200x60: first {:?}, steady max {:?}, all {:?}",
-        t[0], steady, *t
+        "paint 200x60: first {:?}, steady median {:?}, all {:?}",
+        t[0], median, *t
     );
     // Generous bound for unoptimised debug builds.
-    assert!(steady.as_millis() < 60, "too slow: {steady:?}");
+    assert!(median.as_millis() < 60, "too slow: {median:?}");
 }
 
 /// Letter spacing really puts glyph k of a run at x = k · cell_w (what

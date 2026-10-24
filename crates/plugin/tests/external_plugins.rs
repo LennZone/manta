@@ -144,8 +144,10 @@ fn hello_python_example() {
     // Switching off ends the process quickly.
     let t = Instant::now();
     host.set_enabled("hello-python", false);
+    // Not blocking on the process (that would take the shutdown grace
+    // period); generous for loaded machines.
     assert!(
-        t.elapsed() < Duration::from_millis(100),
+        t.elapsed() < Duration::from_millis(1000),
         "disable must not block"
     );
     host.shutdown(Duration::from_secs(2));

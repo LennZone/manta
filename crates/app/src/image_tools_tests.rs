@@ -181,7 +181,7 @@ fn wait_for(h: &mut H, what: &str, mut done: impl FnMut(&mut H) -> bool) {
             return;
         }
         assert!(
-            start.elapsed() < Duration::from_secs(30),
+            start.elapsed() < crate::test_support::wait(),
             "timed out waiting for {what}"
         );
         std::thread::sleep(Duration::from_millis(15));

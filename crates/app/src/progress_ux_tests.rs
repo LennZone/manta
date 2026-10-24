@@ -150,6 +150,9 @@ fn copy_into_google_drive_shows_done_then_the_upload() {
     assert!(app(&mut h).show_transfers, "a new job opens the panel");
     // The user hides it right away.
     app(&mut h).show_transfers = false;
+    // "Done" stays until the test moves on (a loaded machine may take
+    // longer than the real few seconds between the copy and the check).
+    app(&mut h).transfer_pill.linger = Duration::from_secs(3600);
     wait_until(&mut h, "the copy", |_| {
         d.my.join("Brand Guide.pdf").exists()
     });

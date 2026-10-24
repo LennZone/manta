@@ -13,8 +13,6 @@ Con varios archivos seleccionados, las flechas **‹** y **›** de Vista Rápid
 
 El teclado sigue funcionando en Manta: puedes seguir moviéndote por la lista con las teclas de flecha mientras el panel de Vista Rápida está abierto.
 
-![Vista Rápida sobre un panel](images/quick-look.png)
-
 ## Vista Rápida (macOS) {#quick-look}
 
 Vista Rápida es el panel de previsualización de Apple. Muestra todo lo que muestra Finder: PDF, imágenes, vídeos, documentos de Office, archivos de texto y mucho más. Funciona con archivos y carpetas **locales**.

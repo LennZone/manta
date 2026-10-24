@@ -43,6 +43,19 @@ Manta 向你显示的每条错误信息都会连同技术错误、路径和位�
 
 有想法或改进建议？**帮助** → **提出建议…** 会打开建议表单。所有入口也都在 [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose)。
 
+## Manta 意外退出时 {#absturz}
+
+如果 Manta 崩溃，它会在 `~/Library/Logs/Manta` 中保存一份崩溃报告——文件名以 `crash-` 开头，后跟日期和时间（UTC）。报告只包含查找错误所需的内容：Manta 和 macOS 的版本、芯片、错误信息，以及崩溃时的程序地址（“backtrace”）。你的个人文件夹显示为 `~`，用户名、服务器名和主机名会被替换为 `<user>`、`<redacted>` 等占位符。
+
+下次启动 Manta 时，右下角会显示一次提示：**Manta 上次意外退出**。
+
+- **在 GitHub 上报告** 会打开错误报告表单，并已填好版本信息和报告的简短摘要。请把报告文件附加到表单中（拖到文本框里）——链接无法携带文件。在你自己于 GitHub 上提交表单之前，不会发送任何内容。
+- **显示报告** 会在文本编辑器中打开报告，让你确切看到其中的内容。
+- **忽略** 会关闭提示。报告仍保留在文件夹中；Manta 保留最新的 10 份。
+
+> [!NOTE]
+> Manta 从不自动发送崩溃报告，也不包含任何跟踪。如果你不想报告某次崩溃，忽略提示即可——或者删除 `~/Library/Logs/Manta` 中的 `crash-…` 文件。
+
 ## Manta 无法打开（Gatekeeper） {#gatekeeper}
 
 **问题：** 首次启动时，macOS 提示“未打开‘Manta’”或“无法打开……，因为 Apple 无法检查其是否包含恶意软件”。

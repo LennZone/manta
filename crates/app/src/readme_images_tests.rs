@@ -78,11 +78,11 @@ fn step_for(h: &mut H, d: Duration) {
 
 /// `Users/anna` with the standard Projects tree, a Git repository
 /// `Developer/storefront` and a Google Drive folder.
-struct Home {
-    fx: Fixture,
-    repo: PathBuf,
-    drive: PathBuf,
-    home: PathBuf,
+pub(super) struct Home {
+    pub(super) fx: Fixture,
+    pub(super) repo: PathBuf,
+    pub(super) drive: PathBuf,
+    pub(super) home: PathBuf,
 }
 
 fn git(dir: &Path, args: &[&str]) {
@@ -128,7 +128,7 @@ fn put(root: &Path, rel: &str, text: &str) {
     std::fs::write(p, text).unwrap();
 }
 
-fn home() -> Home {
+pub(super) fn home() -> Home {
     let fx = fixture_at("Users/anna/Projects");
     let home = fx.root.parent().unwrap().to_path_buf();
 
@@ -274,9 +274,9 @@ impl Home {
 
 /// Answers like docker would for `shop-web` (running, WORKDIR
 /// /var/www/html, a Laravel app).
-struct FakeShop;
+pub(super) struct FakeShop;
 
-const WEB: &str = "/var/www/html";
+pub(super) const WEB: &str = "/var/www/html";
 
 impl FakeShop {
     fn answer(args: &[String]) -> CmdOutput {
@@ -421,7 +421,7 @@ fn copy_job() -> JobStatus {
 }
 
 /// Connect `side` to `shop-web` through the scripted runner.
-fn open_container(h: &mut H, side: Side) {
+pub(super) fn open_container(h: &mut H, side: Side) {
     let cfg = docker_config("shop-web");
     let fs: SharedVfs = Arc::new(ContainerFs::connect_with(&cfg, Arc::new(FakeShop)).unwrap());
     let home = fs.home().unwrap();

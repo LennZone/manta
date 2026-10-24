@@ -347,7 +347,11 @@
         "github",
         "segnalazioni",
         "idea",
-        "vulnerabilità"
+        "vulnerabilità",
+        "arresto anomalo",
+        "crash",
+        "chiuso inaspettatamente",
+        "rapporto sull’arresto anomalo"
       ]
     },
     "faq": {

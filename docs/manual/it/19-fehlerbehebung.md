@@ -43,6 +43,19 @@ Cosa aiuta a trovare il bug:
 
 Hai un’idea o un suggerimento? **Aiuto** → **Suggerisci un’idea…** apre il modulo per le idee. Tutte le opzioni sono anche su [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
+## Se Manta si chiude inaspettatamente {#absturz}
+
+Se Manta si arresta in modo anomalo, salva un rapporto in `~/Library/Logs/Manta`: un file il cui nome inizia con `crash-` seguito da data e ora (UTC). Il rapporto contiene solo ciò che serve per trovare il bug: la versione di Manta e di macOS, il chip, il messaggio di errore e gli indirizzi del programma al momento dell’arresto (il «backtrace»). La tua cartella Inizio compare come `~`, e i nomi di utenti, server e host sono sostituiti da segnaposto come `<user>` e `<redacted>`.
+
+Al successivo avvio, Manta mostra una sola volta un avviso in basso a destra: **L’ultima volta Manta si è chiuso inaspettatamente**.
+
+- **Segnala su GitHub** apre il modulo per la segnalazione di bug con le versioni e un breve riepilogo del rapporto già compilati. Allega il file del rapporto al modulo (trascinalo nel campo di testo): un link non può trasportare un file. Non viene inviato nulla finché non invii tu stesso il modulo su GitHub.
+- **Mostra rapporto** apre il rapporto nel tuo editor di testo, così vedi esattamente cosa contiene.
+- **Ignora** chiude l’avviso. Il rapporto resta nella cartella; Manta conserva i 10 più recenti.
+
+> [!NOTE]
+> Manta non invia mai rapporti sugli arresti anomali da solo e non contiene alcun tracciamento. Se non vuoi segnalare un arresto anomalo, ignora l’avviso, oppure elimina i file `crash-…` in `~/Library/Logs/Manta`.
+
 ## Manta non si apre (Gatekeeper) {#gatekeeper}
 
 **Problema:** al primo avvio macOS segnala che *“Manta” non è stato aperto* oppure che *“…” non può essere aperto perché Apple non può verificare che non contenga malware*.

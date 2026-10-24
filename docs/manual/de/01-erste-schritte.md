@@ -19,8 +19,6 @@ Manta ist ein Dateimanager für den Mac mit mehreren Bereichen nebeneinander. Di
 > [!IMPORTANT]
 > Starte Manta immer aus dem Ordner **Programme**, nicht direkt aus dem Disk-Image. Nur dann kann sich Manta selbst aktualisieren ([Updates](17-updates.md)) und als Standard-Dateimanager eingerichtet werden.
 
-![Installationsfenster des Disk-Images](images/dmg-window.png)
-
 ## Der erste Start: Gatekeeper {#gatekeeper}
 
 Ist deine Manta-Version nicht von Apple beglaubigt (notarisiert), blockiert macOS den ersten Start mit einer Meldung wie „„Manta“ wurde nicht geöffnet“. Das ist eine Schutzfunktion von macOS (Gatekeeper), kein Fehler in Manta.

@@ -34,6 +34,11 @@ pub struct Toast {
 pub struct Toasts {
     items: Vec<Toast>,
     next: u64,
+    /// Test knob: toasts expire on time only when set. Off by default in
+    /// unit tests, so a slow, loaded machine can't make a toast vanish
+    /// before the test looks for it.
+    #[cfg(test)]
+    pub expire: bool,
 }
 
 const MAX_VISIBLE: usize = 4;
@@ -82,6 +87,23 @@ impl Toasts {
         }
     }
 
+    /// Drop the toasts whose time is up at `now`.
+    fn expire_at(&mut self, now: Instant) {
+        #[cfg(test)]
+        if !self.expire {
+            return;
+        }
+        self.items.retain(|t| {
+            let ttl = match t.kind {
+                ToastKind::Error => ERROR_TTL,
+                ToastKind::Warning => INFO_TTL * 2,
+                _ if t.action.is_some() => INFO_TTL * 2,
+                _ => INFO_TTL,
+            };
+            now.duration_since(t.at) < ttl
+        });
+    }
+
     #[cfg(test)]
     pub fn titles(&self) -> Vec<String> {
         self.items.iter().map(|t| t.title.clone()).collect()
@@ -95,16 +117,7 @@ impl Toasts {
     /// `bottom_right`: anchor point (above the status bar). Returns the
     /// command of a clicked toast button.
     pub fn ui(&mut self, ctx: &egui::Context, bottom_right: egui::Pos2) -> Option<String> {
-        let now = Instant::now();
-        self.items.retain(|t| {
-            let ttl = match t.kind {
-                ToastKind::Error => ERROR_TTL,
-                ToastKind::Warning => INFO_TTL * 2,
-                _ if t.action.is_some() => INFO_TTL * 2,
-                _ => INFO_TTL,
-            };
-            now.duration_since(t.at) < ttl
-        });
+        self.expire_at(Instant::now());
         if self.items.is_empty() {
             return None;
         }
@@ -253,5 +266,20 @@ mod tests {
             t.titles().contains(&"e".to_string()),
             "errors are kept longest"
         );
+    }
+
+    #[test]
+    fn toasts_expire_on_time_when_asked() {
+        let mut t = Toasts::default();
+        t.push(ToastKind::Info, "info", None);
+        t.push(ToastKind::Error, "error", None);
+        let later = Instant::now() + INFO_TTL + Duration::from_secs(1);
+        t.expire_at(later);
+        assert_eq!(t.titles().len(), 2, "tests keep them by default");
+        t.expire = true;
+        t.expire_at(later);
+        assert_eq!(t.titles(), ["error"], "info goes, the error stays");
+        t.expire_at(later + ERROR_TTL);
+        assert!(t.titles().is_empty());
     }
 }

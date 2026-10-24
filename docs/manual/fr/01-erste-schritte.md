@@ -19,8 +19,6 @@ Manta est un gestionnaire de fichiers pour Mac qui affiche plusieurs sous-fenêt
 > [!IMPORTANT]
 > Lancez toujours Manta depuis le dossier **Applications**, et non directement depuis l’image disque. C’est seulement ainsi que Manta peut se mettre à jour ([Mises à jour](17-updates.md)) et devenir votre gestionnaire de fichiers par défaut.
 
-![La fenêtre d’installation de l’image disque](images/dmg-window.png)
-
 ## Le premier lancement : Gatekeeper {#gatekeeper}
 
 Si votre copie de Manta n’est pas notariée par Apple, macOS bloque le premier lancement avec un message tel que « “Manta” n’a pas été ouvert ». Il s’agit d’une fonction de sécurité de macOS (Gatekeeper), pas d’un bug de Manta.

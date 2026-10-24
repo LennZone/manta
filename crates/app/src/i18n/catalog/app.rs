@@ -116,6 +116,12 @@ pub const ENTRIES: Entries = &[
     ("a11y.pane", "Pane: {folder}", "Bereich: {folder}"),
     ("a11y.active", "active", "aktiv"),
     ("a11y.sections", "Sections of {chapter}", "Abschnitte von {chapter}"),
+    // Crash notice at launch (crash.rs)
+    ("crash.title", "Manta quit unexpectedly last time", "Manta wurde beim letzten Mal unerwartet beendet"),
+    ("crash.detail", "A crash report was saved on this Mac. Nothing has been sent.", "Ein Absturzbericht wurde auf diesem Mac gespeichert. Es wurde nichts gesendet."),
+    ("crash.report", "Report on GitHub", "Auf GitHub melden"),
+    ("crash.show", "Show Report", "Bericht zeigen"),
+    ("crash.ignore", "Ignore", "Ignorieren"),
     // Technical error texts (i18n/errors.rs)
     ("error.vfs.not_found", "not found: {detail}", "Nicht gefunden: {detail}"),
     ("error.vfs.already_exists", "already exists: {detail}", "Existiert bereits: {detail}"),

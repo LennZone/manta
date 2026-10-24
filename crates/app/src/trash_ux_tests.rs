@@ -75,7 +75,7 @@ fn wait_for(h: &mut H, what: &str, mut f: impl FnMut(&mut H) -> bool) {
     let start = Instant::now();
     while !f(h) {
         assert!(
-            start.elapsed() < Duration::from_secs(10),
+            start.elapsed() < crate::test_support::wait(),
             "timed out waiting for {what}"
         );
         h.step();
@@ -138,15 +138,15 @@ fn cmd_backspace_moves_local_items_to_the_trash() {
     wait_for(&mut h, "finished action", |_| {
         log.lock().unwrap().len() >= 2
     });
-    settle(&mut h);
-    let names: Vec<String> = app(&mut h)
-        .pane(Side::Left)
-        .tab()
-        .entries
-        .iter()
-        .map(|e| e.name.clone())
-        .collect();
-    assert!(!names.contains(&"README.md".to_string()), "{names:?}");
+    // The pane reloads after the job; under load that takes a few frames.
+    wait_for(&mut h, "the pane refreshed", |h| {
+        !app(h)
+            .pane(Side::Left)
+            .tab()
+            .entries
+            .iter()
+            .any(|e| e.name == "README.md")
+    });
     let events = log.lock().unwrap().clone();
     assert_eq!(events[0].kind, FileActionKind::Trash);
     assert!(events[0].src_local);

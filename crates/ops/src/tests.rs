@@ -404,7 +404,7 @@ fn cancel_running_and_queued() {
             assert_eq!(s[1].state, JobState::Queued);
             break;
         }
-        assert!(start.elapsed() < Duration::from_secs(10));
+        assert!(start.elapsed() < Duration::from_secs(60));
         std::thread::sleep(Duration::from_millis(2));
     }
     assert!(tm.is_busy());
@@ -830,7 +830,7 @@ fn cancelled_compress_leaves_nothing_behind() {
         CompressFormat::TarGz,
     ));
     let start = Instant::now();
-    while tm.snapshot()[0].bytes_done == 0 && start.elapsed() < Duration::from_secs(10) {
+    while tm.snapshot()[0].bytes_done == 0 && start.elapsed() < Duration::from_secs(60) {
         std::thread::sleep(Duration::from_millis(5));
     }
     tm.cancel(id);

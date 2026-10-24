@@ -281,6 +281,16 @@ fn detached_head_and_initial_commit() {
     );
 }
 
+/// The status generation of the (only) watched repository.
+fn generation(sh: &manta_plugin_git::shared::SharedRef) -> u64 {
+    lock(sh)
+        .repos
+        .values()
+        .next()
+        .map(|s| s.generation)
+        .unwrap_or(0)
+}
+
 #[test]
 fn live_update_after_file_save() {
     if !git_available() {
@@ -297,16 +307,14 @@ fn live_update_after_file_save() {
         .chip(L, &p)
         .is_some_and(|c| c.tone == Tone::Success)));
     // Let the watcher settle (FSEvents may replay the setup writes).
-    std::thread::sleep(Duration::from_millis(500));
-    h.pump();
+    let sh = h.plugin.shared();
+    h.wait_quiet(Duration::from_millis(1000), || generation(&sh));
 
     let start = Instant::now();
     r.write("notes.txt", "a\nedited in an editor\n");
     assert!(
-        h.wait_until(Duration::from_secs(3), |h| h
-            .badge(L, &p, "notes.txt")
-            .is_some()),
-        "no live update within 3 s"
+        h.wait_until(WAIT, |h| h.badge(L, &p, "notes.txt").is_some()),
+        "no live update"
     );
     let took = start.elapsed();
     eprintln!("live update took {took:?}");
@@ -318,12 +326,12 @@ fn live_update_after_file_save() {
 
     // Staging from a terminal (index change inside .git) also updates.
     r.git(&["add", "notes.txt"]);
-    assert!(h.wait_until(Duration::from_secs(3), |h| {
+    assert!(h.wait_until(WAIT, |h| {
         h.badge(L, &p, "notes.txt") == Some(("M".into(), Tone::Success))
     }));
     // Commit → clean again.
     r.git(&["commit", "-q", "-m", "Edit"]);
-    assert!(h.wait_until(Duration::from_secs(3), |h| {
+    assert!(h.wait_until(WAIT, |h| {
         h.badge(L, &p, "notes.txt").is_none()
             && h.chip(L, &p).is_some_and(|c| c.tone == Tone::Success)
     }));
@@ -343,16 +351,10 @@ fn ignored_build_output_does_not_trigger_status() {
     h.show(L, Some(&r.path));
     let p = r.path.clone();
     assert!(h.wait_until(WAIT, |h| h.chip(L, &p).is_some()));
-    std::thread::sleep(Duration::from_millis(800));
     let sh = h.plugin.shared();
-    let generation = || {
-        lock(&sh)
-            .repos
-            .values()
-            .next()
-            .map(|s| s.generation)
-            .unwrap_or(0)
-    };
+    let generation = || generation(&sh);
+    // Settled: no status run for the setup any more.
+    h.wait_quiet(Duration::from_millis(1500), generation);
     let g0 = generation();
     for i in 0..20 {
         r.write(&format!("target/out{i}.o"), "obj");
@@ -361,9 +363,7 @@ fn ignored_build_output_does_not_trigger_status() {
     std::thread::sleep(Duration::from_millis(1500));
     assert_eq!(generation(), g0, "status ran for ignored files");
     r.write("src.txt", "changed\n");
-    assert!(h.wait_until(Duration::from_secs(3), |h| h
-        .badge(L, &p, "src.txt")
-        .is_some()));
+    assert!(h.wait_until(WAIT, |h| h.badge(L, &p, "src.txt").is_some()));
     assert!(generation() > g0);
 }
 
@@ -379,28 +379,27 @@ fn burst_of_changes_is_coalesced() {
     h.show(L, Some(&r.path));
     let p = r.path.clone();
     assert!(h.wait_until(WAIT, |h| h.chip(L, &p).is_some()));
-    std::thread::sleep(Duration::from_millis(800));
     let sh = h.plugin.shared();
-    let generation = || {
-        lock(&sh)
-            .repos
-            .values()
-            .next()
-            .map(|s| s.generation)
-            .unwrap_or(0)
-    };
+    let generation = || generation(&sh);
+    h.wait_quiet(Duration::from_millis(1500), generation);
     let g0 = generation();
+    // One burst, as fast as the machine writes (a paced burst stretches
+    // under load and then legitimately needs more runs).
+    let burst = Instant::now();
     for i in 0..50 {
         r.write(&format!("f{i}.txt"), "x");
-        std::thread::sleep(Duration::from_millis(10));
     }
-    assert!(h.wait_until(Duration::from_secs(3), |h| h
-        .badge(L, &p, "f49.txt")
-        .is_some()));
-    std::thread::sleep(Duration::from_millis(800));
+    let took = burst.elapsed();
+    assert!(h.wait_until(WAIT, |h| h.badge(L, &p, "f49.txt").is_some()));
+    h.wait_quiet(Duration::from_millis(1500), generation);
     let runs = generation() - g0;
-    eprintln!("50 writes over ~0.5 s → {runs} status runs");
-    assert!(runs <= 4, "too many status runs: {runs}");
+    eprintln!("50 writes in {took:?} → {runs} status runs");
+    // At most one run per MAX_DELAY window the burst spans, plus the last.
+    let allowed = 2 + (took.as_millis() / 1000) as u64;
+    assert!(
+        runs <= allowed,
+        "too many status runs: {runs} (allowed {allowed})"
+    );
 }
 
 #[test]
@@ -513,8 +512,10 @@ fn disable_stops_promptly_and_clears() {
     assert!(h.wait_until(WAIT, |h| h.chip(L, &p).is_some()));
     let start = Instant::now();
     h.plugin.disable();
+    // Promptly: not waiting for a running `git status` (generous for
+    // loaded machines; a hang would take far longer).
     assert!(
-        start.elapsed() < Duration::from_millis(500),
+        start.elapsed() < Duration::from_secs(5),
         "disable took {:?}",
         start.elapsed()
     );

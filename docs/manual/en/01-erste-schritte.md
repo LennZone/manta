@@ -19,8 +19,6 @@ Manta is a file manager for the Mac with several panes side by side. This chapte
 > [!IMPORTANT]
 > Always start Manta from the **Applications** folder, not straight from the disk image. Only then can Manta update itself ([Updates](17-updates.md)) and become your default file manager.
 
-![The disk image's install window](images/dmg-window.png)
-
 ## The first launch: Gatekeeper {#gatekeeper}
 
 If your copy of Manta isn't notarized by Apple, macOS blocks the first launch with a message such as "“Manta” Not Opened". This is a macOS safety feature (Gatekeeper), not a bug in Manta.

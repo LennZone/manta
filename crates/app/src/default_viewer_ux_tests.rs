@@ -215,7 +215,7 @@ fn wait_switched(h: &mut H) {
     let start = std::time::Instant::now();
     while app(h).viewer.status.busy {
         assert!(
-            start.elapsed() < std::time::Duration::from_secs(10),
+            start.elapsed() < crate::test_support::wait(),
             "switch timed out"
         );
         h.step();

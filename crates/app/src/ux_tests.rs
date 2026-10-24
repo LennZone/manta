@@ -300,6 +300,7 @@ fn harness_init_ppp(
             &fx.root.parent().unwrap().join("Trash"),
         )),
         existing_install: None,
+        crash_dir: None,
         secrets: None,
         live_refresh: None,
         cloud: None,
@@ -344,7 +345,7 @@ fn settle(h: &mut H) {
             .panes
             .iter()
             .any(|p| p.tabs.iter().any(|t| t.loading));
-        if !busy || start.elapsed() > Duration::from_secs(10) {
+        if !busy || start.elapsed() > crate::test_support::wait() {
             break;
         }
         std::thread::sleep(Duration::from_millis(5));
@@ -810,7 +811,7 @@ fn settle_goto(h: &mut H) {
             .goto
             .as_ref()
             .is_some_and(|g| g.checking.is_some());
-        if !busy || start.elapsed() > Duration::from_secs(10) {
+        if !busy || start.elapsed() > crate::test_support::wait() {
             break;
         }
         std::thread::sleep(Duration::from_millis(5));
@@ -886,7 +887,7 @@ fn goto_path_tab_completion() {
     app(&mut h).goto.as_mut().unwrap().tab_pressed = true;
     let start = Instant::now();
     while app(&mut h).goto.as_ref().unwrap().input != "photos/"
-        && start.elapsed() < Duration::from_secs(10)
+        && start.elapsed() < crate::test_support::wait()
     {
         h.step();
         std::thread::sleep(Duration::from_millis(5));
@@ -918,7 +919,7 @@ fn render_goto_path() {
         app(&mut h).goto.as_mut().unwrap().tab_pressed = true;
         let start = Instant::now();
         while app(&mut h).goto.as_ref().unwrap().rows_len() < 2
-            && start.elapsed() < Duration::from_secs(10)
+            && start.elapsed() < crate::test_support::wait()
         {
             h.step();
             std::thread::sleep(Duration::from_millis(5));
@@ -1651,7 +1652,7 @@ fn file_actions_are_reported_to_plugins() {
     let dest = VfsPath::new(&fx.root.join("Design").to_string_lossy());
     let wait = |h: &mut H, n: usize| {
         let start = Instant::now();
-        while log.lock().unwrap().len() < n && start.elapsed() < Duration::from_secs(10) {
+        while log.lock().unwrap().len() < n && start.elapsed() < crate::test_support::wait() {
             h.step();
             std::thread::sleep(Duration::from_millis(5));
         }
@@ -1899,7 +1900,7 @@ fn real_folder_size_plugin_measures_fixture() {
             .dir_sizes
             .get("Design")
             .is_some_and(|s| s.complete);
-        if done || start.elapsed() > Duration::from_secs(10) {
+        if done || start.elapsed() > crate::test_support::wait() {
             break;
         }
         std::thread::sleep(Duration::from_millis(10));
@@ -2069,7 +2070,7 @@ fn wait_until(h: &mut H, what: &str, mut f: impl FnMut(&mut H) -> bool) {
     let start = Instant::now();
     while !f(h) {
         assert!(
-            start.elapsed() < Duration::from_secs(10),
+            start.elapsed() < crate::test_support::wait(),
             "timed out waiting for {what}"
         );
         h.step();
@@ -2116,11 +2117,9 @@ fn batch_rename_renames_and_undoes_on_local_fs() {
     // Several items: F2 opens the batch rename sheet.
     select(&mut h, Side::Left, &["a.txt", "b.txt", "c.txt"]);
     h.key_press(egui::Key::F2);
-    h.run_steps(3);
-    assert!(
-        app(&mut h).plugin_modal_open(),
-        "F2 with a multi-selection opens the sheet"
-    );
+    wait_until(&mut h, "F2 with a multi-selection opens the sheet", |h| {
+        app(h).plugin_modal_open()
+    });
     {
         let p = plugin.lock().unwrap();
         let s = p.session.as_ref().expect("session");
@@ -2201,18 +2200,22 @@ fn batch_rename_renames_and_undoes_on_local_fs() {
         "{:?}",
         renames[1]
     );
-    // The pane shows the new listing; renamed items stay selected.
-    settle(&mut h);
-    assert_eq!(
-        app(&mut h)
+    // The pane shows the new listing; renamed items stay selected. (The
+    // reload starts after the job: wait for it rather than for a time.)
+    let selected = |h: &mut H| {
+        let mut v: Vec<String> = app(h)
             .pane(Side::Left)
             .tab()
             .selected
             .iter()
             .cloned()
-            .collect::<Vec<_>>(),
-        ["a.txt", "b.txt", "c.txt"]
-    );
+            .collect();
+        v.sort();
+        v
+    };
+    wait_until(&mut h, "the renamed items selected", |h| {
+        !app(h).pane(Side::Left).tab().loading && selected(h) == ["a.txt", "b.txt", "c.txt"]
+    });
 
     // Undo from the toast.
     let (_, cmd) = h
@@ -2236,11 +2239,12 @@ fn batch_rename_renames_and_undoes_on_local_fs() {
     wait_until(&mut h, "undo done", |_| {
         plugin.lock().unwrap().undo.is_none()
     });
-    h.run_steps(2);
-    assert!(!app(&mut h)
-        .palette_entries()
-        .iter()
-        .any(|e| e.label == "Undo Batch Rename"));
+    wait_until(&mut h, "Undo gone from the palette", |h| {
+        !app(h)
+            .palette_entries()
+            .iter()
+            .any(|e| e.label == "Undo Batch Rename")
+    });
 
     // A collision with an untouched file is refused by the app as a whole
     // (even if a plugin skipped the preview).
@@ -2272,11 +2276,11 @@ fn batch_rename_renames_and_undoes_on_local_fs() {
         &ctx,
         super::Action::RunPluginCommand(super::BATCH_RENAME_CMD.into()),
     );
-    h.run_steps(2);
-    assert!(app(&mut h).plugin_modal_open());
+    wait_until(&mut h, "the sheet", |h| app(h).plugin_modal_open());
     h.key_press(egui::Key::Escape);
-    h.run_steps(2);
-    assert!(!app(&mut h).plugin_modal_open(), "Esc closes the sheet");
+    wait_until(&mut h, "Esc closes the sheet", |h| {
+        !app(h).plugin_modal_open()
+    });
 }
 
 #[test]
@@ -2999,7 +3003,7 @@ fn preview_image_with_spaces() {
     }
     let start = Instant::now();
     while app(&mut h).preview.as_ref().is_some_and(|p| p.loading)
-        && start.elapsed() < Duration::from_secs(10)
+        && start.elapsed() < crate::test_support::wait()
     {
         h.step();
         std::thread::sleep(Duration::from_millis(5));
@@ -3016,7 +3020,7 @@ fn preview_image_with_spaces() {
             Err(e) => panic!("image failed to load: {e}"),
             Ok(egui::load::ImagePoll::Pending { .. }) => {
                 assert!(
-                    start.elapsed() < Duration::from_secs(10),
+                    start.elapsed() < crate::test_support::wait(),
                     "image still loading"
                 );
                 std::thread::sleep(Duration::from_millis(20));
@@ -3295,6 +3299,9 @@ mod help_ux_tests;
 #[path = "manual_images_tests.rs"]
 mod manual_images_tests;
 
+#[path = "manual_images_extra_tests.rs"]
+mod manual_images_extra_tests;
+
 #[path = "readme_images_tests.rs"]
 mod readme_images_tests;
 
@@ -3309,3 +3316,6 @@ mod a11y_ux_tests;
 
 #[path = "discover_ux_tests.rs"]
 mod discover_ux_tests;
+
+#[path = "crash_ux_tests.rs"]
+mod crash_ux_tests;

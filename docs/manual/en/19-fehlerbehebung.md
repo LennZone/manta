@@ -43,6 +43,19 @@ What helps to find the bug:
 
 Have an idea or a suggestion? **Help** → **Suggest an Idea…** opens the form for ideas. All options are also at [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
+## When Manta quits unexpectedly {#absturz}
+
+If Manta crashes, it saves a crash report in `~/Library/Logs/Manta` – a file named `crash-` followed by the date and time (UTC). The report contains only what is needed to find the bug: the Manta and macOS version, the chip, the error message and the program addresses at the moment of the crash (the "backtrace"). Your home folder appears as `~`, and user, server and host names are replaced by placeholders such as `<user>` and `<redacted>`.
+
+The next time you start Manta, a notice appears once in the bottom right corner: **Manta quit unexpectedly last time**.
+
+- **Report on GitHub** opens the bug report form with the versions and a short summary of the report already filled in. Attach the report file to the form (drag it into the text field) – a link can't carry a file. Nothing is submitted until you submit the form on GitHub yourself.
+- **Show Report** opens the report in your text editor, so you can see exactly what it contains.
+- **Ignore** closes the notice. The report stays in the folder; Manta keeps the 10 newest.
+
+> [!NOTE]
+> Manta never sends crash reports by itself and contains no tracking. If you don't want to report a crash, ignore the notice – or delete the `crash-…` files in `~/Library/Logs/Manta`.
+
 ## Manta won't open (Gatekeeper) {#gatekeeper}
 
 **Problem:** At the first launch macOS says "“Manta” Not Opened" or "… can't be opened because Apple cannot check it for malicious software".

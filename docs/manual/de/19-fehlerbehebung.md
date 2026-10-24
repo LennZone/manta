@@ -43,6 +43,19 @@ Das hilft beim Finden des Fehlers:
 
 Eine Idee oder ein Verbesserungsvorschlag? **Hilfe** → **Idee vorschlagen …** öffnet das Formular für Vorschläge. Alle Wege findest du auch unter [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
+## Wenn Manta unerwartet beendet wird {#absturz}
+
+Stürzt Manta ab, speichert es einen Absturzbericht in `~/Library/Logs/Manta` – eine Datei, deren Name mit `crash-` beginnt, gefolgt von Datum und Uhrzeit (UTC). Der Bericht enthält nur, was zum Finden des Fehlers nötig ist: die Manta- und macOS-Version, den Chip, die Fehlermeldung und die Programmadressen im Moment des Absturzes (den „Backtrace“). Dein Benutzerordner erscheint als `~`, Benutzer-, Server- und Hostnamen sind durch Platzhalter wie `<user>` und `<redacted>` ersetzt.
+
+Beim nächsten Start zeigt Manta unten rechts einmal den Hinweis **Manta wurde beim letzten Mal unerwartet beendet**.
+
+- **Auf GitHub melden** öffnet das Formular für Fehlerberichte mit den Versionen und einer kurzen Zusammenfassung des Berichts. Hänge die Berichtsdatei im Formular an (in das Textfeld ziehen) – ein Link kann keine Datei mitnehmen. Abgeschickt wird erst, wenn du das Formular auf GitHub selbst absendest.
+- **Bericht zeigen** öffnet den Bericht in deinem Texteditor, damit du genau siehst, was darin steht.
+- **Ignorieren** schließt den Hinweis. Der Bericht bleibt im Ordner; Manta behält die 10 neuesten.
+
+> [!NOTE]
+> Manta sendet Absturzberichte nie von selbst und enthält kein Tracking. Willst du einen Absturz nicht melden, ignoriere den Hinweis – oder lösche die Dateien `crash-…` in `~/Library/Logs/Manta`.
+
 ## Manta lässt sich nicht öffnen (Gatekeeper) {#gatekeeper}
 
 **Problem:** Beim ersten Start meldet macOS „„Manta“ wurde nicht geöffnet“ oder „… kann nicht geöffnet werden, da Apple es nicht auf Schadsoftware überprüfen kann“.

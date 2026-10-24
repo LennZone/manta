@@ -19,8 +19,6 @@ Manta è un gestore file per Mac con più pannelli affiancati. Questo capitolo s
 > [!IMPORTANT]
 > Avvia sempre Manta dalla cartella **Applicazioni**, non direttamente dall’immagine disco. Solo così Manta può aggiornarsi da solo ([Aggiornamenti](17-updates.md)) e diventare il tuo gestore file predefinito.
 
-![La finestra di installazione dell’immagine disco](images/dmg-window.png)
-
 ## Il primo avvio: Gatekeeper {#gatekeeper}
 
 Se la tua copia di Manta non è autenticata da Apple, macOS blocca il primo avvio con un messaggio come *“Manta” non è stato aperto*. È una funzione di sicurezza di macOS (Gatekeeper), non un errore di Manta.

@@ -28,6 +28,11 @@ fn wait_until(
     false
 }
 
+/// How long to wait for the shell before failing. Waits end as soon as
+/// their condition holds; the limit only has to be far above what a loaded
+/// CI runner needs.
+const WAIT: Duration = Duration::from_secs(30);
+
 fn shell_cwd(s: &Session) -> Option<PathBuf> {
     s.follow.shell_cwd.as_ref().map(|d| d.canon.clone())
 }
@@ -42,6 +47,8 @@ fn follow_roundtrip(shell: &str) {
     let b = b_root.path().join("it's a dir ü");
     std::fs::create_dir(&b).unwrap();
     let data = tempfile::tempdir().unwrap();
+    // zsh: an empty ZDOTDIR, not the developer's own startup files.
+    let zd = tempfile::tempdir().unwrap();
 
     let mut s = Session::spawn(SpawnOptions {
         shell: PathBuf::from(shell),
@@ -56,16 +63,15 @@ fn follow_roundtrip(shell: &str) {
         theme: Theme::dark(),
         waker: Arc::new(|| {}),
         spool: None,
-        zdotdir: None,
+        zdotdir: Some(zd.path().to_path_buf()),
         remote: None,
     })
     .expect("spawn");
 
-    // First prompt (the user's real rc files load, give them time).
+    // First prompt.
     let a_canon = canon(a.path());
     assert!(
-        wait_until(&mut s, Duration::from_secs(20), |s| shell_cwd(s).as_ref()
-            == Some(&a_canon)
+        wait_until(&mut s, WAIT, |s| shell_cwd(s).as_ref() == Some(&a_canon)
             && s.is_idle()),
         "{shell}: no initial OSC 7 / idle prompt. Screen:\n{}",
         s.lock().screen_text()
@@ -73,14 +79,16 @@ fn follow_roundtrip(shell: &str) {
 
     // Half-typed input must survive the follow.
     s.write(b"echo kee");
-    std::thread::sleep(Duration::from_millis(200));
+    assert!(wait_until(&mut s, WAIT, |s| s
+        .lock()
+        .screen_text()
+        .contains("echo kee")));
 
     s.pane_changed(Some(&b));
     let b_canon = canon(&b);
     assert!(
-        wait_until(&mut s, Duration::from_secs(5), |s| shell_cwd(s).as_ref()
-            == Some(&b_canon)),
-        "{shell}: no OSC 7 for the followed dir within 5 s. Screen:\n{}",
+        wait_until(&mut s, WAIT, |s| shell_cwd(s).as_ref() == Some(&b_canon)),
+        "{shell}: no OSC 7 for the followed dir. Screen:\n{}",
         s.lock().screen_text()
     );
     assert!(!s.follow.has_pending());
@@ -89,8 +97,17 @@ fn follow_roundtrip(shell: &str) {
     assert_eq!(s.tick(true), None);
 
     // Finish the parked line: it must still read "echo kee".
-    assert!(wait_until(&mut s, Duration::from_secs(5), |s| s.is_idle()));
-    std::thread::sleep(Duration::from_millis(300));
+    assert!(wait_until(&mut s, WAIT, |s| s.is_idle()));
+    if s.integration() == Some(Integration::Push) {
+        // The parked line is back at the new prompt before typing on.
+        assert!(wait_until(&mut s, WAIT, |s| {
+            let t = s.lock().screen_text();
+            t.lines()
+                .rev()
+                .find(|l| !l.trim().is_empty())
+                .is_some_and(|l| l.contains("echo kee"))
+        }));
+    }
     s.write(b"p_me\r");
     if s.integration() != Some(Integration::Push) {
         // bash 3.2 has no READLINE_LINE: the line is cleared (documented).
@@ -99,7 +116,7 @@ fn follow_roundtrip(shell: &str) {
     }
     let preserve = s.integration() == Some(Integration::Push);
     let ok = !preserve
-        || wait_until(&mut s, Duration::from_secs(5), |s| {
+        || wait_until(&mut s, WAIT, |s| {
             s.lock()
                 .screen_text()
                 .lines()
@@ -117,7 +134,7 @@ fn follow_roundtrip(shell: &str) {
     s.write(format!("cd '{}'\r", c.path().display()).as_bytes());
     let start = Instant::now();
     let mut nav = None;
-    while nav.is_none() && start.elapsed() < Duration::from_secs(5) {
+    while nav.is_none() && start.elapsed() < WAIT {
         nav = s.tick(true);
         std::thread::sleep(Duration::from_millis(20));
     }
@@ -168,6 +185,7 @@ fn zsh_defers_cd_while_program_runs() {
     let b = tempfile::tempdir().unwrap();
     let c = tempfile::tempdir().unwrap();
     let data = tempfile::tempdir().unwrap();
+    let zd = tempfile::tempdir().unwrap();
     let mut s = Session::spawn(SpawnOptions {
         shell: PathBuf::from("/bin/zsh"),
         cwd: a.path().to_path_buf(),
@@ -181,28 +199,30 @@ fn zsh_defers_cd_while_program_runs() {
         theme: Theme::dark(),
         waker: Arc::new(|| {}),
         spool: None,
-        zdotdir: None,
+        zdotdir: Some(zd.path().to_path_buf()),
         remote: None,
     })
     .unwrap();
-    assert!(wait_until(&mut s, Duration::from_secs(20), |s| s.is_idle()));
-    s.write(b"sleep 1.5\r");
+    assert!(wait_until(&mut s, WAIT, |s| s.is_idle()));
+    // Busy until the test ends it (a `sleep` may end before a loaded
+    // machine even notices it started).
+    s.write(b"read -r _manta_line\r");
     s.user_submitted();
-    assert!(wait_until(&mut s, Duration::from_secs(3), |s| s.is_busy()));
+    assert!(wait_until(&mut s, WAIT, |s| s.is_busy()));
     s.pane_changed(Some(b.path()));
     s.pane_changed(Some(c.path()));
     s.tick(true);
-    assert!(s.follow.has_pending(), "must wait while sleep runs");
+    assert!(s.follow.has_pending(), "must wait while the program runs");
     assert_eq!(
         s.follow.pending.as_ref().unwrap().canon,
         canon(c.path()),
         "latest target only"
     );
     assert_eq!(shell_cwd(&s), Some(canon(a.path())));
+    s.write(b"\r");
     let c_canon = canon(c.path());
     assert!(
-        wait_until(&mut s, Duration::from_secs(6), |s| shell_cwd(s).as_ref()
-            == Some(&c_canon)),
+        wait_until(&mut s, WAIT, |s| shell_cwd(s).as_ref() == Some(&c_canon)),
         "deferred cd not applied. Screen:\n{}",
         s.lock().screen_text()
     );

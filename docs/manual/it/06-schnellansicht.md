@@ -13,8 +13,6 @@ Con più file selezionati, le frecce **‹** e **›** in Visualizzazione rapida
 
 La tastiera resta in Manta: puoi continuare a muoverti nell’elenco con i tasti freccia mentre il pannello di Visualizzazione rapida è aperto.
 
-![Visualizzazione rapida sopra un pannello](images/quick-look.png)
-
 ## Visualizzazione rapida (macOS) {#quick-look}
 
 Visualizzazione rapida è il pannello di anteprima di Apple. Mostra tutto ciò che mostra il Finder: PDF, immagini, video, documenti Office, file di testo e altro ancora. Funziona con file e cartelle **locali**.

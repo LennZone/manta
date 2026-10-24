@@ -2376,7 +2376,12 @@
           "github",
           "feedback",
           "idee",
-          "sicherheitslücke"
+          "sicherheitslücke",
+          "absturz",
+          "abgestürzt",
+          "unerwartet beendet",
+          "absturzbericht",
+          "crash"
         ],
         "en": [
           "error",
@@ -2402,7 +2407,11 @@
           "github",
           "feedback",
           "idea",
-          "security vulnerability"
+          "security vulnerability",
+          "crash",
+          "crashed",
+          "quit unexpectedly",
+          "crash report"
         ],
         "zh-Hans": [
           "错误",
@@ -2426,7 +2435,10 @@
           "GitHub",
           "反馈",
           "建议",
-          "安全漏洞"
+          "安全漏洞",
+          "崩溃",
+          "意外退出",
+          "崩溃报告"
         ],
         "es": [
           "error",
@@ -2450,7 +2462,12 @@
           "github",
           "comentarios",
           "idea",
-          "vulnerabilidad"
+          "vulnerabilidad",
+          "fallo",
+          "bloqueo",
+          "se cerró inesperadamente",
+          "informe de fallo",
+          "crash"
         ],
         "fr": [
           "erreur",
@@ -2476,7 +2493,12 @@
           "github",
           "commentaires",
           "idée",
-          "faille de sécurité"
+          "faille de sécurité",
+          "plantage",
+          "a planté",
+          "quitté de façon inattendue",
+          "rapport de plantage",
+          "crash"
         ],
         "it": [
           "problemi",
@@ -2497,7 +2519,11 @@
           "github",
           "segnalazioni",
           "idea",
-          "vulnerabilità"
+          "vulnerabilità",
+          "arresto anomalo",
+          "crash",
+          "chiuso inaspettatamente",
+          "rapporto sull’arresto anomalo"
         ],
         "ru": [
           "ошибка",
@@ -2521,7 +2547,11 @@
           "github",
           "обратная связь",
           "идея",
-          "уязвимость"
+          "уязвимость",
+          "сбой",
+          "аварийное завершение",
+          "неожиданно завершила работу",
+          "отчёт о сбое"
         ]
       }
     },

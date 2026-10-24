@@ -13,8 +13,6 @@ With several files selected, the **‹** and **›** arrows in Quick Look page t
 
 The keyboard stays in Manta: you can keep moving through the list with the arrow keys while the Quick Look panel is open.
 
-![Quick Look over a pane](images/quick-look.png)
-
 ## Quick Look (macOS) {#quick-look}
 
 Quick Look is Apple's preview panel. It shows everything Finder shows: PDFs, images, videos, Office documents, text files and more. It works for **local** files and folders.

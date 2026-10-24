@@ -13,8 +13,6 @@ Hast du mehrere Dateien ausgewählt, blätterst du in der Schnellansicht mit den
 
 Die Tastatur bleibt dabei in Manta: Du kannst weiter mit den Pfeiltasten durch die Liste gehen, während das Schnellansicht-Fenster offen ist.
 
-![Schnellansicht über einem Bereich](images/quick-look.png)
-
 ## Schnellansicht (macOS) {#quick-look}
 
 Die Schnellansicht ist Apples Vorschaufenster. Sie zeigt alles, was auch der Finder zeigt: PDFs, Bilder, Videos, Office-Dokumente, Textdateien und mehr. Sie funktioniert für **lokale** Dateien und Ordner.

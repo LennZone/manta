@@ -61,6 +61,11 @@ pub struct Pill {
 /// which failures the user hasn't seen yet.
 pub struct TransferPill {
     seen: HashSet<JobId>,
+    /// Every job in the last snapshot (in any state), to tell a job that
+    /// started and finished between two frames from an old one.
+    known: HashSet<JobId>,
+    /// The first snapshot was taken (jobs in it are not new).
+    primed: bool,
     finished_at: Option<Instant>,
     /// Jobs that finished since the last idle moment were all cancelled.
     all_cancelled: bool,
@@ -72,6 +77,8 @@ impl Default for TransferPill {
     fn default() -> Self {
         TransferPill {
             seen: HashSet::new(),
+            known: HashSet::new(),
+            primed: false,
             finished_at: None,
             all_cancelled: true,
             errors: BTreeSet::new(),
@@ -122,15 +129,24 @@ impl TransferPill {
     /// Take a job snapshot (once per frame).
     pub fn update(&mut self, jobs: &[JobStatus], now: Instant) {
         let idle_before = self.seen.is_empty();
+        let mut batch_started = false;
         for j in jobs {
+            // New since the last snapshot (a fast job may already be done:
+            // it ran entirely between two frames).
+            let new = self.known.insert(j.id) && self.primed;
+            if (!j.state.is_finished() || new)
+                && idle_before
+                && self.seen.is_empty()
+                && !batch_started
+            {
+                // A new batch: forget the last "Fertig".
+                batch_started = true;
+                self.finished_at = None;
+                self.all_cancelled = true;
+            }
             if !j.state.is_finished() {
-                if idle_before && self.seen.is_empty() {
-                    // A new batch: forget the last "Fertig".
-                    self.finished_at = None;
-                    self.all_cancelled = true;
-                }
                 self.seen.insert(j.id);
-            } else if self.seen.remove(&j.id) {
+            } else if self.seen.remove(&j.id) || new {
                 self.finished_at = Some(now);
                 self.all_cancelled &= j.state == JobState::Cancelled;
                 if has_problem(j) {
@@ -138,8 +154,10 @@ impl TransferPill {
                 }
             }
         }
+        self.primed = true;
         // "Clear finished" (or a job gone otherwise): forget it.
         self.seen.retain(|id| jobs.iter().any(|j| j.id == *id));
+        self.known.retain(|id| jobs.iter().any(|j| j.id == *id));
         self.errors.retain(|id| jobs.iter().any(|j| j.id == *id));
     }
 
@@ -589,6 +607,53 @@ mod tests {
             // Cleared from the panel: forgotten.
             t.update(&[], late);
             assert!(t.errors.is_empty() && t.seen.is_empty());
+        });
+    }
+
+    #[test]
+    fn a_job_done_between_two_frames_still_shows_done() {
+        with_locale(Locale::En, || {
+            let t0 = Instant::now();
+            let mut t = TransferPill::default();
+            // Finished jobs that were there before (first snapshot): nothing.
+            let old = job(
+                1,
+                JobKind::Copy,
+                "Copying 1 item to /a",
+                JobState::Done,
+                1,
+                1,
+            );
+            t.update(std::slice::from_ref(&old), t0);
+            assert!(t.pill(std::slice::from_ref(&old), t0).is_none());
+            // A small copy that started and finished before the next frame.
+            let fast = job(
+                2,
+                JobKind::Copy,
+                "Copying 1 item to /b",
+                JobState::Done,
+                1,
+                1,
+            );
+            let jobs = [old.clone(), fast];
+            t.update(&jobs, t0);
+            assert_eq!(text(&t, &jobs, t0).unwrap().0, PillKind::Done);
+            // Later snapshots don't count it again.
+            let later = t0 + DONE_LINGER + Duration::from_secs(1);
+            t.update(&jobs, later);
+            assert!(t.pill(&jobs, later).is_none());
+            // A fast job that failed is red.
+            let failed = job(
+                3,
+                JobKind::Move,
+                "Moving 1 item to /c",
+                JobState::Failed("permission denied".into()),
+                0,
+                1,
+            );
+            let jobs = [old, failed];
+            t.update(&jobs, later);
+            assert_eq!(text(&t, &jobs, later).unwrap().0, PillKind::Failed);
         });
     }
 

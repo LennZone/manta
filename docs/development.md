@@ -200,8 +200,54 @@ MANTA_TEST_CONTAINERS=1 scripts/test.sh full            # also the Docker / Kube
   glossary [i18n/glossary.md](i18n/glossary.md) is regenerated with
   `MANTA_UPDATE_GLOSSARY=1 cargo test -p manta glossary`.
 
+### Timing in tests
+
+UI tests run the app headlessly next to worker threads (listings, copies, thumbnails,
+plugins), and CI runners are slow and shared. To keep the suite deterministic:
+
+- **Wait for an event, not for a time.** Step the harness until a condition holds
+  (`wait_until`, `wait_for`, `settle`); the limit, `crate::test_support::wait()` (60 s,
+  `MANTA_TEST_WAIT_SECS`), only decides when to give up. Never assert right after a fixed
+  number of frames or a `sleep` that something done on another thread has happened.
+- **No wall-clock timers in assertions.** UI timers that expire (toasts, the "Done" pill)
+  have test knobs: toasts don't expire in unit tests unless `Toasts::expire` is set, and
+  `TransferPill::linger` holds "Done" as long as a test needs. Thumbnail workers can be
+  paused (`Thumbs::set_paused`) so a test sees the queue before they drain it.
+- **Frame-based logic stays frame-based.** egui_kittest advances the input time by a fixed
+  step per frame; use frame counts or `ctx.input(|i| i.time)` where the app does.
+
+`scripts/stress-tests.sh [N]` runs the `scripts/test.sh` suite N times (default 5) next to
+`yes > /dev/null` busy loops (one per CPU, `STRESS_LOAD`) and prints how often each test
+failed; `STRESS_PACKAGES="-p manta"`, `STRESS_FILTER=…` and `STRESS_THREADS=…` narrow it
+down. Run it before declaring a timing fix done.
+
 Self-tests in a real run: `MANTA_MENU_SELFTEST=1` checks the generated menu bar;
 `MANTA_DV_SELFTEST=status|on|off` checks or switches the default file manager role.
+
+## Crash reports
+
+On a panic or a fatal signal (SIGSEGV, SIGBUS, SIGILL, SIGFPE, SIGABRT) `crates/app/src/crash.rs`
+writes `~/Library/Logs/Manta/crash-<UTC date>.txt`: version, macOS version, architecture,
+message and location, and the backtrace as raw frames (address, image + offset), plus the
+binary's UUID (`LC_UUID`) and load address. Home folder, other users' folders, `user@host`,
+URL hosts and the hosts / user names of this session's connections are scrubbed. Nothing is
+sent: the next launch shows "Manta quit unexpectedly last time" once, and **Report on GitHub**
+opens the bug form with a short summary (the user attaches the file). A panic that the app
+survives (caught by a worker, a plugin or a window) deletes its report on the next frame.
+
+Release builds are stripped, so the frames of `manta` need the release's dSYM. Build with
+`MANTA_KEEP_DSYM=1 scripts/build-release.sh` and keep `dist/Manta-<version>-<target>.dSYM`
+(it is not part of the DMG or the update ZIP). Check that its UUID matches the report's
+(`dwarfdump --uuid Manta-<version>-aarch64-apple-darwin.dSYM`), then:
+
+```sh
+atos -arch arm64 -o Manta-0.3.6-aarch64-apple-darwin.dSYM/Contents/Resources/DWARF/manta \
+     -l <Load address> <address> <address> …
+```
+
+with the load address and the `manta` frame addresses from the report (the report prints the
+complete `atos` line for its frames). System frames (`libsystem_kernel.dylib + 0x…`) don't
+need symbolication.
 
 ## Where Manta keeps its data
 
@@ -210,6 +256,7 @@ Self-tests in a real run: `MANTA_MENU_SELFTEST=1` checks the generated menu bar;
 | Settings, favorites, session, plugin state and data | `~/Library/Application Support/Manta/` (`settings.json`, `favorites.json`, `session.json`, …) |
 | Unfinished transfers (no passwords) | `~/Library/Application Support/Manta/transfers.json` |
 | Diagnostics log | `~/Library/Logs/Manta/manta.log` (rotates at 5 MB, keeps one backup). `MANTA_LOG=debug` (env_logger syntax) logs more |
+| Crash reports | `~/Library/Logs/Manta/crash-<UTC date>.txt` (the 10 newest; `.crash-seen` remembers which one the launch notice showed) |
 | Thumbnail cache | `~/Library/Caches/Manta/thumbs` |
 | Server passwords, key passphrases, S3 secret keys | macOS Keychain, service `com.manta-filemanager.manta.server`, account `protocol://user@host:port` |
 | SFTP host keys | `~/.ssh/known_hosts` (`MANTA_KNOWN_HOSTS` points to another file, for tests) |

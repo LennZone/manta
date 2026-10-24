@@ -73,7 +73,7 @@ fn wait_question(h: &mut H) -> (JobId, String) {
             return q;
         }
         assert!(
-            start.elapsed() < Duration::from_secs(10),
+            start.elapsed() < crate::test_support::wait(),
             "no conflict dialog"
         );
         std::thread::sleep(Duration::from_millis(5));
@@ -100,7 +100,7 @@ fn wait_finished(h: &mut H, id: JobId, quiet: bool) -> JobStatus {
             }
         }
         assert!(
-            start.elapsed() < Duration::from_secs(10),
+            start.elapsed() < crate::test_support::wait(),
             "job didn't finish"
         );
         std::thread::sleep(Duration::from_millis(5));
@@ -194,7 +194,7 @@ fn several_jobs_are_asked_one_after_the_other() {
         .count()
         < 2
     {
-        assert!(start.elapsed() < Duration::from_secs(10));
+        assert!(start.elapsed() < crate::test_support::wait());
         std::thread::sleep(Duration::from_millis(5));
     }
     assert_eq!(wait_question(&mut h), (first, "one.txt".to_string()));

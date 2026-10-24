@@ -126,7 +126,7 @@ fn unknown_key_is_remembered_and_the_connection_retried() {
             _ => panic!("the connect dialog comes back"),
         }
         assert!(
-            start.elapsed() < Duration::from_secs(20),
+            start.elapsed() < crate::test_support::wait(),
             "the retry never finished"
         );
         std::thread::sleep(Duration::from_millis(5));

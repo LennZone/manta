@@ -27,6 +27,9 @@
 #   MANTA_DMG             0 = skip the DMG (e.g. update ZIP only)
 #   MANTA_VERSION         override the version in Info.plist and file names (testing update
 #                         flows; normally bump the version in Cargo.toml instead)
+#   MANTA_KEEP_DSYM       1 = build with line tables and keep dist/Manta-<version>-<target>.dSYM
+#                         to symbolicate crash reports (docs/development.md). Never shipped: the
+#                         app's binary is stripped as always and has the same UUID as the dSYM.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -77,6 +80,7 @@ ICNS="$ROOT/packaging/icon/AppIcon.icns"
 ZIP="$DIST/Manta-$VERSION.zip"
 MAKE_DMG=${MANTA_DMG:-1}
 MAKE_ZIP=${MANTA_UPDATE_ZIP:-0}
+KEEP_DSYM=${MANTA_KEEP_DSYM:-0}
 [ "$MAKE_DMG" != 0 ] || [ "$MAKE_ZIP" = 1 ] || die "MANTA_DMG=0 needs MANTA_UPDATE_ZIP=1 (nothing to build otherwise)"
 
 say "Manta $VERSION ($BUNDLE_ID), macOS $MIN_MACOS+"
@@ -104,6 +108,12 @@ remaps=(
 CARGO_ENCODED_RUSTFLAGS=$(IFS=$'\x1f'; echo "${remaps[*]}")
 export CARGO_ENCODED_RUSTFLAGS
 unset RUSTFLAGS
+if [ "$KEEP_DSYM" = 1 ]; then
+    # Line tables only (enough for atos), packed into manta.dSYM by rustc
+    # before the binary is stripped (strip = "symbols" in Cargo.toml).
+    export CARGO_PROFILE_RELEASE_DEBUG=line-tables-only
+    export CARGO_PROFILE_RELEASE_SPLIT_DEBUGINFO=packed
+fi
 
 case "${MANTA_ARCHS:-arm64}" in
     universal) TARGETS=(aarch64-apple-darwin x86_64-apple-darwin) ;;
@@ -128,6 +138,19 @@ for t in "${TARGETS[@]}"; do
         # Copy (the original stays untouched for cargo) and scrub C-level build paths.
         bin="$CARGO_TARGET_DIR/$t/release/manta-dist"
         cp "$CARGO_TARGET_DIR/$t/release/manta" "$bin"
+        if [ "$KEEP_DSYM" = 1 ]; then
+            dsym="$CARGO_TARGET_DIR/$t/release/manta.dSYM"
+            if [ -d "$dsym" ]; then
+                mkdir -p "$DIST"
+                rm -rf "$DIST/Manta-$VERSION-$t.dSYM"
+                cp -R "$dsym" "$DIST/Manta-$VERSION-$t.dSYM"
+                echo "    kept $DIST/Manta-$VERSION-$t.dSYM ($(dwarfdump --uuid "$dsym" | awk '{print $2}' | head -n 1))"
+                # No debug map entries (object file paths) in the shipped binary.
+                strip -S "$bin"
+            else
+                warn "no manta.dSYM for $t; crash reports of this build can't be symbolicated"
+            fi
+        fi
         n=$(python3 "$ROOT/scripts/scrub-build-paths.py" "$bin" \
             "$CARGO_TARGET_DIR" "$(cd "$CARGO_TARGET_DIR" && pwd -P)")
         [ "$n" = 0 ] || echo "    scrubbed $n build path(s) from C dependencies"

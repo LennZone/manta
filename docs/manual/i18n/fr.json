@@ -359,7 +359,12 @@
         "github",
         "commentaires",
         "idée",
-        "faille de sécurité"
+        "faille de sécurité",
+        "plantage",
+        "a planté",
+        "quitté de façon inattendue",
+        "rapport de plantage",
+        "crash"
       ]
     },
     "faq": {

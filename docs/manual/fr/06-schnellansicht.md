@@ -13,8 +13,6 @@ Si plusieurs fichiers sont sélectionnés, les flèches **‹** et **›** de Co
 
 Le clavier reste dans Manta : vous pouvez continuer à vous déplacer dans la liste avec les touches fléchées pendant que le panneau Coup d’œil est ouvert.
 
-![Coup d’œil au-dessus d’une sous-fenêtre](images/quick-look.png)
-
 ## Coup d’œil (macOS) {#quick-look}
 
 Coup d’œil est le panneau d’aperçu d’Apple. Il affiche tout ce que le Finder affiche : PDF, images, vidéos, documents Office, fichiers texte et bien plus. Il fonctionne pour les fichiers et dossiers **locaux**.

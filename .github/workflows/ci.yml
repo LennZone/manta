@@ -38,5 +38,10 @@ jobs:
 
       # Unit and UI tests without external services. Screenshot renders are
       # skipped (MANTA_RENDER_DIR is not set), so no GPU is needed.
+      # Tests wait for events, not for times; the shared runners are slow, so
+      # give background work more headroom before a wait gives up. One test
+      # thread per vCPU (3 on macos-14) is libtest's default and stays.
       - name: Tests
+        env:
+          MANTA_TEST_WAIT_SECS: "120"
         run: scripts/test.sh

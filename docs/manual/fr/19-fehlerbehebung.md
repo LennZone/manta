@@ -43,6 +43,19 @@ Ce qui aide à trouver le bug :
 
 Une idée ou une suggestion ? **Aide** → **Suggérer une idée…** ouvre le formulaire des idées. Toutes les options se trouvent aussi sur [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
+## Si Manta quitte de façon inattendue {#absturz}
+
+Si Manta plante, il enregistre un rapport de plantage dans `~/Library/Logs/Manta` : un fichier dont le nom commence par `crash-`, suivi de la date et de l’heure (UTC). Le rapport ne contient que ce qui est nécessaire pour trouver le bug : la version de Manta et de macOS, la puce, le message d’erreur et les adresses du programme au moment du plantage (le « backtrace »). Votre dossier de départ apparaît sous la forme `~`, et les noms d’utilisateur, de serveur et d’hôte sont remplacés par des marqueurs comme `<user>` et `<redacted>`.
+
+Au prochain lancement, Manta affiche une seule fois un avis en bas à droite : **Manta a quitté de façon inattendue la dernière fois**.
+
+- **Signaler sur GitHub** ouvre le formulaire de rapport de bug avec les versions et un court résumé du rapport déjà remplis. Joignez le fichier du rapport au formulaire (faites-le glisser dans le champ de texte) : un lien ne peut pas transporter de fichier. Rien n’est envoyé tant que vous n’envoyez pas vous-même le formulaire sur GitHub.
+- **Afficher le rapport** ouvre le rapport dans votre éditeur de texte, pour que vous voyiez exactement ce qu’il contient.
+- **Ignorer** ferme l’avis. Le rapport reste dans le dossier ; Manta conserve les 10 plus récents.
+
+> [!NOTE]
+> Manta n’envoie jamais de rapport de plantage de lui-même et ne contient aucun pistage. Si vous ne voulez pas signaler un plantage, ignorez l’avis – ou supprimez les fichiers `crash-…` dans `~/Library/Logs/Manta`.
+
 ## Manta ne s’ouvre pas (Gatekeeper) {#gatekeeper}
 
 **Problème :** au premier lancement, macOS affiche « “Manta” n’a pas été ouvert » ou « … ne peut pas être ouvert, car Apple ne peut pas vérifier qu’il ne contient pas de logiciel malveillant ».

@@ -73,7 +73,7 @@ fn wait_for(
             return st;
         }
         assert!(
-            start.elapsed() < Duration::from_secs(20),
+            start.elapsed() < Duration::from_secs(60),
             "timed out waiting for {what}: {st:?}"
         );
         std::thread::sleep(Duration::from_millis(2));
@@ -473,7 +473,7 @@ fn cancel_removes_the_partial_file() {
     let start = Instant::now();
     while b.exists("/d/.movie.mov.manta-part") {
         assert!(
-            start.elapsed() < Duration::from_secs(5),
+            start.elapsed() < Duration::from_secs(60),
             "partial file not removed"
         );
         std::thread::sleep(Duration::from_millis(5));
@@ -699,7 +699,7 @@ fn journal_restores_jobs_after_a_restart() {
             ConflictPolicy::Overwrite,
         ));
     }
-    std::thread::sleep(Duration::from_millis(100));
+    // Dropping the manager wrote the journal one last time.
     let text = std::fs::read_to_string(&journal).expect("journal written");
     assert!(!text.contains("\"pw\""), "no secrets in the journal");
     let part_len = b
@@ -737,7 +737,6 @@ fn journal_restores_jobs_after_a_restart() {
     wait_done(&tm, ids[0]);
     assert_eq!(sha(&b.read_all("/d/movie.mov").unwrap()), sha(&content));
     drop(tm);
-    std::thread::sleep(Duration::from_millis(50));
     assert!(!journal.exists(), "an empty queue removes the journal");
 }
 
@@ -768,7 +767,6 @@ fn discarding_interrupted_jobs_removes_partials() {
         );
         pause_midway(&tm, id);
     }
-    std::thread::sleep(Duration::from_millis(50));
     assert!(b.exists("/d/.movie.mov.manta-part"));
     let tm = TransferManager::with_options(opts());
     assert_eq!(tm.interrupted().len(), 1);
@@ -776,11 +774,10 @@ fn discarding_interrupted_jobs_removes_partials() {
     assert!(tm.interrupted().is_empty());
     let start = Instant::now();
     while b.exists("/d/.movie.mov.manta-part") {
-        assert!(start.elapsed() < Duration::from_secs(5));
+        assert!(start.elapsed() < Duration::from_secs(60));
         std::thread::sleep(Duration::from_millis(5));
     }
     drop(tm);
-    std::thread::sleep(Duration::from_millis(50));
     assert!(!journal.exists());
 }
 
@@ -809,8 +806,18 @@ fn journal_is_throttled_but_follows_state_changes() {
         Some(Endpoint::Local),
     );
     pause_midway(&tm, id);
-    std::thread::sleep(Duration::from_millis(300));
-    let jobs = crate::journal::Journal::new(journal.clone()).load();
+    // A state change is written right away (by the writer thread): wait for
+    // it rather than for a time.
+    let load = || crate::journal::Journal::new(journal.clone()).load();
+    let start = Instant::now();
+    while !load()
+        .first()
+        .is_some_and(|j| j.state == JournalState::Paused)
+    {
+        assert!(start.elapsed() < Duration::from_secs(60), "{:?}", load());
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let jobs = load();
     assert_eq!(jobs.len(), 1);
     assert_eq!(jobs[0].state, JournalState::Paused);
     let partial = jobs[0]
@@ -822,6 +829,12 @@ fn journal_is_throttled_but_follows_state_changes() {
     assert_eq!(partial.size, 2 * 1024 * 1024);
     tm.resume(id);
     wait_done(&tm, id);
-    std::thread::sleep(Duration::from_millis(300));
-    assert!(!journal.exists(), "finished jobs leave the journal");
+    let start = Instant::now();
+    while journal.exists() {
+        assert!(
+            start.elapsed() < Duration::from_secs(60),
+            "finished jobs leave the journal"
+        );
+        std::thread::sleep(Duration::from_millis(10));
+    }
 }

@@ -55,6 +55,36 @@ pub fn issue_url(kind: Kind, info: &SystemInfo) -> String {
     }
 }
 
+/// URLs longer than this are cut by browsers and GitHub (8 kB is safe).
+pub const MAX_URL: usize = 8000;
+
+/// The bug form after a crash: the system details, a title and the
+/// "Actual behaviour" text. When the URL would be longer than [`MAX_URL`],
+/// `shorten(budget)` is asked for a shorter text (`budget`: characters of
+/// the summary to keep), smaller and smaller until it fits.
+pub fn crash_issue_url(
+    info: &SystemInfo,
+    title: &str,
+    actual: &str,
+    shorten: impl Fn(usize) -> String,
+) -> String {
+    let url = |actual: &str| {
+        format!(
+            "{}&title={}&actual={}",
+            issue_url(Kind::Bug, info),
+            encode(title),
+            encode(actual)
+        )
+    };
+    let mut out = url(actual);
+    let mut budget = actual.chars().count();
+    while out.len() > MAX_URL && budget > 0 {
+        budget = budget * 3 / 4;
+        out = url(&shorten(budget));
+    }
+    out
+}
+
 /// [`issue_url`] for this build on this Mac.
 pub fn current_issue_url(kind: Kind) -> String {
     match kind {

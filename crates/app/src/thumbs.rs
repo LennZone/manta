@@ -172,6 +172,9 @@ pub struct Queue {
     /// Requests dropped because nobody wanted them any more.
     pub cancelled: u64,
     closed: bool,
+    /// Test knob: workers take nothing while set.
+    #[cfg(test)]
+    paused: bool,
 }
 
 impl Queue {
@@ -203,6 +206,10 @@ impl Queue {
     /// The next job someone still wants (newest first); stale ones are
     /// dropped on the way.
     fn pop(&mut self) -> Option<Job> {
+        #[cfg(test)]
+        if self.paused {
+            return None;
+        }
         while let Some(job) = self.jobs.pop() {
             self.queued.remove(&job.key);
             if self.is_wanted(&job.key) {
@@ -461,6 +468,18 @@ impl Thumbs {
     pub fn queue_stats(&self) -> (usize, u64) {
         let q = self.shared.queue.lock().unwrap_or_else(|e| e.into_inner());
         (q.len(), q.cancelled)
+    }
+
+    /// Test knob: stop the workers from taking jobs (what is queued stays
+    /// queued until cancelled or resumed), so tests don't race them.
+    #[cfg(test)]
+    pub fn set_paused(&self, paused: bool) {
+        self.shared
+            .queue
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .paused = paused;
+        self.shared.cv.notify_all();
     }
 
     /// Wait until nothing is queued or running (tests, renders).

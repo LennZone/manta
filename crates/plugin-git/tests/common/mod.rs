@@ -210,6 +210,26 @@ impl FakeHost {
         }
     }
 
+    /// Pump until `generation` stays the same for `quiet` (the watcher has
+    /// delivered everything the setup wrote, however late FSEvents replays
+    /// it on a loaded machine). Gives up after [`WAIT`].
+    pub fn wait_quiet(&mut self, quiet: Duration, generation: impl Fn() -> u64) {
+        let start = Instant::now();
+        let mut last = generation();
+        let mut since = Instant::now();
+        while start.elapsed() < WAIT {
+            self.pump();
+            let g = generation();
+            if g != last {
+                last = g;
+                since = Instant::now();
+            } else if since.elapsed() >= quiet {
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+    }
+
     pub fn deco(&self, pane: PaneId, dir: &Path, name: &str) -> Option<Decoration> {
         self.decorations
             .get(&(pane, vfs(dir)))?

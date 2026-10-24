@@ -122,7 +122,7 @@ fn closing_a_pane_hangs_up_its_terminal() {
         "its state is gone"
     );
     let start = Instant::now();
-    while closed.iter().any(|p| alive(*p)) && start.elapsed() < Duration::from_secs(5) {
+    while closed.iter().any(|p| alive(*p)) && start.elapsed() < Duration::from_secs(30) {
         h.step();
         std::thread::sleep(Duration::from_millis(25));
     }

@@ -361,7 +361,12 @@
         "github",
         "comentarios",
         "idea",
-        "vulnerabilidad"
+        "vulnerabilidad",
+        "fallo",
+        "bloqueo",
+        "se cerró inesperadamente",
+        "informe de fallo",
+        "crash"
       ]
     },
     "faq": {

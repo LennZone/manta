@@ -257,6 +257,10 @@ pub(crate) struct Shared {
     sched_cv: Condvar,
     signal: Arc<JournalSignal>,
     journal: Option<Journal>,
+    /// Serialises journal writes; `true` once the last one (at shutdown)
+    /// is written, so a background write that started earlier can't land
+    /// after it with an older snapshot.
+    journal_closed: Mutex<bool>,
     network: Option<Arc<dyn NetworkMonitor>>,
     backoff: Backoff,
     journal_interval: Duration,
@@ -303,6 +307,7 @@ impl Shared {
             sched_cv: Condvar::new(),
             signal: Arc::new(JournalSignal::default()),
             journal,
+            journal_closed: Mutex::new(false),
             network: opts.network,
             backoff: opts.backoff,
             journal_interval: opts.journal_interval,
@@ -589,7 +594,7 @@ impl Shared {
         }
         inner.queue.clear();
         drop(inner);
-        self.write_journal();
+        self.write_journal(true);
         self.cv.notify_all();
         self.sched_cv.notify_all();
         self.signal.cv.notify_all();
@@ -998,14 +1003,21 @@ impl Shared {
             }
             if urgent || (dirty && last.elapsed() >= self.journal_interval) {
                 *lock(&self.signal.flags) = (false, false);
-                self.write_journal();
+                self.write_journal(false);
                 last = Instant::now();
             }
         }
     }
 
-    fn write_journal(&self) {
+    /// Snapshot the jobs and save them. `last`: the shutdown's final write;
+    /// nothing is written after it.
+    fn write_journal(&self, last: bool) {
         let Some(journal) = &self.journal else { return };
+        let mut closed = lock(&self.journal_closed);
+        if *closed {
+            return;
+        }
+        *closed = last;
         let jobs = {
             let inner = lock(&self.inner);
             let mut jobs: Vec<JournalJob> = inner.interrupted.clone();

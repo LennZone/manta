@@ -116,6 +116,10 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `a11y.pane` | Pane: {folder} | Bereich: {folder} | 面板：{folder} | Panel: {folder} | Sous-fenêtre : {folder} | Pannello: {folder} | Панель: {folder} |
 | `a11y.active` | active | aktiv | 当前 | activo | sélectionnée | attivo | активна |
 | `a11y.sections` | Sections of {chapter} | Abschnitte von {chapter} | “{chapter}”的小节 | Secciones de {chapter} | Sections de {chapter} | Sezioni di {chapter} | Разделы главы «{chapter}» |
+| `crash.title` | Manta quit unexpectedly last time | Manta wurde beim letzten Mal unerwartet beendet | Manta 上次意外退出 | Manta se cerró inesperadamente la última vez | Manta a quitté de façon inattendue la dernière fois | L’ultima volta Manta si è chiuso inaspettatamente | В прошлый раз Manta неожиданно завершила работу |
+| `crash.report` | Report on GitHub | Auf GitHub melden | 在 GitHub 上报告 | Informar en GitHub | Signaler sur GitHub | Segnala su GitHub | Сообщить на GitHub |
+| `crash.show` | Show Report | Bericht zeigen | 显示报告 | Mostrar informe | Afficher le rapport | Mostra rapporto | Показать отчёт |
+| `crash.ignore` | Ignore | Ignorieren | 忽略 | Ignorar | Ignorer | Ignora | Игнорировать |
 | `app.job.copy_to` | Copying {what} to {dst} | {what} nach {dst} kopieren | 正在将 {what} 拷贝到 {dst} | Copiando {what} a {dst} | Copie de {what} vers {dst} | Copia di {what} in {dst} | Копирование {what} в {dst} |
 | `app.job.move_to` | Moving {what} to {dst} | {what} nach {dst} bewegen | 正在将 {what} 移到 {dst} | Moviendo {what} a {dst} | Déplacement de {what} vers {dst} | Spostamento di {what} in {dst} | Перемещение {what} в {dst} |
 | `app.job.extract_to` | Extracting {what} to {dst} | {what} nach {dst} entpacken | 正在将 {what} 解压缩到 {dst} | Extrayendo {what} en {dst} | Extraction de {what} vers {dst} | Estrazione di {what} in {dst} | Извлечение {what} в {dst} |

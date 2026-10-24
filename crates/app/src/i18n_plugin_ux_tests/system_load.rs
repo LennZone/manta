@@ -36,7 +36,8 @@ fn plugin(cpu: f32, gpu: Option<f32>) -> Box<dyn FnOnce(&egui::Context) -> Plugi
 /// Step until the plugin's items arrived (and a few frames more).
 fn wait_for_items(h: &mut H) {
     let start = Instant::now();
-    while app(h).plugins.status_items().is_empty() && start.elapsed() < Duration::from_secs(5) {
+    while app(h).plugins.status_items().is_empty() && start.elapsed() < crate::test_support::wait()
+    {
         h.step();
         std::thread::sleep(Duration::from_millis(10));
     }

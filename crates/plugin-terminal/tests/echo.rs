@@ -26,6 +26,11 @@ fn wait_until(
     false
 }
 
+/// How long to wait for the shell before failing. Waits end as soon as
+/// their condition holds; the limit only has to be far above what a loaded
+/// CI runner needs.
+const WAIT: Duration = Duration::from_secs(30);
+
 struct Env {
     _dirs: Vec<tempfile::TempDir>,
     cwd: PathBuf,
@@ -39,6 +44,9 @@ fn spawn(shell: &str) -> Option<(Session, Env)> {
     }
     let a = tempfile::tempdir().unwrap();
     let data = tempfile::tempdir().unwrap();
+    // zsh: an empty ZDOTDIR instead of the developer's own startup files
+    // (slow frameworks made these tests flaky, and they are not ours).
+    let zd = tempfile::tempdir().unwrap();
     let cwd = std::fs::canonicalize(a.path()).unwrap();
     std::fs::create_dir(cwd.join("dest")).unwrap();
     std::fs::write(cwd.join("x.txt"), "hello").unwrap();
@@ -56,14 +64,14 @@ fn spawn(shell: &str) -> Option<(Session, Env)> {
         theme: Theme::dark(),
         waker: Arc::new(|| {}),
         spool: Some(spool.clone()),
-        zdotdir: None,
+        zdotdir: Some(zd.path().to_path_buf()),
         remote: None,
     })
     .expect("spawn");
     Some((
         s,
         Env {
-            _dirs: vec![a, data],
+            _dirs: vec![a, data, zd],
             cwd,
             spool,
         },
@@ -93,11 +101,10 @@ fn copy_action(env: &Env, id: u64, finished: bool) -> FileAction {
 
 fn wait_ready(s: &mut Session, shell: &str) {
     assert!(
-        // A slow shell start (e.g. oh-my-zsh under parallel test load) can
-        // outlast the integration grace period; the first prompt then
-        // upgrades it, so wait for the final answer rather than the first.
-        wait_until(s, Duration::from_secs(20), |s| s.is_idle()
-            && s.can_echo() == Some(true)),
+        // A slow shell start (under parallel test load) can outlast the
+        // integration grace period; the first prompt then upgrades it, so
+        // wait for the final answer rather than the first.
+        wait_until(s, WAIT, |s| s.is_idle() && s.can_echo() == Some(true)),
         "{shell}: no idle prompt. Screen:\n{}",
         s.lock().screen_text()
     );
@@ -127,14 +134,14 @@ fn prints_above_prompt_and_keeps_input(shell: &str) {
 
     // Half-typed input.
     s.write(b"echo kee");
-    assert!(wait_until(&mut s, Duration::from_secs(5), |s| s
+    assert!(wait_until(&mut s, WAIT, |s| s
         .lock()
         .screen_text()
         .contains("echo kee")));
 
     s.push_action(copy_action(&env, 1, false));
     s.push_action(copy_action(&env, 1, true));
-    let ok = wait_until(&mut s, Duration::from_secs(5), |s| {
+    let ok = wait_until(&mut s, WAIT, |s| {
         let t = s.lock().screen_text();
         t.contains(CMD)
             && t.contains("✓ 1 file · 5 B · 12 ms")
@@ -158,7 +165,7 @@ fn prints_above_prompt_and_keeps_input(shell: &str) {
         "{shell}: prompt with input below the echo:\n{screen}"
     );
     assert!(
-        wait_until(&mut s, Duration::from_secs(2), |_| !env.spool.exists()),
+        wait_until(&mut s, WAIT, |_| !env.spool.exists()),
         "{shell}: spool file not removed"
     );
     // Nothing was executed: dest/ is still empty.
@@ -169,7 +176,7 @@ fn prints_above_prompt_and_keeps_input(shell: &str) {
 
     // The parked input is intact: finish and run it.
     s.write(b"p_me\r");
-    let ok = wait_until(&mut s, Duration::from_secs(5), |s| {
+    let ok = wait_until(&mut s, WAIT, |s| {
         s.lock()
             .screen_text()
             .lines()
@@ -183,16 +190,20 @@ fn prints_above_prompt_and_keeps_input(shell: &str) {
 
     // A later, separate result is labelled.
     s.push_action(copy_action(&env, 2, false));
-    assert!(wait_until(&mut s, Duration::from_secs(5), |s| s
+    assert!(wait_until(&mut s, WAIT, |s| s
         .lock()
         .screen_text()
         .matches(CMD)
         .count()
         == 2));
-    s.write(b"true\r");
-    std::thread::sleep(Duration::from_millis(300));
+    s.write(b"echo ran-between\r");
+    assert!(wait_until(&mut s, WAIT, |s| s.is_idle()
+        && s.lock()
+            .screen_text()
+            .lines()
+            .any(|l| l.trim() == "ran-between")));
     s.push_action(copy_action(&env, 2, true));
-    let ok = wait_until(&mut s, Duration::from_secs(5), |s| {
+    let ok = wait_until(&mut s, WAIT, |s| {
         s.lock().screen_text().contains("✓ copy “x.txt” · 1 file")
     });
     assert!(
@@ -208,14 +219,16 @@ fn deferred_while_busy(shell: &str) {
         return;
     };
     wait_ready(&mut s, shell);
-    s.write(b"sleep 2\r");
+    // A program that runs until the test ends it (not a `sleep`, whose end
+    // a loaded machine may miss or reach early).
+    s.write(b"read -r _manta_line\r");
     s.user_submitted();
-    assert!(wait_until(&mut s, Duration::from_secs(3), |s| s.is_busy()));
-    let t0 = Instant::now();
+    assert!(wait_until(&mut s, WAIT, |s| s.is_busy()));
     s.push_action(copy_action(&env, 1, false));
     s.push_action(copy_action(&env, 1, true));
-    // While sleep runs nothing is printed or written.
-    while t0.elapsed() < Duration::from_millis(1000) {
+    // While it runs nothing is printed or written (checked for a number of
+    // ticks, not for a time).
+    for _ in 0..50 {
         s.tick(true);
         assert!(
             !s.lock().screen_text().contains('→'),
@@ -224,18 +237,15 @@ fn deferred_while_busy(shell: &str) {
         assert!(!env.spool.exists(), "{shell}: spool written while busy");
         std::thread::sleep(Duration::from_millis(20));
     }
+    assert!(s.is_busy(), "{shell}: still running");
     assert_eq!(s.echo_waiting(), 1);
-    let ok = wait_until(&mut s, Duration::from_secs(6), |s| {
-        s.lock().screen_text().contains(CMD)
-    });
+    // End it: now the echo comes.
+    s.write(b"\r");
+    let ok = wait_until(&mut s, WAIT, |s| s.lock().screen_text().contains(CMD));
     assert!(
         ok,
         "{shell}: deferred echo not printed. Screen:\n{}",
         s.lock().screen_text()
-    );
-    assert!(
-        t0.elapsed() >= Duration::from_millis(1500),
-        "{shell}: printed before sleep ended"
     );
     s.shutdown(Duration::from_millis(500));
 }
@@ -246,13 +256,16 @@ fn echo_and_cd_keep_order(shell: &str) {
         return;
     };
     wait_ready(&mut s, shell);
-    s.write(b"sleep 1\r");
+    // Busy until the test ends it (see `deferred_while_busy`).
+    s.write(b"read -r _manta_line\r");
     s.user_submitted();
-    assert!(wait_until(&mut s, Duration::from_secs(3), |s| s.is_busy()));
+    assert!(wait_until(&mut s, WAIT, |s| s.is_busy()));
     s.push_action(copy_action(&env, 1, true));
     s.pane_changed(Some(&env.cwd.join("dest")));
+    s.tick(true);
+    s.write(b"\r");
     let dest = env.cwd.join("dest");
-    let ok = wait_until(&mut s, Duration::from_secs(6), |s| {
+    let ok = wait_until(&mut s, WAIT, |s| {
         s.follow.shell_cwd.as_ref().map(|d| d.canon.clone()) == Some(dest.clone())
     });
     assert!(
@@ -332,7 +345,7 @@ fn zsh_echo_replaces_multiline_prompt_only() {
     s.write(b"precmd_functions=(_manta_precmd); zle -D zle-line-init zle-line-finish 2>/dev/null; clear; PROMPT=$'[top line]\\n%# '; RPROMPT=; echo earlier-output\r");
     s.user_submitted();
     assert!(
-        wait_until(&mut s, Duration::from_secs(5), |s| {
+        wait_until(&mut s, WAIT, |s| {
             let t = s.lock().screen_text();
             s.is_idle() && t.contains("[top line]") && t.contains("earlier-output")
         }),
@@ -340,14 +353,12 @@ fn zsh_echo_replaces_multiline_prompt_only() {
         s.lock().screen_text()
     );
     s.write(b"echo kee");
-    assert!(wait_until(&mut s, Duration::from_secs(5), |s| s
+    assert!(wait_until(&mut s, WAIT, |s| s
         .lock()
         .screen_text()
         .contains("% echo kee")));
     s.push_action(copy_action(&env, 1, true));
-    let ok = wait_until(&mut s, Duration::from_secs(5), |s| {
-        s.lock().screen_text().contains("✓ copy")
-    });
+    let ok = wait_until(&mut s, WAIT, |s| s.lock().screen_text().contains("✓ copy"));
     let screen = s.lock().screen_text();
     assert!(ok, "no echo:\n{screen}");
     let lines: Vec<&str> = screen.lines().filter(|l| !l.trim().is_empty()).collect();

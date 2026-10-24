@@ -43,6 +43,19 @@ Lo que ayuda a encontrar el error:
 
 ¿Tienes una idea o una sugerencia? **Ayuda** → **Sugerir una idea…** abre el formulario de ideas. Todas las opciones están también en [github.com/web-workers-com/manta/issues/new/choose](https://github.com/web-workers-com/manta/issues/new/choose).
 
+## Si Manta se cierra inesperadamente {#absturz}
+
+Si Manta falla, guarda un informe de fallo en `~/Library/Logs/Manta`: un archivo cuyo nombre empieza por `crash-` seguido de la fecha y la hora (UTC). El informe contiene solo lo necesario para encontrar el error: la versión de Manta y de macOS, el chip, el mensaje de error y las direcciones del programa en el momento del fallo (el «backtrace»). Tu carpeta de inicio aparece como `~`, y los nombres de usuario, servidor y host se sustituyen por marcadores como `<user>` y `<redacted>`.
+
+La próxima vez que abras Manta, aparece una vez un aviso en la esquina inferior derecha: **Manta se cerró inesperadamente la última vez**.
+
+- **Informar en GitHub** abre el formulario de informe de errores con las versiones y un breve resumen del informe ya rellenados. Adjunta el archivo del informe al formulario (arrástralo al campo de texto): un enlace no puede llevar un archivo. No se envía nada hasta que tú mismo envíes el formulario en GitHub.
+- **Mostrar informe** abre el informe en tu editor de texto, para que veas exactamente qué contiene.
+- **Ignorar** cierra el aviso. El informe se queda en la carpeta; Manta conserva los 10 más recientes.
+
+> [!NOTE]
+> Manta nunca envía informes de fallo por sí mismo y no contiene ningún seguimiento. Si no quieres informar de un fallo, ignora el aviso o elimina los archivos `crash-…` de `~/Library/Logs/Manta`.
+
 ## Manta no se abre (Gatekeeper) {#gatekeeper}
 
 **Problema:** En el primer arranque, macOS indica *No se ha abierto “Manta”* o *No se puede abrir “Manta” porque Apple no puede comprobar si contiene software malicioso*.

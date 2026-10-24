@@ -22,7 +22,7 @@ fn wait_until(h: &mut H, what: &str, cond: impl Fn(&MantaApp) -> bool) {
     let start = Instant::now();
     while !cond(h.state()) {
         assert!(
-            start.elapsed() < Duration::from_secs(30),
+            start.elapsed() < crate::test_support::wait(),
             "timed out waiting for {what}"
         );
         h.step();

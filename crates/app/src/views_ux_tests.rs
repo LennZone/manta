@@ -203,7 +203,7 @@ pub(super) fn settle_thumbs(h: &mut H) {
         h.run_steps(2);
         let start = Instant::now();
         while !app(h).thumbs.wait_idle(Duration::from_millis(50))
-            && start.elapsed() < Duration::from_secs(20)
+            && start.elapsed() < crate::test_support::wait()
         {
             h.step();
         }
@@ -438,7 +438,7 @@ fn columns_navigation_path() {
         .tab_mut()
         .view_state
         .cols
-        .wait_loaded(Duration::from_secs(5)));
+        .wait_loaded(crate::test_support::wait()));
     h.run_steps(2);
     let listed = app(&mut h)
         .pane(Side::LEFT)
@@ -669,26 +669,35 @@ fn icons_load_thumbnails_and_cancel_when_leaving() {
         app(&mut h).thumbs.texture_count()
     );
     // A big folder: only the visible items are asked for; leaving it
-    // cancels what is still queued.
+    // cancels what is still queued. The workers are paused meanwhile, so
+    // they can't empty the queue first (they did on fast machines and
+    // lagged on loaded ones).
+    app(&mut h).thumbs.set_paused(true);
+    let (_, cancelled_before) = app(&mut h).thumbs.queue_stats();
     goto(&mut h, Side::LEFT, &many);
     h.run_steps(1);
     let (queued, _) = app(&mut h).thumbs.queue_stats();
-    assert!(queued < 120, "only visible items are requested: {queued}");
+    assert!(
+        queued > 0 && queued < 120,
+        "only visible items are requested: {queued}"
+    );
     goto(&mut h, Side::LEFT, &fx.root);
-    // Frame-based, not time-based: under load the listing swap can take a
-    // few more frames before nothing asks for the old folder any more.
+    // Frame-based, not time-based: requests nobody asked for in
+    // `KEEP_FRAMES` frames are dropped; the listing swap may take a few
+    // more frames. (What the folder we came back to asks for stays queued.)
+    let cancelled = |h: &mut H| app(h).thumbs.queue_stats().1 - cancelled_before;
     for _ in 0..60 {
-        h.step();
-        if app(&mut h).thumbs.queue_stats().0 == 0 {
+        if cancelled(&mut h) >= queued as u64 {
             break;
         }
+        h.step();
     }
-    let (left, cancelled) = app(&mut h).thumbs.queue_stats();
-    assert_eq!(left, 0, "nothing left queued");
-    assert!(
-        cancelled > 0 || queued == 0,
-        "unfinished requests were cancelled"
+    assert_eq!(
+        cancelled(&mut h),
+        queued as u64,
+        "the unfinished requests were cancelled"
     );
+    app(&mut h).thumbs.set_paused(false);
 }
 
 // ------------------------------------------------------------------ renders

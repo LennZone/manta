@@ -11,6 +11,7 @@ mod commands;
 mod compress_sheet;
 mod conflict_dialog;
 mod containers;
+mod crash;
 mod default_viewer;
 mod dialogs;
 mod favorites;
@@ -42,6 +43,8 @@ mod sidebar;
 mod status_items;
 mod sync_view;
 mod tags;
+#[cfg(test)]
+mod test_support;
 mod theme;
 mod thumbs;
 mod toasts;
@@ -59,6 +62,11 @@ use eframe::egui;
 
 fn main() -> eframe::Result {
     logging::init();
+    // Panics and fatal signals leave a report in ~/Library/Logs/Manta
+    // (nothing is sent; the next launch offers to report it).
+    if let Some(dir) = crash::dir() {
+        crash::install(dir);
+    }
     // `MANTA_QL_SELFTEST=/path/file.png` shows the real Quick Look panel
     // for 2 s, logs what AppKit reports and quits.
     #[cfg(target_os = "macos")]

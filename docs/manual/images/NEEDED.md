@@ -17,26 +17,24 @@ Window size for full-window shots: 1440 × 900 pt at 2x, accent colour Blue, def
 | File | Chapter | What it should show | Theme | de/en | Status |
 |---|---|---|---|---|---|
 | `overview-two-panes.png` | 01 | Main window: toolbar, sidebar (Favorites, Locations, Devices, Servers), two panes with a few folders and files, status bar. | both | both | ✅ generated (light) |
-| `dmg-window.png` | 01 | The DMG window: Manta icon, arrow, Applications folder. | light | one (no text) | — not app UI (packaging, `scripts/build-release.sh`); take by hand |
 | `default-file-manager-prompt.png` | 01 | The "Use Manta as your default file manager?" sheet with Set as Default / Not Now / Don't Ask Again. | light | both | ✅ generated (light) |
 | `command-palette.png` | 01 | Command palette open with "new fo" typed, matching rows with shortcuts. | both | both | ✅ generated (light) |
 | `panes-three.png` | 02 | Three panes, the middle one active (accent outline). | light | both | ✅ generated (light) |
 | `panes-target-badge.png` | 02 | Three panes; active pane with a selection; target pane with faint outline and → badge in its path bar (tooltip "Copy and Move (F5 / F6) go to this pane" visible). | light | both | ✅ generated (light) |
-| `views-overview.png` | 03 | 2×2 collage of one folder of photos in Icons, List, Columns and Gallery view, path bar with the View switcher visible in each. | light | both | — 2×2 collage; compose from the view-* images by hand |
-| `view-options.png` | 03 | Close-up of a path bar in Icons view: View switcher (Icons selected) and the open View Options popover (Sort By Name, Ascending, Icon Size slider). | both | both | — popover open; not generated yet |
+| `views-overview.png` | 03 | 2×2 collage of one folder of photos in Icons, List, Columns and Gallery view, path bar with the View switcher visible in each. | light | both | ✅ generated (light; 2×2 collage of single-pane renders) |
+| `view-options.png` | 03 | Close-up of a path bar in Icons view: View switcher (Icons selected) and the open View Options popover (Sort By Name, Ascending, Icon Size slider). | both | both | ✅ generated (light) |
 | `view-list.png` | 03 | List view sorted by Size (descending), Folder Sizes values incl. one "≥ … GB" still counting. | light | both | ✅ generated (light) |
 | `view-columns.png` | 03 | Column view three levels deep, a JPEG selected so the preview column shows the thumbnail and Information (Kind, Size, Modified, Permissions). | light | both | ✅ generated (light) |
 | `view-gallery.png` | 03 | Gallery view of a photo folder: large photo, name and "Kind · size · date" line, filmstrip with the selected item ringed. | both | both | ✅ generated (light) |
-| `path-bar.png` | 04 | Close-up of a path bar on an SFTP server: location chip ("SFTP · user@host") with the "Back to Local" arrow, breadcrumb, a Git chip and a Project Info chip, filter field. | both | both | — needs a connected SFTP pane with Git and Project Info chips; not generated yet |
-| `go-to-path.png` | 04 | Go to Path popup with `~/Do` typed, "Matching folders" and "Recent" lists, footer with key hints. | light | both | — `~/Do` lists the real home folder; needs a fake home first |
+| `path-bar.png` | 04 | Close-up of a path bar on an SFTP server: location chip ("SFTP · user@host") with the "Back to Local" arrow, breadcrumb, a Git chip and a Project Info chip, filter field. | both | both | ✅ generated (light; two path bars stacked: an in-memory SFTP server with Back to Local, and a local Git project with the Git and Project chips) |
+| `go-to-path.png` | 04 | Go to Path popup with `~/Do` typed, "Matching folders" and "Recent" lists, footer with key hints. | light | both | ✅ generated (light; a fake home folder for `~`) |
 | `copy-dialog.png` | 05 | Copy sheet for 3 items with 3 panes: From, To picker, "If an item already exists" options. | light | both | ✅ generated (light) |
 | `transfers-panel.png` | 05 | Transfers panel with one running copy (progress, speed, time left, pause/stop icons) and one finished job. | light | both | ✅ generated (light) |
 | `transfers-paused-waiting.png` | 05 | Transfers panel with the "No internet connection" banner, one job "Paused · 1.2 GB of 3.0 GB", one "Waiting for connection … (attempt 3, next in 8 s)" with Try Again Now icon, header buttons Pause All / Resume All. | light | both | ✅ generated (light) |
 | `resume-prompt.png` | 05 | Launch prompt "Resume interrupted transfers?" with two rows (one "needs files.example.com (SFTP)"), the explanatory text, Discard / Resume buttons. | light | both | ✅ generated (light) |
-| `quick-look.png` | 06 | Apple Quick Look panel showing a PDF over a pane. | light | both | — Apple's QLPreviewPanel is not drawn by egui; take by hand |
 | `preview-builtin.png` | 06 | Built-in preview window with a text file from an SFTP server. | light | both | ✅ generated (light) |
 | `sidebar.png` | 07 | Sidebar with Favorites (incl. a server favorite), Locations, Devices, Servers (one connected), Containers (a Compose group), Cloud. Cloud is built in now. | both | both | ✅ generated (light) |
-| `favorites-drag.png` | 07 | Two folders being dragged onto Favorites: highlighted section, insertion line with ring, "Add 2 folders to Favorites" badge at the pointer. | light | both | — needs a drag session in progress; not generated yet |
+| `favorites-drag.png` | 07 | Two folders being dragged onto Favorites: highlighted section, insertion line with ring, "Add 2 folders to Favorites" badge at the pointer. | light | both | ✅ generated (light) |
 | `connect-sftp.png` | 08 | Connect to Server sheet, SFTP, Sign in with "Key File", Add to Favorites on. | light | both | ✅ generated (light) |
 | `connect-ftps-data-channel.png` | 08 | Connect sheet, FTPS, Data channel segmented control with Automatic selected and its note. | light | both | ✅ generated (light) |
 | `connect-s3.png` | 08 | Connect sheet, S3, Provider "Cloudflare R2" with the Account ID field. | light | both | ✅ generated (light) |
@@ -46,12 +44,12 @@ Window size for full-window shots: 1440 × 900 pt at 2x, accent colour Blue, def
 | `cloud-sidebar-badges.png` | 09 | Cloud section in the sidebar (iCloud Drive, Google Drive, OneDrive) and a Google Drive folder with "only in cloud", "downloading" and downloaded files; context menu with Download Now / Remove Download. Built in now; `render_cloud` (crates/app/src/cloud_ux_tests.rs) renders German light/dark versions. | both | both | ✅ generated (light) |
 | `archive-as-folder.png` | 10 | A ZIP open as a folder: breadcrumb `Downloads › backup.zip › docs`, lock chip "read-only archive". | light | both | ✅ generated (light) |
 | `compress-sheet.png` | 10 | Compress sheet: format zip, name, Level slider, "Exclude .DS_Store and __MACOSX" on. | light | both | ✅ generated (light) |
-| `terminal.png` | 11 | A pane with the terminal below it, showing a `cd` and an echoed `cp -R` file action with "done". | dark | both | — needs the terminal plugin with a real shell (pty); take by hand |
-| `git-panel.png` | 12 | File list with Git badges (modified, untracked, staged) and the Git panel with Staged/Changes groups and a commit message. | both | both | — needs a Git repository fixture with the Git plugin; not generated yet |
-| `compare-sync-ab.png` | 13 | Compare & Sync with three panes: cards "Pane A" / "Pane B" with the pane pop-up open ("1 · manta-demo", "2 · Downloads  (B)", "3 · …"), statuses "Only in A", "B newer"; behind it a pane path bar with the A/B buttons. | light | both | — pane pop-up open in the A/B picker; not generated yet |
+| `terminal.png` | 11 | A pane with the terminal below it, showing a `cd` and an echoed `cp -R` file action with "done". | dark | both | ✅ generated (dark; a scripted container shell through the terminal plugin's remote override, never a login shell) |
+| `git-panel.png` | 12 | File list with Git badges (modified, untracked, staged) and the Git panel with Staged/Changes groups and a commit message. | both | both | ✅ generated (light; a throwaway repository, made-up authors, no global Git config) |
+| `compare-sync-ab.png` | 13 | Compare & Sync with three panes: cards "Pane A" / "Pane B" with the pane pop-up open ("1 · manta-demo", "2 · Downloads  (B)", "3 · …"), statuses "Only in A", "B newer"; behind it a pane path bar with the A/B buttons. | light | both | ✅ generated (light) |
 | `compare-sync.png` | 13 | Compare & Sync window, two panes, status legend, rows with several statuses, direction →, "Sync N Items" button. | light | both | ✅ generated (light) |
 | `settings-plugins.png` | 14 | Settings → Plugins with the Built-in list. | light | both | ✅ generated (light) |
-| `disk-usage.png` | 14 | Disk Usage panel: treemap plus "Largest Items". | both | both | — not generated yet (renders exist in `i18n_plugin_ux_tests/disk_usage.rs`) |
+| `disk-usage.png` | 14 | Disk Usage panel: treemap plus "Largest Items". | both | both | ✅ generated (light) |
 | `batch-rename.png` | 14 | Batch Rename sheet with two rules (Find & Replace, Numbering) and the live preview with highlights. | light | both | ✅ generated (light) |
 | `project-info.png` | 14 | Project panel for a Laravel demo project: header tags, buttons, Recent, Artisan and Composer sections. | light | both | ✅ generated (light) |
 | `image-tools.png` | 14 | Image panel with a photo: dimensions, colour profile, EXIF camera section, GPS warning. | light | both | ✅ generated (light) |
@@ -62,16 +60,16 @@ Window size for full-window shots: 1440 × 900 pt at 2x, accent colour Blue, def
 
 ## Status per language
 
-All 30 generated images (✅ above) exist in every language; the hand-made and not-yet-generated ones (— above) are missing in all of them.
+All 39 generated images (✅ above) exist in every language. The DMG window and Apple's Quick Look panel are system UI, not drawn by Manta: the manual describes them in words and shows no image of them.
 
 | Language | Folder | Generated | Known problems in the renders (UI, not the crop) |
 |---|---|---|---|
-| German | `de/` | 30/30 ✅ | — |
-| English | `en/` | 30/30 ✅ | — |
-| Simplified Chinese | `zh-Hans/` | 30/30 ✅ (PingFang SC, no tofu) | — |
-| Spanish | `es/` | 30/30 ✅ | — |
-| French | `fr/` | 30/30 ✅ | — |
-| Italian | `it/` | 30/30 ✅ | — |
-| Russian | `ru/` | 30/30 ✅ | — |
+| German | `de/` | 39/39 ✅ | — |
+| English | `en/` | 39/39 ✅ | — |
+| Simplified Chinese | `zh-Hans/` | 39/39 ✅ (PingFang SC, no tofu) | — |
+| Spanish | `es/` | 39/39 ✅ | — |
+| French | `fr/` | 39/39 ✅ | — |
+| Italian | `it/` | 39/39 ✅ | — |
+| Russian | `ru/` | 39/39 ✅ | — |
 
-Sample data that stays English in every language on purpose (fixtures, not UI strings): the job titles in `transfers-panel.png`, the release notes in `software-update.png`, the README text in `preview-builtin.png`.
+Sample data that stays English in every language on purpose (fixtures, not UI strings): the job titles in `transfers-panel.png`, the release notes in `software-update.png`, the README text in `preview-builtin.png`, the commit message and history in `git-panel.png`, the shell session in `terminal.png` (only the result line of the echoed copy is translated, as in the app).

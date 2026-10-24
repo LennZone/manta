@@ -439,6 +439,8 @@ pub struct MantaApp {
     /// Test seam: job list shown instead of the transfer manager's snapshot.
     #[cfg(test)]
     fake_jobs: Option<Vec<JobStatus>>,
+    /// "Manta quit unexpectedly last time" (a crash report from an earlier run).
+    pub(crate) crash_notice: Option<crate::crash::Notice>,
 }
 
 /// Optional overrides for [`MantaApp::with_init`].
@@ -492,6 +494,10 @@ pub(crate) struct AppInit {
     /// Get Info lookups (tests: a fake). Default: the system's, except in
     /// unit tests.
     pub info: Option<crate::info::InfoWindows>,
+    /// Where crash reports are looked for at launch ("Manta quit
+    /// unexpectedly last time"). Default: `~/Library/Logs/Manta`, except
+    /// in unit tests (none).
+    pub crash_dir: Option<PathBuf>,
 }
 
 /// The current one-time notice. Raise it for a new notice;
@@ -896,6 +902,17 @@ impl MantaApp {
             launched: Vec::new(),
             #[cfg(test)]
             fake_jobs: None,
+            crash_notice: init
+                .crash_dir
+                .clone()
+                .or_else(|| {
+                    if cfg!(test) {
+                        None
+                    } else {
+                        crate::crash::dir()
+                    }
+                })
+                .and_then(|d| crate::crash::Notice::take(&d)),
         };
         if !cfg!(test) {
             app.folder_views_path = crate::views::FolderViews::default_path();
@@ -1409,6 +1426,27 @@ impl MantaApp {
     }
 
     /// Open an `https://` page in the default browser (tests: recorded).
+    /// A button of the "Manta quit unexpectedly" notice.
+    fn crash_choice(&mut self, choice: crate::crash::Choice) {
+        use crate::crash::Choice;
+        let Some(notice) = &self.crash_notice else {
+            return;
+        };
+        match choice {
+            Choice::Report => {
+                let url = notice.issue_url();
+                self.crash_notice = None;
+                self.open_web_link(url);
+            }
+            // TextEdit (the default for plain text), not Manta itself.
+            Choice::Show => {
+                let path = notice.path.clone();
+                self.launch(vec!["-t".into(), path.into_os_string()]);
+            }
+            Choice::Ignore => self.crash_notice = None,
+        }
+    }
+
     fn open_web_link(&mut self, url: String) {
         if !url.starts_with("https://") {
             return;
@@ -1814,6 +1852,10 @@ impl MantaApp {
                 }
                 let id = self.next_id();
                 let label = fs.label();
+                // Never in a crash report.
+                for s in [&label, &request.config.host, &request.config.username] {
+                    crate::crash::note_sensitive(s);
+                }
                 self.set_success(t!("status.connected", label = label));
                 // Transfers waiting for this server continue.
                 self.transfers
@@ -6591,6 +6633,8 @@ impl MantaApp {
     pub(crate) fn draw(&mut self, ui: &mut egui::Ui) {
         let ctx = ui.ctx().clone();
         crate::a11y::frame(&ctx);
+        // Another frame: panics reported so far didn't end the app.
+        crate::crash::survived();
         crate::native_drag::set_drops_move_by_default(
             &ctx,
             self.prefs.drop_action.moves_by_default(),
@@ -6877,10 +6921,22 @@ impl MantaApp {
                     .any(|pr| pr.contains(r.rect.center()))
             });
 
-        // Toasts sit above the status bar (and the transfers panel).
+        // Toasts sit above the status bar (and the transfers panel), and
+        // above the crash notice when there is one.
         let screen = ctx.content_rect();
-        let bottom =
+        let mut bottom =
             screen.bottom() - 24.0 - space::MD - if self.show_transfers { 210.0 } else { 0.0 };
+        if let Some(notice) = &self.crash_notice {
+            let (choice, top) = crate::crash::notice_ui(
+                &ctx,
+                notice,
+                egui::pos2(screen.right() - space::LG, bottom),
+            );
+            bottom = top - space::SM;
+            if let Some(choice) = choice {
+                self.crash_choice(choice);
+            }
+        }
         if let Some(cmd) = self
             .toasts
             .ui(&ctx, egui::pos2(screen.right() - space::LG, bottom))

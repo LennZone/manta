@@ -54,7 +54,7 @@ fn wait_for(
             return st;
         }
         assert!(
-            start.elapsed() < Duration::from_secs(20),
+            start.elapsed() < Duration::from_secs(60),
             "timed out waiting for {what}: {st:?}"
         );
         std::thread::sleep(Duration::from_millis(2));
@@ -372,7 +372,7 @@ fn restart_while_waiting_asks_again() {
         );
         assert_eq!(question(&tm, id).src.path, p("/s/a.txt"));
         // The journal is written asynchronously; wait (bounded) under load.
-        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        let deadline = std::time::Instant::now() + Duration::from_secs(30);
         let mut text = String::new();
         while std::time::Instant::now() < deadline {
             text = std::fs::read_to_string(&journal).unwrap_or_default();
@@ -382,9 +382,9 @@ fn restart_while_waiting_asks_again() {
             std::thread::sleep(Duration::from_millis(20));
         }
         assert!(text.contains("\"deciding\""), "{text}");
-        // Quit while the question is open.
+        // Quit while the question is open (dropping the manager writes the
+        // journal one last time; no background write can land after it).
     }
-    std::thread::sleep(Duration::from_millis(100));
     let tm = TransferManager::with_options(opts());
     let pending = tm.interrupted();
     assert_eq!(pending.len(), 1, "{pending:?}");
@@ -439,7 +439,6 @@ fn apply_to_all_is_journaled() {
         tm.resolve_conflict(id, ConflictChoice::Skip, true);
         wait_for(&tm, id, "copying big.bin", |s| s.bytes_done > 2048);
     }
-    std::thread::sleep(Duration::from_millis(100));
     let tm = TransferManager::with_options(opts());
     assert_eq!(tm.interrupted()[0].conflict, ConflictPolicy::Skip);
     fs.set_read_throttle(0, None);

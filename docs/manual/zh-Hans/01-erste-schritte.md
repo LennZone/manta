@@ -19,8 +19,6 @@ Manta 是一款 Mac 文件管理器，可以并排显示多个面板。本章介
 > [!IMPORTANT]
 > 请始终从 **应用程序** 文件夹启动 Manta，而不要直接从磁盘映像启动。只有这样，Manta 才能自动更新（[更新](17-updates.md)）并成为你的默认文件管理器。
 
-![磁盘映像的安装窗口](images/dmg-window.png)
-
 ## 首次启动：Gatekeeper {#gatekeeper}
 
 如果你的 Manta 副本未经 Apple 公证，macOS 会在首次启动时阻止它，并显示类似“未打开‘Manta’”的信息。这是 macOS 的安全功能（Gatekeeper），而不是 Manta 的错误。
