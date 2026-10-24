@@ -131,6 +131,8 @@ pub enum SortColumn {
     Size,
     Modified,
     Permissions,
+    /// The folder a search result is in (search results only).
+    Path,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -232,7 +234,12 @@ pub fn compare_entries(
             Ordering::Greater
         };
     }
-    let by_name = || natural_cmp(&a.name, &b.name);
+    // Search results are named by their relative path (unique in the
+    // list); they sort by the file name, then the path.
+    let by_name = || {
+        natural_cmp(display_name(&a.name), display_name(&b.name))
+            .then_with(|| natural_cmp(&a.name, &b.name))
+    };
     let ord = match sort.column {
         SortColumn::Name => by_name(),
         SortColumn::Size => sort_size(a, dir_sizes)
@@ -240,6 +247,9 @@ pub fn compare_entries(
             .then_with(by_name),
         SortColumn::Modified => a.modified.cmp(&b.modified).then_with(by_name),
         SortColumn::Permissions => a.permissions.cmp(&b.permissions).then_with(by_name),
+        SortColumn::Path => {
+            natural_cmp(display_dir(&a.name), display_dir(&b.name)).then_with(by_name)
+        }
     };
     if sort.ascending {
         ord
@@ -257,12 +267,36 @@ pub fn visible_indices(
     filter: &str,
     dir_sizes: &HashMap<String, SizeInfo>,
 ) -> Vec<usize> {
-    let needle = filter.trim().to_lowercase();
+    visible_indices_tagged(entries, sort, show_hidden, filter, dir_sizes, None)
+}
+
+/// [`visible_indices`] where the filter may name tags (`tag:Rot`, see
+/// [`crate::tags::split_filter`]); `tags` are the items' tags by name.
+pub fn visible_indices_tagged(
+    entries: &[Entry],
+    sort: SortSpec,
+    show_hidden: bool,
+    filter: &str,
+    dir_sizes: &HashMap<String, SizeInfo>,
+    tags: Option<&crate::tags::FolderTags>,
+) -> Vec<usize> {
+    let (want_tags, rest) = crate::tags::split_filter(filter);
+    let needle = rest.trim().to_lowercase();
     let mut idx: Vec<usize> = entries
         .iter()
         .enumerate()
-        .filter(|(_, e)| show_hidden || !(e.hidden || e.name.starts_with('.')))
-        .filter(|(_, e)| needle.is_empty() || e.name.to_lowercase().contains(&needle))
+        .filter(|(_, e)| show_hidden || !(e.hidden || display_name(&e.name).starts_with('.')))
+        .filter(|(_, e)| {
+            needle.is_empty() || display_name(&e.name).to_lowercase().contains(&needle)
+        })
+        .filter(|(_, e)| {
+            want_tags.is_empty()
+                || crate::tags::matches_tags(
+                    tags.and_then(|t| t.get(&e.name))
+                        .map_or(&[], |v| v.as_slice()),
+                    &want_tags,
+                )
+        })
         .map(|(i, _)| i)
         .collect();
     idx.sort_by(|&x, &y| compare_entries(&entries[x], &entries[y], sort, dir_sizes));
@@ -318,6 +352,20 @@ pub fn validate_file_name(name: &str) -> Result<(), String> {
         Some(NameProblem::Reserved) => Err(t!("error.name_reserved").into()),
         Some(NameProblem::Slash) => Err(t!("error.name_slash").into()),
     }
+}
+
+/// The name to show for an entry: its file name. Search results are named
+/// by their path relative to where the search started (`src/main.rs`,
+/// unique in the list); file names never contain `/`.
+pub fn display_name(name: &str) -> &str {
+    name.rsplit('/').next().unwrap_or(name)
+}
+
+/// The folder part of a search result's name (`src` for `src/main.rs`,
+/// `/` for `/main.rs`, empty for a plain name).
+pub fn display_dir(name: &str) -> &str {
+    name.rsplit_once('/')
+        .map_or("", |(d, _)| if d.is_empty() { "/" } else { d })
 }
 
 /// Identity of a backend instance (two tabs share a backend iff the Arcs match).

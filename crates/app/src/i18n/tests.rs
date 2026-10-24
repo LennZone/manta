@@ -20,6 +20,10 @@ const SAME_IN_GERMAN: &[&str] = &[
     "Kubernetes",
     "Git",
     "Name",
+    // Finder says "Tags" in German too.
+    "Tags",
+    "Tags:",
+    "Tags: {names}",
     "Cloud",
     "Google Drive",
     "Status",

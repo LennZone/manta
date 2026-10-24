@@ -8,6 +8,7 @@ mod app;
 mod commands;
 mod common;
 mod dialogs;
+mod finder;
 mod help;
 mod pane;
 mod panels;
@@ -23,6 +24,7 @@ pub const ALL: &[Translations] = &[
     commands::ENTRIES,
     common::ENTRIES,
     dialogs::ENTRIES,
+    finder::ENTRIES,
     help::ENTRIES,
     pane::ENTRIES,
     panels::ENTRIES,

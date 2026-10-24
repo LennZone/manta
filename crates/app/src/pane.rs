@@ -14,6 +14,7 @@ use crate::app::{Action, Side};
 use crate::commands::Cmd;
 use crate::icons;
 use crate::plugin_ui;
+use crate::search::{filter_changed, scope_bar_hold_id};
 use crate::theme::{self, pal, radius, size, space, text, Palette};
 use crate::util::{self, SortColumn, SortSpec};
 use crate::widgets::{self, ButtonKind};
@@ -283,6 +284,20 @@ pub struct Tab {
     /// Sync states of the items (by name) when the folder is in a cloud
     /// folder (iCloud Drive, `~/Library/CloudStorage`); set by the app.
     pub cloud: Option<std::sync::Arc<crate::cloud::FolderSync>>,
+    /// Finder tags of the items (by name): read in the background for
+    /// local folders (see [`crate::tags::TagStore`]), or the search
+    /// results' tags. Set by the app.
+    pub tags: Option<std::sync::Arc<crate::tags::FolderTags>>,
+    /// The `listing_gen` the tags were read for (a new listing reads them
+    /// again).
+    pub tags_listing: u64,
+    /// The scope bar's choice: This Folder (the filter), Subfolders or
+    /// This Mac (a search).
+    pub scope: crate::search::Scope,
+    /// The search shown instead of the folder's items (a virtual location).
+    pub search: Option<crate::search::Search>,
+    /// When the typed query (re)starts the search (typing is debounced).
+    pub search_due: Option<Instant>,
 }
 
 impl Tab {
@@ -323,8 +338,74 @@ impl Tab {
             pending_select_first: false,
             listed_at: None,
             cloud: None,
+            tags: None,
+            tags_listing: 0,
+            scope: crate::search::Scope::Folder,
+            search: None,
+            search_due: None,
             view_state: Default::default(),
         }
+    }
+
+    /// The pane shows search results (a virtual location).
+    pub fn in_search(&self) -> bool {
+        self.search.is_some()
+    }
+
+    /// The tags of the entry named `name`.
+    pub fn tags_of(&self, name: &str) -> &[crate::tags::Tag] {
+        self.tags
+            .as_deref()
+            .and_then(|t| t.get(name))
+            .map_or(&[], |v| v.as_slice())
+    }
+
+    /// Show search results from now on: the folder's items go, the results
+    /// come in as they are found ([`Self::add_results`]).
+    pub fn begin_search(&mut self, search: crate::search::Search) {
+        // A listing still on its way is stale now.
+        self.gen += 1;
+        self.loading = false;
+        self.loading_since = None;
+        self.error = None;
+        self.entries.clear();
+        self.view.clear();
+        self.selected.clear();
+        self.cursor = None;
+        self.anchor = None;
+        self.scroll_offset = 0.0;
+        self.dir_sizes.clear();
+        self.tags = Some(search.tags.clone());
+        self.search = Some(search);
+        self.listing_gen += 1;
+    }
+
+    /// Results that arrived: add them, keep the selection.
+    pub fn add_results(&mut self, hits: Vec<crate::search::Hit>) {
+        if hits.is_empty() {
+            return;
+        }
+        self.entries.extend(hits.into_iter().map(|h| h.entry));
+        if let Some(s) = &self.search {
+            self.tags = Some(s.tags.clone());
+        }
+        self.listing_gen += 1;
+        self.rebuild_view();
+    }
+
+    /// Leave the search (the caller lists the folder again).
+    pub fn end_search(&mut self) {
+        if let Some(mut s) = self.search.take() {
+            s.stop();
+        }
+        self.search_due = None;
+        self.tags = None;
+        self.tags_listing = 0;
+        self.entries.clear();
+        self.view.clear();
+        self.selected.clear();
+        self.cursor = None;
+        self.anchor = None;
     }
 
     /// New tab at the same location with the same view settings.
@@ -336,6 +417,9 @@ impl Tab {
     }
 
     pub fn title(&self) -> String {
+        if let Some(s) = &self.search {
+            return s.query.title();
+        }
         if let Some(t) = trash_label(self.loc.conn, self.loc.archive.is_some(), &self.loc.path) {
             return t;
         }
@@ -374,12 +458,15 @@ impl Tab {
     /// Rebuild `view` from `entries`; `cursor`/`anchor` are names captured
     /// *before* `entries` changed (the old `view` indices may be invalid).
     fn rebuild_view_keeping(&mut self, cursor_name: Option<String>, anchor_name: Option<String>) {
-        self.view = util::visible_indices(
+        // Search results already match the query (it is the filter text).
+        let filter = if self.in_search() { "" } else { &self.filter };
+        self.view = util::visible_indices_tagged(
             &self.entries,
             self.sort,
             self.show_hidden,
-            &self.filter,
+            filter,
             &self.dir_sizes,
+            self.tags.as_deref(),
         );
         let visible: BTreeSet<String> = self.view_entries().map(|e| e.name.clone()).collect();
         self.selected.retain(|n| visible.contains(n));
@@ -714,6 +801,9 @@ pub struct PaneInfo<'a> {
     pub thumbs: Option<&'a crate::thumbs::Thumbs>,
     /// Load thumbnails of small images on servers (a setting).
     pub remote_thumbs: bool,
+    /// Finder tags of the visible folders (the Columns view's other
+    /// columns read theirs here).
+    pub tags: Option<&'a crate::tags::TagStore>,
 }
 
 /// A plugin command in the file list's context menu.
@@ -826,6 +916,23 @@ pub fn pane_ui(
         rect.min.y = bar.bottom();
         ui.painter()
             .hline(rect.x_range(), rect.top(), Stroke::new(1.0, p.separator));
+        // While searching (or about to): This Folder / Subfolders / This Mac.
+        if crate::search::scope_bar_visible(ui.ctx(), side, tab) {
+            let r = egui::Rect::from_min_size(
+                rect.min,
+                egui::vec2(rect.width(), crate::search::SCOPE_BAR_H),
+            );
+            crate::search::scope_bar(ui, r, side, tab, actions);
+            rect.min.y = r.bottom();
+            ui.painter()
+                .hline(rect.x_range(), rect.top(), Stroke::new(1.0, p.separator));
+        }
+        // Search results are a list (the Columns view shows folders).
+        let view = if tab.in_search() && view == crate::views::ViewMode::Columns {
+            crate::views::ViewMode::List
+        } else {
+            view
+        };
         let mut list_rect = rect;
         if let Some(b) = bottom {
             let wanted = if b.height > 0.0 {
@@ -1194,9 +1301,14 @@ fn path_bar(
             egui::vec2(filter_w, size::FIELD),
         );
         let id = filter_field_id(side);
+        let hint = if tab.scope == crate::search::Scope::Folder {
+            t!("pane.filter")
+        } else {
+            t!("search.placeholder")
+        };
         let fresp = ui
             .scope_builder(egui::UiBuilder::new().max_rect(filter_rect), |ui| {
-                widgets::search_field(ui, &mut tab.filter, t!("pane.filter"), id, filter_w)
+                widgets::search_field(ui, &mut tab.filter, hint, id, filter_w)
             })
             .inner;
         if std::mem::take(&mut tab.filter_focus) {
@@ -1204,12 +1316,26 @@ fn path_bar(
             tab.filter_open = true;
         }
         if fresp.changed() {
-            tab.rebuild_view();
+            filter_changed(side, tab, actions);
+        }
+        if fresp.lost_focus()
+            && ui.input(|i| i.key_pressed(egui::Key::Enter))
+            && tab.scope != crate::search::Scope::Folder
+            && !tab.filter.trim().is_empty()
+        {
+            // Return searches right away.
+            tab.search_due = Some(Instant::now());
         }
         if fresp.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Escape)) {
             tab.filter.clear();
-            tab.rebuild_view();
+            filter_changed(side, tab, actions);
+            // Esc closes the search entirely, like Finder.
+            tab.scope = crate::search::Scope::Folder;
             fresp.surrender_focus();
+        }
+        if fresp.has_focus() {
+            ui.ctx()
+                .data_mut(|d| d.insert_temp(scope_bar_hold_id(side), Instant::now()));
         }
         if collapsible && tab.filter.is_empty() && !ui.memory(|m| m.has_focus(id)) {
             tab.filter_open = false;
@@ -1563,6 +1689,11 @@ fn breadcrumb(
     actions: &mut Vec<Action>,
 ) {
     let p = pal(ui);
+    if tab.in_search() {
+        // A virtual location: "Search: “report” in Projects".
+        crate::search::search_crumb(ui, area, side, tab);
+        return;
+    }
     let comps = crumbs(&tab.loc);
     let sep_w = 16.0;
     let pad = CRUMB_PAD;
@@ -1750,13 +1881,18 @@ struct Columns {
     size: Option<egui::Rangef>,
     modified: Option<egui::Rangef>,
     perms: Option<egui::Rangef>,
+    /// Search results: the folder each one is in (instead of Permissions).
+    path: Option<egui::Rangef>,
+    /// Search results at the top level are "in" this folder (its name).
+    root: String,
 }
 
 const ROW_INSET: f32 = 6.0;
 
-fn columns(rect: egui::Rect, widths: &[f32; 3]) -> Columns {
+fn columns(rect: egui::Rect, widths: &[f32; 3], search: bool) -> Columns {
     let w = rect.width();
-    let show_perms = w >= 640.0;
+    let show_perms = w >= 640.0 && !search;
+    let show_path = w >= 420.0 && search;
     let show_mod = w >= 380.0;
     let show_size = w >= 260.0;
     let mut right = rect.right() - ROW_INSET - space::SM;
@@ -1768,6 +1904,7 @@ fn columns(rect: egui::Rect, widths: &[f32; 3]) -> Columns {
         })
     };
     let perms = take(show_perms, widths[2]);
+    let path = take(show_path, (w * 0.32).clamp(120.0, 380.0));
     let modified = take(show_mod, widths[1]);
     let size = take(show_size, widths[0]);
     Columns {
@@ -1775,6 +1912,8 @@ fn columns(rect: egui::Rect, widths: &[f32; 3]) -> Columns {
         size,
         modified,
         perms,
+        path,
+        root: String::new(),
     }
 }
 
@@ -1792,7 +1931,10 @@ fn file_list(
         return;
     }
 
-    let cols = columns(rect, widths);
+    let mut cols = columns(rect, widths, tab.in_search());
+    if tab.in_search() {
+        cols.root = crate::search::root_label(&tab.loc);
+    }
     let header = egui::Rect::from_min_size(rect.min, egui::vec2(rect.width(), size::HEADER));
     header_row(ui, header, &cols, side, tab, widths);
     let body_rect = egui::Rect::from_min_max(egui::pos2(rect.left(), header.bottom()), rect.max);
@@ -1898,6 +2040,7 @@ fn file_list(
                                 hovered: resp.hovered(),
                                 dir_size,
                                 sync,
+                                tags: tab.tags_of(&entry.name),
                             },
                             &cols,
                             now,
@@ -1999,7 +2142,7 @@ pub(crate) fn a11y_entry(
     let Some(e) = tab.entry_at(vi) else {
         return;
     };
-    let label = crate::a11y::entry_label(
+    let mut label = crate::a11y::entry_label(
         e,
         now,
         e.is_dir().then(|| tab.dir_sizes.get(&e.name)).flatten(),
@@ -2009,6 +2152,10 @@ pub(crate) fn a11y_entry(
             .map(|i| i.state),
         info.decorations.get(&e.name),
     );
+    if let Some(t) = crate::tags::spoken(tab.tags_of(&e.name)) {
+        label.push_str(", ");
+        label.push_str(&t);
+    }
     crate::a11y::file_item(
         resp,
         &label,
@@ -2186,6 +2333,44 @@ pub(crate) fn empty_states(
         } else {
             ui.ctx().request_repaint_after(Duration::from_millis(220));
         }
+    } else if let Some(s) = &tab.search {
+        if s.running {
+            let c = body_rect.center() - egui::vec2(0.0, 30.0);
+            ui.put(
+                egui::Rect::from_center_size(c, egui::vec2(24.0, 24.0)),
+                egui::Spinner::new().size(22.0).color(p.text_secondary),
+            );
+            ui.painter().text(
+                c + egui::vec2(0.0, 26.0),
+                egui::Align2::CENTER_TOP,
+                t!("search.searching_title"),
+                theme::regular(text::BODY),
+                p.text_secondary,
+            );
+        } else {
+            let title = t!("search.no_results");
+            // Nothing below this folder: offer the whole Mac.
+            let offer_mac = s.scope == crate::search::Scope::Subfolders
+                && crate::search::mac_available(&tab.loc);
+            let buttons: Vec<(&str, ButtonKind)> = if offer_mac {
+                vec![(t!("search.try_mac"), ButtonKind::Secondary)]
+            } else {
+                Vec::new()
+            };
+            if widgets::empty_state(
+                ui,
+                body_rect,
+                icons::MAGNIFYING_GLASS,
+                p.text_tertiary,
+                title,
+                "",
+                &buttons,
+            )
+            .is_some()
+            {
+                actions.push(Action::SetSearchScope(side, crate::search::Scope::Mac));
+            }
+        }
     } else if !tab.filter.is_empty() {
         let title = t!("pane.no_match", filter = tab.filter.trim());
         if widgets::empty_state(
@@ -2351,7 +2536,7 @@ fn header_row(
         rect.bottom() - 0.5,
         Stroke::new(1.0, p.separator),
     );
-    let entries: [(&str, Option<egui::Rangef>, SortColumn, bool); 4] = [
+    let entries: [(&str, Option<egui::Rangef>, SortColumn, bool); 5] = [
         (
             t!("pane.col.name"),
             Some(egui::Rangef::new(cols.name.min + 24.0, cols.name.max)),
@@ -2371,6 +2556,8 @@ fn header_row(
             SortColumn::Permissions,
             false,
         ),
+        // Search results: where each one is (sized with the pane).
+        (t!("search.col.path"), cols.path, SortColumn::Path, false),
     ];
     for (idx, (label, range, col, right)) in entries.into_iter().enumerate() {
         let Some(range) = range else { continue };
@@ -2421,7 +2608,7 @@ fn header_row(
             tab.rebuild_view();
         }
         // Resize handle on the left edge of the fixed-width columns.
-        if idx > 0 {
+        if (1..=3).contains(&idx) {
             let h = egui::Rect::from_x_y_ranges(
                 egui::Rangef::new(range.min - 9.0, range.min - 3.0),
                 rect.y_range(),
@@ -2460,6 +2647,8 @@ struct RowState<'a> {
     dir_size: Option<&'a SizeInfo>,
     /// Sync state in a cloud folder (badge for cloud-only items etc.).
     sync: Option<manta_vfs::cloud_local::SyncState>,
+    /// Finder tags (coloured dots after the name).
+    tags: &'a [crate::tags::Tag],
 }
 
 /// Tooltip of a measured folder size: both sizes and the file count.
@@ -2623,8 +2812,14 @@ fn paint_row(
     if sync_rect.is_some() {
         reserve += 20.0;
     }
+    // Finder tags: coloured dots right after the name.
+    const DOT: f32 = 9.0;
+    let dots_w = crate::tags::dots_width(s.tags, DOT);
+    if dots_w > 0.0 {
+        reserve += dots_w + space::SM;
+    }
     let mut job = egui::text::LayoutJob::simple_singleline(
-        e.name.clone(),
+        util::display_name(&e.name).to_string(),
         theme::regular(text::BODY),
         name_color,
     );
@@ -2632,8 +2827,33 @@ fn paint_row(
         (cols.name.max - text_left - reserve).max(10.0),
     );
     let g = painter.layout_job(job);
-    let name_w = g.size().x;
+    let mut name_w = g.size().x;
     painter.galley(egui::pos2(text_left, cy - g.size().y / 2.0), g, name_color);
+    if dots_w > 0.0 {
+        // On the selection the dots get a light ring (a blue tag stays
+        // visible on the blue row).
+        let ring = if s.selected {
+            if s.active {
+                p.text_on_accent
+            } else {
+                p.selection_inactive
+            }
+        } else if s.index % 2 == 1 {
+            p.stripe
+        } else {
+            p.content
+        };
+        crate::tags::paint_dots(
+            painter,
+            text_left + name_w + space::SM,
+            cy,
+            s.tags,
+            DOT,
+            ring,
+            p.dark,
+        );
+        name_w += dots_w + space::SM;
+    }
     let badge_rect = (badges_w > 0.0 && cols.name.max - text_left > badges_w + 24.0).then(|| {
         plugin_ui::paint_badges(
             ui,
@@ -2739,6 +2959,17 @@ fn paint_row(
             c,
         );
     }
+    if let Some(r) = cols.path {
+        // The folder the result is in, cut from the start ("…/src/app").
+        let g = widgets::truncate_start(
+            ui,
+            &crate::search::where_label(&e.name, &cols.root),
+            small,
+            sub_color,
+            r.span(),
+        );
+        painter.galley(egui::pos2(r.min, cy - g.size().y / 2.0), g, sub_color);
+    }
     (badge_rect, sync_rect)
 }
 
@@ -2795,6 +3026,10 @@ pub(crate) struct MenuCtx {
     trash: bool,
     /// "Download Now" / "Remove Download" (cloud folders).
     cloud: crate::cloud::MenuOffer,
+    /// The Tags submenu (items on this Mac).
+    tags: Option<crate::tags::TagMenu>,
+    /// The pane shows search results ("Show in Enclosing Folder").
+    search: bool,
 }
 
 impl MenuCtx {
@@ -2830,7 +3065,19 @@ impl MenuCtx {
                     .map(|e| (e.name.clone(), e.is_dir()))
                     .collect::<Vec<_>>(),
             ),
+            tags: (crate::tags::taggable(&tab.loc) && !sel.is_empty()).then(|| {
+                let selection: Vec<&[crate::tags::Tag]> =
+                    sel.iter().map(|e| tab.tags_of(&e.name)).collect();
+                crate::tags::TagMenu::new(&crate::tags::known(ctx), &selection)
+            }),
+            search: tab.in_search(),
         }
+    }
+
+    /// The Tags submenu's state (tests).
+    #[cfg(test)]
+    pub(crate) fn tag_menu(&self) -> Option<&crate::tags::TagMenu> {
+        self.tags.as_ref()
     }
 }
 
@@ -2917,6 +3164,27 @@ pub(crate) fn context_menu(
         );
     }
     menu_item(ui, Cmd::QuickLook, true, actions, Action::Preview(side));
+    menu_item(ui, Cmd::GetInfo, true, actions, Action::GetInfo(side));
+    if m.search {
+        plain_item(
+            ui,
+            icons::FOLDER_OPEN,
+            t!("search.reveal"),
+            Cmd::EnclosingFolder.shortcut(),
+            true,
+            actions,
+            Action::RevealResult(side),
+        );
+    }
+    if let Some(menu) = &m.tags {
+        let mut edit = None;
+        ui.menu_button(format!("{}   {}", icons::TAG, t!("tags.menu")), |ui| {
+            edit = crate::tags::tags_menu(ui, menu)
+        });
+        if let Some(e) = edit {
+            actions.push(Action::SetTag(side, e));
+        }
+    }
     if m.cloud.download || m.cloud.evict {
         ui.separator();
         if m.cloud.download {

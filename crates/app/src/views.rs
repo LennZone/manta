@@ -738,7 +738,7 @@ fn entry_tooltip(
     deco: Option<&MergedDecoration>,
     dir_size: Option<&manta_plugin::SizeInfo>,
 ) -> String {
-    let mut lines = vec![e.name.clone()];
+    let mut lines = vec![util::display_name(&e.name).to_string()];
     if let Some(t) = &e.link_target {
         lines.push(t!("pane.alias_of", target = t));
     }
@@ -1101,8 +1101,32 @@ fn paint_cell(
     } else {
         colors(p, e, deco, false).name
     };
-    let g = name_galley(ui, &e.name, cell.width() - 10.0, name_color, 2);
-    let pos = egui::pos2(cell.center().x, ir.bottom() + NAME_GAP + 1.0);
+    // Finder tags: dots before the name's first line.
+    let tags = tab.tags_of(&e.name);
+    let dots_w = crate::tags::dots_width(tags, 8.0);
+    let room = if dots_w > 0.0 { dots_w + 4.0 } else { 0.0 };
+    let g = name_galley(
+        ui,
+        util::display_name(&e.name),
+        cell.width() - 10.0 - room,
+        name_color,
+        2,
+    );
+    let pos = egui::pos2(cell.center().x + room / 2.0, ir.bottom() + NAME_GAP + 1.0);
+    if let Some(first) = g.rows.first() {
+        if dots_w > 0.0 {
+            let r = first.rect().translate(pos.to_vec2());
+            crate::tags::paint_dots(
+                ui.painter(),
+                r.left() - room - if s.selected { 5.0 } else { 0.0 },
+                r.center().y,
+                tags,
+                8.0,
+                p.content,
+                p.dark,
+            );
+        }
+    }
     if s.selected {
         let fill = if s.active {
             p.selection
@@ -1233,7 +1257,13 @@ pub fn gallery_view(
             }
             // Details under the preview.
             let mut y = detail_top;
-            let g = name_galley(ui, &e.name, stage.width() - 4.0 * space::XL, p.text, 1);
+            let g = name_galley(
+                ui,
+                util::display_name(&e.name),
+                stage.width() - 4.0 * space::XL,
+                p.text,
+                1,
+            );
             let g = {
                 // Medium weight for the title.
                 let mut job = (*g.job).clone();
@@ -1242,6 +1272,23 @@ pub fn gallery_view(
                 }
                 ui.painter().layout_job(job)
             };
+            // Finder tags: dots before the title.
+            let tags = tab.tags_of(&e.name);
+            if let Some(first) = g.rows.first() {
+                let r = first.rect().translate(egui::vec2(stage.center().x, y));
+                let w = crate::tags::dots_width(tags, 9.0);
+                if w > 0.0 {
+                    crate::tags::paint_dots(
+                        ui.painter(),
+                        r.left() - w - 5.0,
+                        r.center().y,
+                        tags,
+                        9.0,
+                        p.content,
+                        p.dark,
+                    );
+                }
+            }
             ui.painter()
                 .galley(egui::pos2(stage.center().x, y), g, p.text);
             y += 20.0;
@@ -1825,6 +1872,7 @@ pub fn columns_view(
                         active_column(ui, col, info, tab, &mut ev, &menu, actions);
                     } else {
                         let highlight = chain.get(i + 1).map(|c| c.file_name().to_string());
+                        let tags = folder_tags(info, tab, path);
                         other_column(
                             ui,
                             col,
@@ -1833,6 +1881,7 @@ pub fn columns_view(
                             path,
                             highlight.as_deref(),
                             false,
+                            tags.as_deref(),
                             &mut out_actions,
                         );
                     }
@@ -1844,7 +1893,18 @@ pub fn columns_view(
                         egui::pos2(full.left() + xs[i], full.top()),
                         egui::vec2(width_of(i, widths), full.height()),
                     );
-                    other_column(ui, col, side, tab, d, None, true, &mut out_actions);
+                    let tags = folder_tags(info, tab, d);
+                    other_column(
+                        ui,
+                        col,
+                        side,
+                        tab,
+                        d,
+                        None,
+                        true,
+                        tags.as_deref(),
+                        &mut out_actions,
+                    );
                     column_edge(ui, col, side, tab.id, i, &mut resize, &mut reset);
                 }
                 if preview {
@@ -1935,6 +1995,7 @@ fn column_row(
     on_accent: bool,
     deco: Option<&MergedDecoration>,
     right_text: Option<String>,
+    tags: &[crate::tags::Tag],
 ) {
     let p = pal(ui);
     let inset = r.shrink2(egui::vec2(space::XS, 0.0));
@@ -2003,13 +2064,47 @@ fn column_row(
         theme::regular(text::BODY),
         c.name,
     );
-    job.wrap = egui::text::TextWrapping::truncate_at_width((right - ir.right() - 7.0).max(10.0));
+    // Finder tags: dots after the name.
+    let dots_w = crate::tags::dots_width(tags, 8.0);
+    let reserve = if dots_w > 0.0 {
+        dots_w + space::SM
+    } else {
+        0.0
+    };
+    job.wrap =
+        egui::text::TextWrapping::truncate_at_width((right - ir.right() - 7.0 - reserve).max(10.0));
     let g = ui.painter().layout_job(job);
+    let name_w = g.size().x;
     ui.painter().galley(
         egui::pos2(ir.right() + 6.0, r.center().y - g.size().y / 2.0),
         g,
         c.name,
     );
+    if dots_w > 0.0 {
+        let ring = fill.unwrap_or(p.content);
+        crate::tags::paint_dots(
+            ui.painter(),
+            ir.right() + 6.0 + name_w + space::SM,
+            r.center().y,
+            tags,
+            8.0,
+            ring,
+            p.dark,
+        );
+    }
+}
+
+/// The tags of a column's folder (local folders, once read).
+fn folder_tags(
+    info: &PaneInfo<'_>,
+    tab: &Tab,
+    path: &VfsPath,
+) -> Option<std::sync::Arc<crate::tags::FolderTags>> {
+    let store = info.tags?;
+    if !crate::tags::taggable(&tab.loc) {
+        return None;
+    }
+    store.get(&tab.loc.fs.local_path(path)?)
 }
 
 /// The active column: the tab's own entries, selection and cursor.
@@ -2092,6 +2187,7 @@ fn active_column(
                         selected && active,
                         deco,
                         size.map(pane::size_label),
+                        tab.tags_of(&e.name),
                     );
                     if tab.cursor == Some(vi) && active && tab.selected.len() > 1 {
                         ui.painter().rect_stroke(
@@ -2179,6 +2275,7 @@ fn other_column(
     path: &VfsPath,
     highlight: Option<&str>,
     next: bool,
+    tags: Option<&crate::tags::FolderTags>,
     actions: &mut Vec<Action>,
 ) {
     let p = pal(ui);
@@ -2285,7 +2382,10 @@ fn other_column(
                 } else {
                     None
                 };
-                column_row(ui, r, e, fill, false, None, None);
+                let t = tags
+                    .and_then(|t| t.get(&e.name))
+                    .map_or(&[][..], |v| v.as_slice());
+                column_row(ui, r, e, fill, false, None, None, t);
                 if resp.clicked() {
                     clicked = Some(e.name.clone());
                 }

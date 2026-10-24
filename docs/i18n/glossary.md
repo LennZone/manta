@@ -32,6 +32,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 |---|---|---|---|---|---|---|---|
 | `cmd.open` | Open | Öffnen | 打开 | Abrir | Ouvrir | Apri | Открыть |
 | `cmd.quick_look` | Quick Look | Schnellansicht | 快速查看 | Vista Rápida | Coup d’œil | Visualizzazione rapida | Быстрый просмотр |
+| `cmd.get_info` | Get Info | Informationen | 显示简介 | Obtener información | Lire les informations | Ottieni informazioni | Свойства |
 | `cmd.enclosing_folder` | Enclosing Folder | Übergeordneter Ordner | 上层文件夹 | Carpeta contenedora | Dossier parent | Cartella superiore | Папка уровнем выше |
 | `cmd.back` | Back | Zurück | 返回 | Atrás | Précédent | Indietro | Назад |
 | `cmd.forward` | Forward | Vorwärts | 前进 | Adelante | Suivant | Avanti | Вперед |
@@ -743,6 +744,75 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `menu.go` | Go | Gehe zu | 前往 | Ir | Aller | Vai | Переход |
 | `menu.window` | Window | Fenster | 窗口 | Ventana | Fenêtre | Finestra | Окно |
 | `menu.manual` | Manta Manual | Manta-Handbuch | Manta 手册 | Manual de Manta | Manuel de Manta | Manuale di Manta | Руководство Manta |
+
+## App: Tags, search and Get Info
+
+| key | en | de | zh-Hans | es | fr | it | ru |
+|---|---|---|---|---|---|---|---|
+| `tags.menu` | Tags | Tags | 标签 | Etiquetas | Tags | Tag | Теги |
+| `tags.color.red` | Red | Rot | 红色 | Rojo | Rouge | Rosso | Красный |
+| `tags.color.orange` | Orange | Orange | 橙色 | Naranja | Orange | Arancione | Оранжевый |
+| `tags.color.yellow` | Yellow | Gelb | 黄色 | Amarillo | Jaune | Giallo | Желтый |
+| `tags.color.green` | Green | Grün | 绿色 | Verde | Vert | Verde | Зеленый |
+| `tags.color.blue` | Blue | Blau | 蓝色 | Azul | Bleu | Blu | Синий |
+| `tags.color.purple` | Purple | Lila | 紫色 | Morado | Violet | Viola | Фиолетовый |
+| `tags.color.gray` | Gray | Grau | 灰色 | Gris | Gris | Grigio | Серый |
+| `tags.color.none` | No Color | Keine Farbe | 无颜色 | Sin color | Aucune couleur | Nessun colore | Без цвета |
+| `tags.add_named` | Add Tag “{name}” | Tag „{name}“ hinzufügen | 添加标签“{name}” | Añadir la etiqueta “{name}” | Ajouter le tag « {name} » | Aggiungi il tag “{name}” | Добавить тег «{name}» |
+| `tags.remove_named` | Remove Tag “{name}” | Tag „{name}“ entfernen | 移除标签“{name}” | Eliminar la etiqueta “{name}” | Supprimer le tag « {name} » | Rimuovi il tag “{name}” | Удалить тег «{name}» |
+| `tags.spoken` | Tags: {names} | Tags: {names} | 标签：{names} | Etiquetas: {names} | Tags : {names} | Tag: {names} | Теги: {names} |
+| `tags.failed` | Couldn't change the tags | Die Tags konnten nicht geändert werden | 无法更改标签 | No se han podido cambiar las etiquetas | Impossible de modifier les tags | Impossibile modificare i tag | Не удалось изменить теги |
+| `sidebar.tags` | Tags | Tags | 标签 | Etiquetas | Tags | Tag | Теги |
+| `search.scope.folder` | This Folder | Dieser Ordner | 此文件夹 | Esta carpeta | Ce dossier | Questa cartella | Эта папка |
+| `search.scope.subfolders` | Subfolders | Unterordner | 子文件夹 | Subcarpetas | Sous-dossiers | Sottocartelle | Вложенные папки |
+| `search.scope.mac` | This Mac | Dieser Mac | 此 Mac | Este Mac | Ce Mac | Questo Mac | Этот Mac |
+| `search.title` | Search: “{query}” | Suche: „{query}“ | 搜索：“{query}” | Búsqueda: “{query}” | Recherche : « {query} » | Ricerca: “{query}” | Поиск: «{query}» |
+| `search.title_tag` | Tag “{name}” | Tag „{name}“ | 标签“{name}” | Etiqueta “{name}” | Tag « {name} » | Elementi con tag “{name}” | Тег «{name}» |
+| `search.where_folder` | in “{folder}” and below | in „{folder}“ und darunter | 位于“{folder}”及其子文件夹 | en “{folder}” y sus subcarpetas | dans « {folder} » et ses sous-dossiers | in “{folder}” e nelle sottocartelle | в «{folder}» и вложенных папках |
+| `search.where_mac` | on This Mac | auf diesem Mac | 在此 Mac 上 | en este Mac | sur ce Mac | su questo Mac | на этом Mac |
+| `search.col.path` | Path | Pfad | 路径 | Ruta | Chemin | Percorso | Путь |
+| `search.stop` | Stop Search | Suche stoppen | 停止搜索 | Detener la búsqueda | Arrêter la recherche | Interrompi ricerca | Остановить поиск |
+| `search.searching.one` | Searching… {count} item found | Suche läuft … {count} Objekt gefunden | 正在搜索… 已找到 {count} 项 | Buscando… {count} ítem encontrado | Recherche… {count} élément trouvé | Ricerca in corso… {count} elemento trovato | Поиск… найден {count} объект |
+| `search.searching.other` | Searching… {count} items found | Suche läuft … {count} Objekte gefunden | 正在搜索… 已找到 {count} 项 | Buscando… {count} ítems encontrados | Recherche… {count} éléments trouvés | Ricerca in corso… {count} elementi trovati | Поиск… найдено {count} объекта |
+| `search.found.one` | {count} item found | {count} Objekt gefunden | 找到 {count} 项 | {count} ítem encontrado | {count} élément trouvé | {count} elemento trovato | Найден {count} объект |
+| `search.found.other` | {count} items found | {count} Objekte gefunden | 找到 {count} 项 | {count} ítems encontrados | {count} éléments trouvés | {count} elementi trovati | Найдено {count} объекта |
+| `search.stopped.one` | Stopped – {count} item found | Gestoppt – {count} Objekt gefunden | 已停止 – 找到 {count} 项 | Detenida – {count} ítem encontrado | Arrêtée – {count} élément trouvé | Interrotta – {count} elemento trovato | Остановлено – найден {count} объект |
+| `search.stopped.other` | Stopped – {count} items found | Gestoppt – {count} Objekte gefunden | 已停止 – 找到 {count} 项 | Detenida – {count} ítems encontrados | Arrêtée – {count} éléments trouvés | Interrotta – {count} elementi trovati | Остановлено – найдено {count} объекта |
+| `search.truncated.one` | Showing the first {count} item | Nur das erste Objekt ({count}) wird angezeigt | 仅显示前 {count} 项 | Se muestra solo el primer ítem ({count}) | Seul le premier élément ({count}) est affiché | Viene mostrato solo il primo elemento ({count}) | Показан первый {count} объект |
+| `search.truncated.other` | Showing the first {count} items | Die ersten {count} Objekte werden angezeigt | 仅显示前 {count} 项 | Se muestran los primeros {count} ítems | Les {count} premiers éléments sont affichés | Vengono mostrati i primi {count} elementi | Показаны первые {count} объекта |
+| `search.failed` | The search failed: {error} | Die Suche ist fehlgeschlagen: {error} | 搜索失败：{error} | La búsqueda ha fallado: {error} | La recherche a échoué : {error} | La ricerca non è riuscita: {error} | Поиск не удался: {error} |
+| `search.searching_title` | Searching… | Suche läuft … | 正在搜索… | Buscando… | Recherche en cours… | Ricerca in corso… | Поиск… |
+| `search.try_mac` | Search This Mac | Diesen Mac durchsuchen | 搜索此 Mac | Buscar en este Mac | Rechercher sur ce Mac | Cerca su questo Mac | Искать на этом Mac |
+| `search.reveal` | Show in Enclosing Folder | Im umgebenden Ordner anzeigen | 在所在文件夹中显示 | Mostrar en la carpeta contenedora | Afficher dans le dossier parent | Mostra nella cartella superiore | Показать в папке |
+| `search.not_here` | Not available in search results | In Suchergebnissen nicht verfügbar | 在搜索结果中不可用 | No disponible en los resultados de búsqueda | Non disponible dans les résultats de recherche | Non disponibile nei risultati della ricerca | Недоступно в результатах поиска |
+| `info.title` | {name} Info | Informationen zu „{name}“ | “{name}”简介 | Información de “{name}” | Informations sur « {name} » | Informazioni su “{name}” | Свойства: «{name}» |
+| `info.title_multi.one` | Info: {count} Item | Informationen zu {count} Objekt | {count} 个项目的简介 | Información de {count} ítem | Informations sur {count} élément | Informazioni su {count} elemento | Свойства: {count} объект |
+| `info.title_multi.other` | Info: {count} Items | Informationen zu {count} Objekten | {count} 个项目的简介 | Información de {count} ítems | Informations sur {count} éléments | Informazioni su {count} elementi | Свойства: {count} объекта |
+| `info.name` | Name | Name | 名称 | Nombre | Nom | Nome | Имя |
+| `info.items.one` | {count} item | {count} Objekt | {count} 个项目 | {count} ítem | {count} élément | {count} elemento | {count} объект |
+| `info.items.other` | {count} items | {count} Objekte | {count} 个项目 | {count} ítems | {count} éléments | {count} elementi | {count} объекта |
+| `info.kind_multi` | Multiple items | Mehrere Objekte | 多个项目 | Varios ítems | Plusieurs éléments | Più elementi | Несколько объектов |
+| `info.general` | General | Allgemein | 通用 | General | Général | Generali | Общие |
+| `info.add_tag` | Add Tag | Tag hinzufügen | 添加标签 | Añadir etiqueta | Ajouter un tag | Aggiungi tag | Добавить тег |
+| `info.size_bytes` | {size} ({bytes} bytes) | {size} ({bytes} Byte) | {size}（{bytes} 字节） | {size} ({bytes} bytes) | {size} ({bytes} octets) | {size} ({bytes} byte) | {size} ({bytes} Б) |
+| `info.size_items.one` | {size} for {count} item | {size} für {count} Objekt | {size}，共 {count} 项 | {size} en {count} ítem | {size} pour {count} élément | {size} per {count} elemento | {size} на {count} объект |
+| `info.size_items.other` | {size} for {count} items | {size} für {count} Objekte | {size}，共 {count} 项 | {size} en {count} ítems | {size} pour {count} éléments | {size} per {count} elementi | {size} на {count} объекта |
+| `info.counting` | {size} – counting… | {size} – wird gezählt … | {size} – 正在计算… | {size} – calculando… | {size} – calcul en cours… | {size} – calcolo in corso… | {size} – подсчет… |
+| `info.locked` | Locked | Geschützt | 已锁定 | Bloqueado | Verrouillé | Bloccato | Защита |
+| `info.hidden` | Hidden | Unsichtbar | 隐藏 | Oculto | Masqué | Nascosto | Скрытый |
+| `info.comments` | Comments | Kommentare | 注释 | Comentarios | Commentaires | Commenti | Комментарии |
+| `info.no_comment` | No comment | Kein Kommentar | 无注释 | Sin comentario | Aucun commentaire | Nessun commento | Нет комментария |
+| `info.open_with` | Open with | Öffnen mit | 打开方式 | Abrir con | Ouvrir avec | Apri con | Открывать в программе |
+| `info.no_app` | None | Keines | 无 | Ninguna | Aucune | Nessuna | Нет |
+| `info.open_with_menu` | Open With | Öffnen mit | 打开方式 | Abrir con | Ouvrir avec | Apri con | Открыть в программе |
+| `info.app_default` | {app} (default) | {app} (Standard) | {app}（默认） | {app} (por omisión) | {app} (par défaut) | {app} (predefinita) | {app} (по умолчанию) |
+| `info.permissions` | Sharing & Permissions | Freigabe & Zugriffsrechte | 共享与权限 | Compartir y permisos | Partage et permissions | Condivisione e permessi | Общий доступ и права доступа |
+| `info.owner` | Owner | Eigentümer | 所有者 | Propietario | Propriétaire | Proprietario | Владелец |
+| `info.group` | Group | Gruppe | 群组 | Grupo | Groupe | Gruppo | Группа |
+| `info.everyone` | Everyone | Jeder | 所有人 | Todos | Tout le monde | Tutti | Все |
+| `info.read` | Read | Lesen | 读 | Lectura | Lecture | Lettura | Чтение |
+| `info.write` | Write | Schreiben | 写 | Escritura | Écriture | Scrittura | Запись |
+| `info.execute` | Execute | Ausführen | 执行 | Ejecución | Exécution | Esecuzione | Выполнение |
 
 ## Plugin: Duplicates
 

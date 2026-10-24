@@ -157,6 +157,16 @@ pub(crate) struct Row<'a> {
     pub flash: f32,
     /// Draw the icon filled (the Trash when it has items, like Finder).
     pub fill_icon: bool,
+    /// A tag: a coloured circle instead of the icon (hollow without colour).
+    pub tag_dot: Option<egui::Color32>,
+}
+
+/// The sidebar's Tags section: the user's tags and the one being shown.
+#[derive(Default)]
+pub struct TagRows {
+    pub tags: Vec<crate::tags::Tag>,
+    /// The tag whose search the active pane shows.
+    pub current: Option<String>,
 }
 
 /// Returns (row response, eject clicked).
@@ -220,7 +230,16 @@ pub(crate) fn row(ui: &mut egui::Ui, r: Row<'_>) -> (egui::Response, bool) {
     } else {
         p.accent_text
     };
-    widgets::paint_icon(ui, ir, r.icon, 16.0, icon_color, r.fill_icon);
+    match r.tag_dot {
+        Some(c) if c == egui::Color32::TRANSPARENT => {
+            ui.painter()
+                .circle_stroke(ir.center(), 5.5, Stroke::new(1.2, p.text_secondary));
+        }
+        Some(c) => {
+            ui.painter().circle_filled(ir.center(), 6.0, c);
+        }
+        None => widgets::paint_icon(ui, ir, r.icon, 16.0, icon_color, r.fill_icon),
+    }
     if r.status_dot {
         let c = ir.right_bottom() - egui::vec2(1.0, 2.0);
         ui.painter().circle_filled(
@@ -304,6 +323,7 @@ pub fn sidebar_ui(
     current: &Current,
     containers: &mut crate::containers::Containers,
     flash: Option<(usize, f32)>,
+    tags: &TagRows,
     actions: &mut Vec<Action>,
 ) -> SidebarRects {
     containers.poll(ui.ctx());
@@ -572,6 +592,32 @@ pub fn sidebar_ui(
                     containers.refresh_now();
                 }
                 crate::containers::section_ui(ui, containers, active_key.as_ref(), actions);
+            }
+
+            // Tags (like Finder): a click shows everything with the tag.
+            if !tags.tags.is_empty() {
+                section(ui, t!("sidebar.tags"), None);
+                for t in &tags.tags {
+                    let (resp, _) = row(
+                        ui,
+                        Row {
+                            icon: icons::TAG,
+                            label: &t.name,
+                            selected: tags
+                                .current
+                                .as_deref()
+                                .is_some_and(|c| crate::tags::same_name(c, &t.name)),
+                            tag_dot: Some(t.color.rgb(p.dark)),
+                            ..Row::default()
+                        },
+                    );
+                    if resp
+                        .on_hover_text(t!("sidebar.tag_tip", name = t.name))
+                        .clicked()
+                    {
+                        actions.push(Action::ShowTag(t.name.clone()));
+                    }
+                }
             }
             ui.add_space(space::LG);
         });

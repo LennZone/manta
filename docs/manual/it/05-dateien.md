@@ -243,6 +243,36 @@ Per aprire il Cestino stesso, fai clic su **Cestino** nella barra laterale. Lì 
 > [!CAUTION]
 > Nelle **cartelle cloud** (iCloud Drive, Google Drive, OneDrive, Dropbox) un elemento che sposti nel Cestino sparisce anche dal cloud non appena il tuo Mac si sincronizza. Di solito **Ripristina** lo recupera; alcuni fornitori hanno anche un cestino sul loro sito web. Vedi [Archiviazione cloud](09-cloud.md).
 
+## Tag {#tags}
+
+Manta legge e assegna gli stessi tag del Finder (sono memorizzati insieme al file, quindi il Finder, Spotlight e le altre app li vedono). Gli elementi con tag mostrano dei pallini colorati accanto al nome in tutte le viste: nell’elenco e nelle colonne dopo il nome, in Icone e Galleria prima del nome. I tag funzionano per gli elementi su questo Mac, compresi iCloud Drive e le altre cartelle cloud; server e archivi non ne hanno.
+
+**Aggiungere o rimuovere un tag:**
+
+1. Seleziona gli elementi e apri il menu contestuale.
+2. Scegli **Tag**. In alto ci sono i sette colori: un clic aggiunge il tag a tutti gli elementi selezionati, oppure lo rimuove se ce l’hanno già tutti (un segno di spunta indica che ce l’hanno tutti, un trattino che ce l’hanno solo alcuni). Sotto sono elencati gli altri tuoi tag.
+3. Per creare un nuovo tag, digita il nome in **Nuovo tag…** e premi **↩**.
+
+I tag standard hanno i nomi che il Finder usa sul tuo Mac (ad esempio “Rosso” su un Mac in italiano, “Red” su uno in inglese).
+
+**Trovare gli elementi con tag:** la sezione **Tag** della barra laterale elenca i tuoi tag come li mostra il Finder (se Manta non riesce a leggere l’elenco del Finder, quelli che ha visto sui file). Un clic mostra nel pannello attivo tutto ciò che ha quel tag, trovato da Spotlight. Nel campo del filtro, `tag:Rosso` mostra gli elementi con tag della cartella attuale (vedi [Filtrare i file](04-navigation.md#filtern)).
+
+## Ottieni informazioni {#informationen}
+
+**⌘I** (**Ottieni informazioni**, anche nel menu contestuale e nel menu **File**) apre una finestra Informazioni per la selezione, come nel Finder: una finestra per ogni elemento (richiederla di nuovo la porta in primo piano), una finestra riepilogativa per più elementi. Possono essere aperte fino a sei finestre Informazioni; per aprirne una nuova si chiude la più vecchia. Sono finestre normali: puoi continuare a lavorare nella finestra principale.
+
+Una finestra Informazioni mostra:
+
+- il **nome**: modificalo e premi **↩** per rinominare l’elemento,
+- **Tipo**, **Dimensioni** (cartelle ed elementi multipli vengono calcolati in background), **Posizione**, **Creato**, **Modificato** e **Ultima apertura** (la data di Spotlight),
+- **Tag**: rimuovine uno con la sua ×, aggiungine uno con **Aggiungi tag**,
+- **Bloccato** (l’elemento non può essere modificato, rinominato o spostato nel Cestino) e **Nascosto**,
+- **Commenti**: il commento di Spotlight impostato nel Finder (Manta lo mostra ma non può modificarlo: macOS non offre alcun modo per farlo, a parte gli script per il Finder),
+- **Apri con**: l’app predefinita, e **Apri con** per aprire il file una volta con un’altra app. macOS non offre ad altre app alcun modo pubblico per cambiare l’app di un singolo file, quindi non c’è “Modifica tutto…”; per questo usa il Finder,
+- **Condivisione e permessi**: lettura, scrittura ed esecuzione per proprietario, gruppo e tutti, oltre al valore ottale (come `644`). Su questo Mac e sui server SFTP puoi modificarli direttamente lì (chmod); altrove vengono mostrati in sola lettura.
+
+Gli elementi sui server, nei container e negli archivi mostrano ciò che indica il server (dimensioni, data, permessi).
+
 ## Posizioni di sola lettura {#schreibgeschuetzt}
 
 Negli archivi, nei container arrestati e nei container senza shell non puoi modificare nulla. Lo indica un indicatore **Sola lettura** (o **Arrestato**) nella barra del percorso. Copiare fuori con **F5** o trascinando funziona sempre.

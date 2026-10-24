@@ -112,6 +112,8 @@ pub const SIGNPOST: &str = "\u{E89C}";
 pub const SPINNER: &str = "\u{E66A}";
 pub const STAR: &str = "\u{E46A}";
 pub const STOP: &str = "\u{E46C}";
+/// Finder tags (Phosphor "tag").
+pub const TAG: &str = "\u{E478}";
 pub const TERMINAL: &str = "\u{E47E}";
 pub const TERMINAL_WINDOW: &str = "\u{EAE8}";
 pub const PLAY: &str = "\u{E3D0}";

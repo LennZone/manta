@@ -192,6 +192,7 @@ pub fn command_menus() -> Vec<MenuDef> {
                 c(Open),
                 c(OpenWithApp),
                 c(QuickLook),
+                c(GetInfo),
                 c(CloseTab),
                 None,
                 c(Rename),

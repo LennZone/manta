@@ -76,6 +76,7 @@ Le scorciatoie agiscono sul pannello attivo. Vedi [Viste](03-ansichten.md).
 | Scorciatoia | Comando |
 |---|---|
 | Barra spaziatrice o ⌘Y | Visualizzazione rapida / anteprima (barra spaziatrice o esc la chiude) |
+| ⌘I | Ottieni informazioni |
 | F5 | Copia nell’altro pannello… |
 | F6 | Sposta nell’altro pannello… |
 | F2 | Rinomina… (più elementi: rinomina in blocco) |

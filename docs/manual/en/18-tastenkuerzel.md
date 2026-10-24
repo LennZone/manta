@@ -76,6 +76,7 @@ The shortcuts act on the active pane. See [Views](03-ansichten.md).
 | Shortcut | Command |
 |---|---|
 | Space or ⌘Y | Quick Look / preview (Space or esc closes it) |
+| ⌘I | Get Info |
 | F5 | Copy to Other Pane… |
 | F6 | Move to Other Pane… |
 | F2 | Rename… (several items: batch rename) |

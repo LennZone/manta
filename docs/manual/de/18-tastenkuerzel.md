@@ -76,6 +76,7 @@ Die Kürzel wirken auf den aktiven Bereich. Siehe [Ansichten](03-ansichten.md).
 | Kürzel | Befehl |
 |---|---|
 | Leertaste oder ⌘Y | Schnellansicht / Vorschau (Leertaste oder esc schließt) |
+| ⌘I | Informationen |
 | F5 | In anderen Bereich kopieren … |
 | F6 | In anderen Bereich bewegen … |
 | F2 | Umbenennen … (bei mehreren Objekten: stapelweise) |

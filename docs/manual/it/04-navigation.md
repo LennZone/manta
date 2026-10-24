@@ -85,6 +85,28 @@ Il filtro mostra solo gli elementi il cui nome contiene un certo testo.
 
 Il filtro vale solo per la cartella attuale e per questa scheda. La barra di stato mostra “corrispondenti a “…””. Se nessun elemento corrisponde vedi “Nessun elemento corrisponde a “…”” con un pulsante **Cancella filtro**. **esc** nel campo cancella il filtro. Nei pannelli più stretti (ad esempio due pannelli in una finestra piccola) il campo è una lente: fai clic su di essa o premi **⌘F** per aprirlo; resta aperto finché contiene del testo e si richiude quando è vuoto e fai clic altrove o premi **esc**. Così resta spazio per l’indicatore della posizione e per il percorso; mentre il campo è aperto, i pulsanti della vista si raccolgono in un unico pulsante con menu.
 
+Per filtrare per [tag](05-dateien.md#tags), digita `tag:` seguito dal nome del tag, ad esempio `tag:Rosso` o `tag:"Molto importante"`; funziona anche il nome del colore (`tag:rosso` trova anche un tag rosso chiamato “Urgente”). Si può combinare con un nome: `tag:Rosso fattura`.
+
+## Cercare in più cartelle {#suchen}
+
+Il filtro guarda solo la cartella che vedi. Per cercare anche al suo interno, o in tutto il Mac, usa la barra dell’ambito che compare sotto la barra del percorso mentre usi il campo:
+
+- **Questa cartella**: il filtro descritto sopra.
+- **Sottocartelle**: la cartella e tutto ciò che contiene. Su questo Mac vengono lette più cartelle contemporaneamente; gli elementi nascosti vengono cercati solo quando i file nascosti sono visibili, e il contenuto dei pacchetti (app, librerie di Foto) viene saltato. Sui server, nei container e negli archivi Manta elenca le cartelle una per una, fino a un massimo di 12 livelli di profondità e 5.000 cartelle.
+- **Questo Mac**: Spotlight; nomi *e* contenuto dei file, ovunque Spotlight indicizzi (solo cartelle locali).
+
+1. Premi **⌘F** e digita ciò che cerchi.
+2. Fai clic su **Sottocartelle** o **Questo Mac**. La ricerca parte un istante dopo che hai smesso di digitare (o subito con **↩**).
+
+Un nome corrisponde quando contiene il testo (maiuscole e minuscole non contano). Con `*` o `?` il testo diventa un modello per l’intero nome: `*.pdf`, `report-202?.xlsx`. Anche qui funzionano i termini `tag:`.
+
+Mentre la ricerca è in corso, i risultati riempiono il pannello come elenco: la barra del percorso indica **Ricerca: “…”** e dove si cerca, la barra dell’ambito mostra quanti elementi sono stati trovati e una colonna **Percorso** mostra la cartella in cui si trova ciascuno. Puoi aprire, visualizzare con Visualizzazione rapida, copiare, spostare, rinominare, contrassegnare con tag ed eliminare i risultati come al solito. **Mostra nella cartella superiore** nel menu contestuale (o **⌘↑**) apre la cartella dell’elemento con l’elemento selezionato. Il pulsante di interruzione nella barra dell’ambito ferma una ricerca lunga (i risultati trovati fino a quel momento restano); **⌘R** la esegue di nuovo. Vengono mostrati al massimo 10.000 risultati.
+
+**esc** nel campo di ricerca, **⌘[** o la cancellazione del testo chiudono la ricerca e mostrano di nuovo la cartella; lo stesso avviene se apri un’altra cartella.
+
+Se Sottocartelle non trova nulla, il pannello vuoto propone **Cerca su questo Mac**.
+
+
 ## File nascosti {#unsichtbare-dateien}
 
 I file il cui nome inizia con un punto (come `.git`, `.env`) e i file contrassegnati come nascosti di solito non sono visibili.
@@ -102,5 +124,6 @@ Le cartelle sui **server**, nei **container**, in **S3** e negli **archivi** non
 
 ## Vedi anche
 
+- [Tag e Ottieni informazioni](05-dateien.md#tags)
 - [Preferiti e barra laterale](07-favoriten-seitenleiste.md)
 - [Scorciatoie da tastiera](18-tastenkuerzel.md#navigation)

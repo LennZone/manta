@@ -76,6 +76,7 @@ Les raccourcis agissent sur la sous-fenêtre active. Voir [Présentations](03-an
 | Raccourci | Commande |
 |---|---|
 | Espace ou ⌘Y | Coup d’œil / aperçu (Espace ou esc le ferme) |
+| ⌘I | Lire les informations |
 | F5 | Copier dans l’autre sous-fenêtre… |
 | F6 | Déplacer dans l’autre sous-fenêtre… |
 | F2 | Renommer… (plusieurs éléments : renommage par lot) |

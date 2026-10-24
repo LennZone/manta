@@ -85,6 +85,27 @@ Le filtre n’affiche que les éléments dont le nom contient un certain texte.
 
 Le filtre s’applique uniquement au dossier actuel et à cet onglet. La barre d’état affiche « correspondant à « … » ». Si rien ne correspond, vous voyez « Aucun élément ne correspond à « … » » avec un bouton **Effacer le filtre**. **esc** dans le champ efface le filtre. Dans les sous-fenêtres plus étroites (par exemple deux sous-fenêtres dans une petite fenêtre), le champ prend la forme d’une loupe : cliquez dessus ou appuyez sur **⌘F** pour l’ouvrir ; il reste ouvert tant qu’il contient du texte et se replie lorsqu’il est vide et que vous cliquez ailleurs ou appuyez sur **esc**. Cela laisse de la place pour la pastille d’emplacement et le chemin ; tant que le champ est ouvert, les boutons de présentation se replient en un seul bouton de menu.
 
+Pour filtrer par [tag](05-dateien.md#tags), tapez `tag:` suivi du nom du tag, par exemple `tag:Rouge` ou `tag:"Très important"` ; le nom de la couleur fonctionne aussi (`tag:rouge` trouve également un tag rouge nommé « Urgent »). Vous pouvez le combiner avec un nom : `tag:Rouge facture`.
+
+## Rechercher dans plusieurs dossiers {#suchen}
+
+Le filtre ne porte que sur le dossier affiché. Pour chercher dans ses sous-dossiers, ou sur tout le Mac, utilisez la barre d’étendue qui apparaît sous la barre du chemin d’accès tant que le champ est utilisé :
+
+- **Ce dossier** – le filtre décrit ci-dessus.
+- **Sous-dossiers** – le dossier et tout ce qu’il contient. Sur ce Mac, plusieurs dossiers sont lus en même temps ; les éléments masqués ne sont parcourus que si les fichiers masqués sont affichés, et le contenu des paquets (apps, photothèques) est ignoré. Sur les serveurs, dans les conteneurs et dans les archives, Manta parcourt les dossiers un par un, sur 12 niveaux de profondeur et 5 000 dossiers au maximum.
+- **Ce Mac** – Spotlight : les noms *et* le contenu des fichiers, partout où Spotlight indexe (dossiers locaux uniquement).
+
+1. Appuyez sur **⌘F** et tapez ce que vous cherchez.
+2. Cliquez sur **Sous-dossiers** ou **Ce Mac**. La recherche démarre un instant après la dernière frappe (ou immédiatement avec **↩**).
+
+Un nom correspond s’il contient le texte (majuscules et minuscules sont indifférentes). Avec `*` ou `?`, le texte devient un motif pour le nom entier : `*.pdf`, `report-202?.xlsx`. Les termes `tag:` fonctionnent ici aussi.
+
+Les résultats remplissent la sous-fenêtre sous forme de liste pendant la recherche : la barre du chemin d’accès indique **Recherche : « … »** et l’emplacement, la barre d’étendue indique le nombre d’éléments trouvés, et une colonne **Chemin** montre le dossier de chaque élément. Vous pouvez ouvrir les résultats, les afficher avec Coup d’œil, les copier, les déplacer, les renommer, leur attribuer des tags et les supprimer comme d’habitude. **Afficher dans le dossier parent** dans le menu contextuel (ou **⌘↑**) ouvre le dossier de l’élément avec celui-ci sélectionné. Le bouton d’arrêt de la barre d’étendue interrompt une longue recherche (les résultats déjà trouvés restent) ; **⌘R** la relance. 10 000 résultats au maximum sont affichés.
+
+**esc** dans le champ de recherche, **⌘[** ou l’effacement du texte ferme la recherche et affiche de nouveau le dossier ; ouvrir un autre dossier a le même effet.
+
+Si **Sous-dossiers** ne trouve rien, la sous-fenêtre vide propose **Rechercher sur ce Mac**.
+
 ## Fichiers masqués {#unsichtbare-dateien}
 
 Les fichiers dont le nom commence par un point (comme `.git`, `.env`) et les fichiers marqués comme masqués sont normalement cachés.
@@ -102,5 +123,6 @@ Les dossiers sur des **serveurs**, dans des **conteneurs**, dans **S3** et dans 
 
 ## Voir aussi
 
+- [Tags et informations](05-dateien.md#tags)
 - [Favoris et barre latérale](07-favoriten-seitenleiste.md)
 - [Raccourcis clavier](18-tastenkuerzel.md#navigation)

@@ -6,6 +6,7 @@ use manta_plugin::i18n::Translations;
 pub const ENTRIES: Translations = &[
     ("cmd.open", "Apri"),
     ("cmd.quick_look", "Visualizzazione rapida"),
+    ("cmd.get_info", "Ottieni informazioni"),
     ("cmd.enclosing_folder", "Cartella superiore"),
     ("cmd.back", "Indietro"),
     ("cmd.forward", "Avanti"),
@@ -55,6 +56,7 @@ pub const ENTRIES: Translations = &[
     ("cmd.cat.tools", "Strumenti"),
     ("cmd.kw.open", "enter launch apri avvia"),
     ("cmd.kw.quick_look", "preview view anteprima visualizza rapida"),
+    ("cmd.kw.get_info", "info properties details permissions size tags informazioni proprietà permessi dimensioni"),
     ("cmd.kw.enclosing_folder", "parent up superiore su cartella"),
     ("cmd.kw.back", "history previous cronologia precedente indietro"),
     ("cmd.kw.forward", "history next cronologia successivo avanti"),

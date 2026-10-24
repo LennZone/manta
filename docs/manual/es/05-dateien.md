@@ -243,6 +243,36 @@ Para abrir la propia papelera, haz clic en **Papelera** en la barra lateral. Den
 > [!CAUTION]
 > En las **carpetas en la nube** (iCloud Drive, Google Drive, OneDrive, Dropbox), un ítem que trasladas a la papelera desaparece también de la nube en cuanto tu Mac se sincroniza. **Devolver** suele recuperarlo; algunos proveedores también tienen una papelera en su sitio web. Consulta [Almacenamiento en la nube](09-cloud.md).
 
+## Etiquetas {#tags}
+
+Manta lee y asigna las mismas etiquetas que el Finder (se guardan con el archivo, así que el Finder, Spotlight y otras apps las ven). Los ítems etiquetados muestran puntos de color junto a su nombre en todas las visualizaciones: en Lista y Columnas detrás del nombre, en Iconos y Galería delante. Las etiquetas funcionan con los ítems de este Mac, incluidos iCloud Drive y otras carpetas en la nube; los servidores y los archivos comprimidos no tienen.
+
+**Añadir o eliminar una etiqueta:**
+
+1. Selecciona los ítems y abre el menú contextual.
+2. Elige **Etiquetas**. Los siete colores están arriba: un clic añade la etiqueta a todos los ítems seleccionados, o la elimina si todos la tienen ya (una marca de verificación indica que todos la tienen; un guion, que solo algunos). Tus otras etiquetas aparecen debajo.
+3. Para crear una etiqueta nueva, escribe su nombre en **Nueva etiqueta…** y pulsa **↩**.
+
+Las etiquetas estándar llevan los nombres que usa el Finder en tu Mac (por ejemplo, “Rojo” en un Mac en español, “Red” en uno en inglés).
+
+**Encontrar ítems etiquetados:** La sección **Etiquetas** de la barra lateral muestra tus etiquetas como las muestra el Finder (si Manta no puede leer la lista del Finder, las etiquetas que ha visto en los archivos). Un clic muestra en el panel activo todo lo que tiene esa etiqueta, encontrado por Spotlight. En el campo de filtro, `tag:Rojo` muestra los ítems etiquetados de la carpeta actual (consulta [Filtrar archivos](04-navigation.md#filtern)).
+
+## Obtener información {#informationen}
+
+**⌘I** (**Obtener información**, también en el menú contextual y en el menú Archivo) abre una ventana de información de la selección, como en el Finder: una ventana por ítem (si vuelves a pedirla, pasa al frente) y una ventana de resumen para varios ítems. Puede haber hasta seis ventanas de información abiertas; al abrir una nueva se cierra la más antigua. Son ventanas normales: puedes seguir trabajando en la ventana principal.
+
+Una ventana de información muestra:
+
+- el **nombre**: edítalo y pulsa **↩** para renombrar el ítem,
+- **Clase**, **Tamaño** (las carpetas y los ítems múltiples se calculan en segundo plano), **Ubicación**, **Creado**, **Modificado** y **Última apertura** (la fecha de Spotlight),
+- **Etiquetas**: elimina una con su ×, añade una con **Añadir etiqueta**,
+- **Bloqueado** (el ítem no se puede modificar, renombrar ni trasladar a la papelera) y **Oculto**,
+- **Comentarios**: el comentario de Spotlight asignado en el Finder (Manta lo muestra pero no puede cambiarlo: macOS no ofrece ninguna forma de hacerlo salvo mediante scripts del Finder),
+- **Abrir con**: la app por omisión, y **Abrir con** para abrir el archivo una vez con otra app. macOS no ofrece a otras apps ninguna forma pública de cambiar la app de un único archivo, así que no hay “Cambiar todo…”; para eso, usa el Finder,
+- **Compartir y permisos**: lectura, escritura y ejecución para propietario, grupo y todos, además del valor octal (por ejemplo `644`). En este Mac y en servidores SFTP puedes cambiarlos ahí mismo (chmod); en otros lugares se muestran como solo lectura.
+
+Los ítems de servidores, contenedores y archivos comprimidos muestran lo que indica el servidor (tamaño, fecha, permisos).
+
 ## Ubicaciones de solo lectura {#schreibgeschuetzt}
 
 En los archivos comprimidos, en los contenedores detenidos y en los contenedores sin shell no puedes cambiar nada. Una etiqueta **Solo lectura** (o **Detenido**) en la barra de ruta lo indica. Copiar hacia fuera con **F5** o arrastrando funciona siempre.

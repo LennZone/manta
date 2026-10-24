@@ -85,6 +85,27 @@ Der Filter zeigt nur Objekte, deren Name einen Text enthält.
 
 Der Filter gilt nur für den aktuellen Ordner und nur für diesen Tab. Die Statusleiste zeigt „passend zu „…““. Passt nichts, siehst du „Keine Objekte passen zu „…““ mit der Taste **Filter löschen**. **esc** im Feld leert den Filter. In schmaleren Bereichen (etwa zwei Bereiche in einem kleinen Fenster) ist das Feld eine Lupe: Ein Klick darauf oder **⌘F** öffnet es; es bleibt offen, solange darin Text steht, und klappt wieder zu, wenn es leer ist und du woanders hinklickst oder **esc** drückst. Damit bleibt Platz für den Ort-Chip und die Pfadleiste; die Darstellungs-Tasten werden dabei, solange das Feld offen ist, zu einer einzigen Menü-Taste.
 
+Nach [Tags](05-dateien.md#tags) filterst du mit `tag:` und dem Namen des Tags, z. B. `tag:Rot` oder `tag:"Sehr wichtig"`; der Name der Farbe geht auch (`tag:rot` findet auch einen roten Tag namens „Dringend“). Das lässt sich mit einem Namen kombinieren: `tag:Rot rechnung`.
+
+## Ordnerübergreifend suchen {#suchen}
+
+Der Filter sieht nur den Ordner, der gerade zu sehen ist. Um darunter oder auf dem ganzen Mac zu suchen, gibt es die Bereichsleiste, die unter der Pfadleiste erscheint, solange du das Feld benutzt:
+
+- **Dieser Ordner** – der oben beschriebene Filter.
+- **Unterordner** – der Ordner und alles darin. Auf diesem Mac liest Manta mehrere Ordner gleichzeitig; unsichtbare Objekte werden nur durchsucht, wenn unsichtbare Dateien eingeblendet sind, und der Inhalt von Paketen (Programme, Fotomediatheken) wird übersprungen. Auf Servern, in Containern und in Archiven listet Manta die Ordner nacheinander auf, höchstens 12 Ebenen tief und höchstens 5.000 Ordner.
+- **Dieser Mac** – Spotlight: Namen *und* Dateiinhalte, überall, wo Spotlight indiziert (nur lokale Ordner).
+
+1. Drücke **⌘F** und tippe, was du suchst.
+2. Klick auf **Unterordner** oder **Dieser Mac**. Die Suche startet kurz nachdem du aufhörst zu tippen (oder sofort mit **↩**).
+
+Ein Name passt, wenn er den Text enthält (Groß- und Kleinschreibung egal). Mit `*` oder `?` ist der Text ein Muster für den ganzen Namen: `*.pdf`, `bericht-202?.xlsx`. `tag:` funktioniert auch hier.
+
+Die Treffer füllen den Bereich als Liste, schon während die Suche läuft: Die Pfadleiste zeigt **Suche: „…“** und wo gesucht wird, die Bereichsleiste, wie viele Objekte gefunden wurden, und die Spalte **Pfad** den Ordner jedes Treffers. Treffer lassen sich wie gewohnt öffnen, in der Schnellansicht ansehen, kopieren, bewegen, umbenennen, taggen und löschen. **Im umgebenden Ordner anzeigen** im Kontextmenü (oder **⌘↑**) öffnet den Ordner des Objekts und wählt es dort aus. Die Stopp-Taste in der Bereichsleiste beendet eine lange Suche (die bisherigen Treffer bleiben); **⌘R** sucht erneut. Angezeigt werden höchstens 10.000 Treffer.
+
+**esc** im Suchfeld, **⌘[** oder ein leeres Feld beendet die Suche und zeigt wieder den Ordner; das Öffnen eines anderen Ordners ebenfalls.
+
+Findet **Unterordner** nichts, bietet der leere Bereich **Diesen Mac durchsuchen** an.
+
 ## Unsichtbare Dateien {#unsichtbare-dateien}
 
 Dateien, deren Name mit einem Punkt beginnt (z. B. `.git`, `.env`), und als unsichtbar markierte Dateien blendet Manta normalerweise aus.
@@ -102,5 +123,6 @@ Ordner auf **Servern**, in **Containern**, in **S3** und in **Archiven** werden 
 
 ## Siehe auch
 
+- [Tags und Informationen](05-dateien.md#tags)
 - [Favoriten & Seitenleiste](07-favoriten-seitenleiste.md)
 - [Tastenkürzel](18-tastenkuerzel.md#navigation)

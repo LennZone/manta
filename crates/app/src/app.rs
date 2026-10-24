@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use eframe::egui::{self, CornerRadius, Key, Modifiers, RichText, Sense, Stroke};
@@ -10,6 +11,7 @@ use manta_ops::{ConflictPolicy, Job, JobId, JobKind, JobStatus, TransferManager}
 
 pub(crate) mod archive_ops;
 mod conflicts;
+mod finder_ops;
 mod native_dnd;
 mod transfer_resume;
 pub(crate) mod trash_place;
@@ -264,6 +266,21 @@ pub enum Action {
     CheckForUpdates,
     /// Open the update window for the update on offer (toast, status bar).
     ShowUpdate,
+    /// ⌘I: the Info window of the selection.
+    GetInfo(Side),
+    /// Add or remove a Finder tag on the selection (context menu).
+    SetTag(Side, crate::tags::TagEdit),
+    /// Sidebar: everything with this tag (a Spotlight search in the active
+    /// pane).
+    ShowTag(String),
+    /// The scope bar: This Folder / Subfolders / This Mac.
+    SetSearchScope(Side, crate::search::Scope),
+    /// Stop the running search (the results stay).
+    StopSearch(Side),
+    /// Leave the search results: the folder again.
+    EndSearch(Side),
+    /// Search results: show the selected item in its folder.
+    RevealResult(Side),
 }
 
 struct Connection {
@@ -399,6 +416,14 @@ pub struct MantaApp {
     pub(crate) live: crate::live_refresh::LiveRefresh,
     /// iCloud Drive / File Provider folders: sidebar section, sync badges.
     pub(crate) cloud: crate::cloud::Cloud,
+    /// Finder tags of the visible folders and the user's tag list.
+    pub(crate) tags: crate::tags::TagStore,
+    /// The tag store version the menus last got (see `tags::set_known`).
+    tags_known_version: u64,
+    /// Spotlight, for searches on This Mac and the sidebar's tags.
+    pub(crate) spotlight: Arc<dyn crate::search::Spotlight>,
+    /// The Get Info windows.
+    pub(crate) info: crate::info::InfoWindows,
     /// Web links opened (tests: instead of a browser).
     #[cfg(test)]
     pub(crate) opened_links: Vec<String>,
@@ -456,6 +481,13 @@ pub(crate) struct AppInit {
     /// notice). Default: settings.json or session.json existed at launch;
     /// unit tests: `false` (no notice).
     pub existing_install: Option<bool>,
+    /// Finder tags (tests: a fixed tag list). Default: Finder's.
+    pub tags: Option<crate::tags::TagStore>,
+    /// Spotlight (tests: a fake). Default: `mdfind`, except in unit tests.
+    pub spotlight: Option<Arc<dyn crate::search::Spotlight>>,
+    /// Get Info lookups (tests: a fake). Default: the system's, except in
+    /// unit tests.
+    pub info: Option<crate::info::InfoWindows>,
 }
 
 /// The current one-time notice. Raise it for a new notice;
@@ -480,6 +512,43 @@ fn default_cloud() -> crate::cloud::Cloud {
     }
 }
 
+/// Finder's tag list and background reads; in unit tests no tag list and
+/// inline reads (temp files only).
+fn default_tags() -> crate::tags::TagStore {
+    #[cfg(test)]
+    {
+        crate::tags::TagStore::new(Box::new(Vec::new), true)
+    }
+    #[cfg(not(test))]
+    {
+        crate::tags::TagStore::system()
+    }
+}
+
+/// Spotlight (`mdfind`); a fake without results in unit tests.
+fn default_spotlight() -> Arc<dyn crate::search::Spotlight> {
+    #[cfg(test)]
+    {
+        Arc::new(crate::search::FakeSpotlight::default())
+    }
+    #[cfg(not(test))]
+    {
+        Arc::new(crate::search::MdFind)
+    }
+}
+
+/// Info windows with the system's lookups; fixed answers in unit tests.
+fn default_info() -> crate::info::InfoWindows {
+    #[cfg(test)]
+    {
+        crate::info::InfoWindows::new(Arc::new(crate::info::FakeInfo::default()), true)
+    }
+    #[cfg(not(test))]
+    {
+        crate::info::InfoWindows::system()
+    }
+}
+
 /// Items of `fs` can go to the macOS Trash: a writable local folder.
 /// Servers, containers, cloud APIs and archives have no Trash.
 pub(crate) fn can_trash(fs: &SharedVfs) -> bool {
@@ -497,6 +566,10 @@ fn local_vfs_path(p: &std::path::Path) -> VfsPath {
 /// containers, cloud APIs and archives.
 fn live_folders(tab: &Tab, view: crate::views::ViewMode) -> Vec<PathBuf> {
     let loc = &tab.loc;
+    // Search results are no folder (they are pruned after file operations).
+    if tab.in_search() {
+        return Vec::new();
+    }
     if loc.conn.is_some()
         || loc.archive.is_some()
         || loc.fs.protocol() != manta_core::Protocol::Local
@@ -561,6 +634,13 @@ fn navigate_tab(worker: &Worker, tab: &mut Tab, loc: Location, home: bool, push_
     if let Some(o) = tab.opening.take() {
         o.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
     }
+    // Going somewhere ends a search (and its scope, like Finder).
+    if tab.in_search() {
+        tab.end_search();
+        tab.filter.clear();
+    }
+    tab.scope = crate::search::Scope::Folder;
+    tab.search_due = None;
     if push_history {
         tab.back.push(tab.loc.clone());
         tab.forward.clear();
@@ -796,6 +876,10 @@ impl MantaApp {
                 init.live_refresh.unwrap_or(!cfg!(test)),
             ),
             cloud: init.cloud.unwrap_or_else(default_cloud),
+            tags: init.tags.unwrap_or_else(default_tags),
+            tags_known_version: 0,
+            spotlight: init.spotlight.unwrap_or_else(default_spotlight),
+            info: init.info.unwrap_or_else(default_info),
             #[cfg(test)]
             opened_links: Vec::new(),
             menu_checked: None,
@@ -1185,6 +1269,10 @@ impl MantaApp {
     }
 
     fn refresh(&mut self, side: Side) {
+        if self.pane(side).tab().in_search() {
+            self.restart_search(side);
+            return;
+        }
         let worker = &self.worker;
         let pi = self.pos(side);
         let tab = self.panes[pi].tab_mut();
@@ -1200,9 +1288,13 @@ impl MantaApp {
                 self.trash.note_change(&d);
             }
         }
+        self.prune_search_results(fs);
         let worker = &self.worker;
         for pane in &mut self.panes {
             for tab in &mut pane.tabs {
+                if tab.in_search() {
+                    continue;
+                }
                 if same_fs(&tab.loc.fs, fs) && tab.loc.path.starts_with(dir) {
                     let p = tab.loc.path.clone();
                     start_listing(worker, tab, Some(p));
@@ -2196,6 +2288,11 @@ impl MantaApp {
             Action::ExtractToOther(side) => self.extract_to_other(side),
             Action::Compress(side) => self.show_compress(side),
             Action::CancelArchiveOpen(side) => self.cancel_archive_open(side),
+            Action::Up(side) if self.pane(side).tab().in_search() => self.reveal_result(side),
+            Action::Back(side) if self.pane(side).tab().in_search() => self.end_search(side),
+            Action::NewFolder(side) if self.pane(side).tab().in_search() => {
+                self.set_info(t!("search.not_here"));
+            }
             Action::Up(side) if self.leave_archive(side) => {}
             Action::Up(side) => {
                 let tab = self.pane(side).tab();
@@ -2329,6 +2426,31 @@ impl MantaApp {
                 }
                 let tab = self.pane(side).tab();
                 match sel.as_slice() {
+                    // A search result: renamed in its own folder.
+                    [entry] if tab.in_search() => {
+                        let Some(dir) = entry.path.parent() else {
+                            return;
+                        };
+                        // The names next to it (local folders only: no
+                        // network on the UI thread; servers refuse a clash).
+                        let existing = match tab.loc.fs.local_path(&dir) {
+                            Some(_) => tab
+                                .loc
+                                .fs
+                                .list(&dir)
+                                .map(|v| v.into_iter().map(|e| e.name).collect())
+                                .unwrap_or_default(),
+                            None => Vec::new(),
+                        };
+                        let form = NameForm::new(
+                            tab.id,
+                            tab.loc.fs.clone(),
+                            dir,
+                            Some(entry.path.file_name().to_string()),
+                            existing,
+                        );
+                        self.dialog = Some(Dialog::Name(form));
+                    }
                     [entry] => {
                         let existing = tab.entries.iter().map(|e| e.name.clone()).collect();
                         let form = NameForm::new(
@@ -2561,6 +2683,7 @@ impl MantaApp {
                 self.locations = l;
                 self.devices = d;
                 self.cloud.rediscover();
+                self.tags.reload_finder();
             }
             Action::OpenConnection(id) => {
                 if let Some(c) = self.connections.iter().find(|c| c.id == id) {
@@ -2653,6 +2776,17 @@ impl MantaApp {
                 }
             }
             Action::ShowUpdate => self.updates.show(),
+            Action::GetInfo(side) => self.get_info(side),
+            Action::SetTag(side, edit) => self.set_tag(side, edit),
+            Action::ShowTag(name) => self.show_tag(name),
+            Action::SetSearchScope(side, scope) => self.set_search_scope(side, scope),
+            Action::StopSearch(side) => {
+                if let Some(s) = self.pane_mut(side).tab_mut().search.as_mut() {
+                    s.stop();
+                }
+            }
+            Action::EndSearch(side) => self.end_search(side),
+            Action::RevealResult(side) => self.reveal_result(side),
             Action::SetAppearance(a) => {
                 let before = self.prefs;
                 self.prefs.appearance = a;
@@ -3027,6 +3161,7 @@ impl MantaApp {
         vec![match cmd {
             Cmd::Open => Action::OpenSelected(side),
             Cmd::QuickLook => Action::Preview(side),
+            Cmd::GetInfo => Action::GetInfo(side),
             Cmd::EnclosingFolder => Action::Up(side),
             Cmd::Back => Action::Back(side),
             Cmd::Forward => Action::Forward(side),
@@ -3126,7 +3261,7 @@ impl MantaApp {
         let has_sel = tab.cursor.is_some() || !tab.selected.is_empty();
         let ro = tab.loc.read_only();
         match cmd {
-            Cmd::Open | Cmd::CopyToOther | Cmd::OpenWithApp => has_sel,
+            Cmd::Open | Cmd::CopyToOther | Cmd::OpenWithApp | Cmd::GetInfo => has_sel,
             Cmd::MoveToOther | Cmd::MoveToTrash | Cmd::DeletePermanently => has_sel && !ro,
             Cmd::EmptyTrash => self.trash.dir.is_some() && self.trash.status.full() != Some(false),
             Cmd::NewFolder => !ro,
@@ -4905,6 +5040,7 @@ impl MantaApp {
         ]
         .into_iter()
         .filter_map(|(k, open)| open.then_some(k))
+        .chain(self.info.kinds())
         .collect()
     }
 
@@ -5271,6 +5407,10 @@ impl MantaApp {
         // ⌘Y: Quick Look, as in Finder (Space too).
         if key(Modifiers::COMMAND, Key::Y) {
             actions.push(Action::Preview(side));
+        }
+        // ⌘I: Get Info (Finder).
+        if key(Modifiers::COMMAND, Key::I) {
+            actions.push(Action::GetInfo(side));
         }
         if key(Modifiers::COMMAND, Key::R) {
             actions.push(Action::Refresh(side));
@@ -5991,6 +6131,7 @@ impl MantaApp {
         let plugins = &mut self.plugins;
         let bottom_tab = &mut self.bottom_tab;
         let thumbs = &self.thumbs;
+        let tag_store = &self.tags;
         let remote_thumbs = self.prefs.remote_thumbnails;
         for (i, pane) in self.panes.iter_mut().enumerate() {
             let side = pane.id;
@@ -6036,6 +6177,7 @@ impl MantaApp {
                         context_cmds: &context_cmds,
                         thumbs: Some(thumbs),
                         remote_thumbs,
+                        tags: Some(tag_store),
                     };
                     let mut tab_sel = bottom_tab.get(&side).cloned();
                     let height_now = height;
@@ -6326,6 +6468,8 @@ impl MantaApp {
         self.live_refresh_frame();
         self.trash_frame(&ctx);
         self.cloud_frame(&ctx);
+        self.search_frame(&ctx);
+        self.tags_frame(&ctx);
         self.poll_connection_notices();
         self.jobs = self.transfers.snapshot();
         #[cfg(test)]
@@ -6480,6 +6624,14 @@ impl MantaApp {
             local: tab.loc.conn.is_none().then(|| tab.loc.path.to_string()),
             conn: tab.loc.conn,
         };
+        // The Tags section: the user's tags; the one searched for is selected.
+        let sidebar_tags = sidebar::TagRows {
+            tags: self.tags.sidebar(),
+            current: tab.search.as_ref().and_then(|s| match &s.query {
+                crate::search::Query::Tag(n) => Some(n.clone()),
+                _ => None,
+            }),
+        };
         let flash = self.fav_flash_now(&ctx);
         egui::Panel::left("sidebar")
             .resizable(true)
@@ -6510,6 +6662,7 @@ impl MantaApp {
                     &current,
                     &mut self.containers,
                     flash,
+                    &sidebar_tags,
                     &mut actions,
                 );
                 self.fav_rects = rects.favorites;
@@ -6562,6 +6715,7 @@ impl MantaApp {
             self.preview_window
                 .hidden(&ctx, crate::aux_window::AuxKind::Preview);
         }
+        self.info_frame(&ctx);
         self.modal_window_frame(&ctx);
         self.settings_window(&ctx);
         crate::update_window::window(&ctx, &mut self.updates);

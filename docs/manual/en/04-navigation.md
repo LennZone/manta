@@ -85,6 +85,27 @@ The filter shows only items whose name contains some text.
 
 The filter applies to the current folder and this tab only. The status bar shows "matching “…”". If nothing matches you see "No items match “…”" with a **Clear Filter** button. **esc** in the field clears the filter. In narrower panes (such as two panes in a small window) the field is a magnifier: click it or press **⌘F** to open it; it stays open while it has text and folds again when it is empty and you click elsewhere or press **esc**. That leaves room for the location chip and the path; while the field is open, the view buttons fold into a single menu button.
 
+To filter by [tag](05-dateien.md#tags), type `tag:` and the tag's name, for example `tag:Red` or `tag:"Very important"`; the colour's name works too (`tag:red` also finds a red tag called "Urgent"). It combines with a name: `tag:Red invoice`.
+
+## Search across folders {#suchen}
+
+The filter only looks at the folder you see. To search below it, or the whole Mac, use the scope bar that appears under the path bar while the field is in use:
+
+- **This Folder** – the filter described above.
+- **Subfolders** – the folder and everything inside it. On this Mac several folders are read at once; hidden items are only searched when hidden files are shown, and the contents of packages (apps, photo libraries) are skipped. On servers, in containers and in archives Manta lists the folders one by one, at most 12 levels deep and 5,000 folders.
+- **This Mac** – Spotlight: names *and* file contents, everywhere Spotlight indexes (local folders only).
+
+1. Press **⌘F** and type what you're looking for.
+2. Click **Subfolders** or **This Mac**. The search starts a moment after you stop typing (or right away with **↩**).
+
+Names match when they contain the text (upper and lower case don't matter). With `*` or `?` the text is a pattern for the whole name: `*.pdf`, `report-202?.xlsx`. `tag:` terms work here too.
+
+The results fill the pane as a list while the search is running: the path bar says **Search: “…”** and where, the scope bar shows how many items were found, and a **Path** column shows the folder each one is in. You can open, Quick Look, copy, move, rename, tag and delete results as usual. **Show in Enclosing Folder** in the context menu (or **⌘↑**) opens the item's folder with the item selected. The stop button in the scope bar stops a long search (the results found so far stay); **⌘R** runs it again. At most 10,000 results are shown.
+
+**esc** in the search field, **⌘[** or clearing the text closes the search and shows the folder again; opening another folder does too.
+
+If Subfolders finds nothing, the empty pane offers **Search This Mac**.
+
 ## Hidden files {#unsichtbare-dateien}
 
 Files whose name starts with a dot (such as `.git`, `.env`) and files marked as hidden are normally hidden.
@@ -102,5 +123,6 @@ Folders on **servers**, in **containers**, in **S3** and in **archives** aren't 
 
 ## See also
 
+- [Tags and Get Info](05-dateien.md#tags)
 - [Favorites & Sidebar](07-favoriten-seitenleiste.md)
 - [Keyboard Shortcuts](18-tastenkuerzel.md#navigation)

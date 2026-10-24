@@ -6,6 +6,7 @@ use super::Entries;
 pub const ENTRIES: Entries = &[
     ("cmd.open", "Open", "Öffnen"),
     ("cmd.quick_look", "Quick Look", "Schnellansicht"),
+    ("cmd.get_info", "Get Info", "Informationen"),
     (
         "cmd.enclosing_folder",
         "Enclosing Folder",
@@ -132,6 +133,11 @@ pub const ENTRIES: Entries = &[
     ("cmd.cat.tools", "Tools", "Werkzeuge"),
     // Palette keywords
     ("cmd.kw.open", "enter launch", "enter launch starten"),
+    (
+        "cmd.kw.get_info",
+        "info properties details permissions size tags",
+        "info eigenschaften details zugriffsrechte größe tags",
+    ),
     (
         "cmd.kw.quick_look",
         "preview view",

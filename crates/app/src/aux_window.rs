@@ -30,6 +30,8 @@ pub enum AuxKind {
     Update,
     /// The user manual ("Manta Help").
     Help,
+    /// A Get Info window (one per item or selection, by id).
+    Info(u64),
 }
 
 impl AuxKind {
@@ -81,6 +83,9 @@ pub struct AuxWindow {
     focus: bool,
     /// Drawn in the previous frame.
     shown: bool,
+    /// Added to the centred position of a new window (Info windows
+    /// cascade like Finder's).
+    offset: Vec2,
 }
 
 /// Was the window closed this frame (red button, ⌘W)?
@@ -88,6 +93,15 @@ pub struct AuxWindow {
 pub struct Closed(pub bool);
 
 impl AuxWindow {
+    /// A window placed `offset` from the centre of the main window when it
+    /// first opens.
+    pub fn with_offset(offset: Vec2) -> AuxWindow {
+        AuxWindow {
+            offset,
+            ..AuxWindow::default()
+        }
+    }
+
     /// Bring the window to the front (and make it key) next frame.
     pub fn request_focus(&mut self) {
         self.focus = true;
@@ -133,7 +147,10 @@ impl AuxWindow {
             return (Some(v), closed);
         }
         if first {
-            self.spawn_pos = self.last_pos.or_else(|| centred_over_main(ctx, spec.size));
+            let offset = self.offset;
+            self.spawn_pos = self
+                .last_pos
+                .or_else(|| centred_over_main(ctx, spec.size).map(|p| p + offset));
         }
         let mut builder = ViewportBuilder::default()
             .with_title(spec.title)
@@ -227,7 +244,7 @@ impl AuxWindow {
             .default_size(size)
             .min_size(spec.min_size.min(size))
             .pivot(egui::Align2::CENTER_CENTER)
-            .default_pos(screen.center())
+            .default_pos(screen.center() + self.offset)
             .frame(
                 egui::Frame::window(&ctx.global_style())
                     .fill(p.elevated)

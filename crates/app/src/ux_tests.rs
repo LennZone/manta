@@ -301,6 +301,7 @@ fn harness_init_ppp(
         live_refresh: None,
         cloud: None,
         gdrive_client_file: None,
+        ..Default::default()
     };
     tweak(&mut init);
     let builder = Harness::builder()
@@ -3271,6 +3272,9 @@ mod live_refresh_ux_tests;
 
 #[path = "cloud_ux_tests.rs"]
 mod cloud_ux_tests;
+
+#[path = "finder_ux_tests.rs"]
+mod finder_ux_tests;
 
 #[path = "place_ux_tests.rs"]
 mod place_ux_tests;

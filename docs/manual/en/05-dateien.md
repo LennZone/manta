@@ -243,6 +243,36 @@ To open the Trash itself, click **Trash** in the sidebar. In it, **⌘⌫** (the
 > [!CAUTION]
 > In **cloud folders** (iCloud Drive, Google Drive, OneDrive, Dropbox) an item you move to the Trash also disappears from the cloud as soon as your Mac syncs. **Put Back** usually brings it back; some providers also keep a trash on their website. See [Cloud Storage](09-cloud.md).
 
+## Tags {#tags}
+
+Manta reads and sets the same tags as Finder (they live with the file, so Finder, Spotlight and other apps see them). Tagged items show coloured dots after their name in every view – in the list and the columns after the name, in Icons and Gallery before it. Tags work for items on this Mac, including iCloud Drive and other cloud folders; servers and archives have none.
+
+**Add or remove a tag:**
+
+1. Select the items and open the context menu.
+2. Choose **Tags**. The seven colours are at the top: a click adds the tag to every selected item, or removes it if all of them have it (a check mark means all have it, a dash means some do). Your other tags are listed below them.
+3. To create a new tag, type its name into **New Tag…** and press **↩**.
+
+The standard tags carry the names Finder uses on your Mac (for example "Red" on an English Mac, "Rot" on a German one).
+
+**Find tagged items:** The **Tags** section of the sidebar lists your tags as Finder shows them (if Manta can't read Finder's list, the tags it has seen on files). A click shows everything with that tag, found by Spotlight, in the active pane. In the filter field, `tag:Red` shows the tagged items of the current folder (see [Filter files](04-navigation.md#filtern)).
+
+## Get Info {#informationen}
+
+**⌘I** (**Get Info**, also in the context menu and the File menu) opens an Info window for the selection, like Finder: one window per item (asking again brings it to the front), one summary window for several items. Up to six Info windows can be open; the oldest closes for a new one. They are ordinary windows: you can keep working in the main window.
+
+An Info window shows:
+
+- the **name** – edit it and press **↩** to rename the item,
+- **Kind**, **Size** (folders and multiple items are counted in the background), **Where**, **Created**, **Modified** and **Last opened** (Spotlight's date),
+- **Tags** – remove one with its ×, add one with **Add Tag**,
+- **Locked** (the item can't be changed, renamed or moved to the Trash) and **Hidden**,
+- **Comments** – the Spotlight comment set in Finder (Manta shows it but can't change it: macOS offers no way to do that apart from scripting Finder),
+- **Open with** – the default app, and **Open With** to open the file once with another app. macOS has no public way for other apps to change the app for a single file, so there is no "Change All…"; use Finder for that,
+- **Sharing & Permissions** – read, write and execute for owner, group and everyone, plus the octal value (such as `644`). On this Mac and on SFTP servers you can change them right there (chmod); elsewhere they are shown read-only.
+
+Items on servers, in containers and in archives show what the server reports (size, date, permissions).
+
 ## Read-only places {#schreibgeschuetzt}
 
 In archives, stopped containers and containers without a shell you can't change anything. A **Read-only** (or **Stopped**) chip in the path bar shows this. Copying out with **F5** or by dragging always works.

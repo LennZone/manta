@@ -243,6 +243,36 @@ Den Papierkorb selbst öffnest du über **Papierkorb** in der Seitenleiste. Dari
 > [!CAUTION]
 > In **Cloud-Ordnern** (iCloud Drive, Google Drive, OneDrive, Dropbox) verschwindet ein Objekt, das du in den Papierkorb legst, auch aus der Cloud, sobald dein Mac synchronisiert. **Zurücklegen** holt es meist zurück; manche Anbieter haben zusätzlich einen Papierkorb auf ihrer Website. Siehe [Cloud-Speicher](09-cloud.md).
 
+## Tags {#tags}
+
+Manta liest und setzt dieselben Tags wie der Finder (sie gehören zur Datei, Finder, Spotlight und andere Apps sehen sie also auch). Objekte mit Tags zeigen farbige Punkte bei ihrem Namen, in jeder Darstellung – in der Liste und in den Spalten hinter dem Namen, in Symbolen und Galerie davor. Tags gibt es für Objekte auf diesem Mac, auch in iCloud Drive und anderen Cloud-Ordnern; Server und Archive haben keine.
+
+**Tag hinzufügen oder entfernen:**
+
+1. Wähle die Objekte aus und öffne das Kontextmenü.
+2. Wähle **Tags**. Oben stehen die sieben Farben: Ein Klick gibt allen ausgewählten Objekten den Tag oder entfernt ihn, wenn alle ihn haben (ein Häkchen heißt: alle haben ihn, ein Strich: einige). Darunter stehen deine weiteren Tags.
+3. Für einen neuen Tag tippst du seinen Namen in **Neuer Tag …** und drückst **↩**.
+
+Die Standard-Tags tragen die Namen, die der Finder auf deinem Mac verwendet (z. B. „Rot“ auf einem deutschen, „Red“ auf einem englischen Mac).
+
+**Objekte mit Tags finden:** Der Abschnitt **Tags** der Seitenleiste zeigt deine Tags wie der Finder (kann Manta die Liste des Finders nicht lesen, die Tags, die es an Dateien gesehen hat). Ein Klick zeigt im aktiven Bereich alles mit diesem Tag, gefunden von Spotlight. Im Filterfeld zeigt `tag:Rot` die Objekte des aktuellen Ordners mit diesem Tag (siehe [Dateien filtern](04-navigation.md#filtern)).
+
+## Informationen {#informationen}
+
+**⌘I** (**Informationen**, auch im Kontextmenü und im Menü „Ablage“) öffnet wie im Finder ein Informationsfenster zur Auswahl: eines pro Objekt (erneutes Aufrufen holt es nach vorn), ein Übersichtsfenster für mehrere Objekte. Bis zu sechs Informationsfenster können offen sein; für ein neues schließt sich das älteste. Es sind gewöhnliche Fenster: Du kannst im Hauptfenster weiterarbeiten.
+
+Ein Informationsfenster zeigt:
+
+- den **Namen** – ändere ihn und drücke **↩**, um das Objekt umzubenennen,
+- **Art**, **Größe** (Ordner und mehrere Objekte werden im Hintergrund gezählt), **Ort**, **Erstellt**, **Geändert** und **Zuletzt geöffnet** (das Datum von Spotlight),
+- **Tags** – entferne einen mit seinem ×, füge mit **Tag hinzufügen** einen hinzu,
+- **Geschützt** (das Objekt kann nicht geändert, umbenannt oder in den Papierkorb gelegt werden) und **Unsichtbar**,
+- **Kommentare** – den Spotlight-Kommentar aus dem Finder (Manta zeigt ihn, kann ihn aber nicht ändern: macOS bietet dafür nur das Fernsteuern des Finders),
+- **Öffnen mit** – das Standardprogramm und **Öffnen mit**, um die Datei einmal mit einem anderen Programm zu öffnen. macOS bietet anderen Apps keinen öffentlichen Weg, das Programm für eine einzelne Datei zu ändern, deshalb gibt es kein „Alle ändern …“; dafür nimmst du den Finder,
+- **Freigabe & Zugriffsrechte** – Lesen, Schreiben und Ausführen für Eigentümer, Gruppe und Jeder sowie der Oktalwert (z. B. `644`). Auf diesem Mac und auf SFTP-Servern änderst du sie direkt dort (chmod); anderswo werden sie nur angezeigt.
+
+Objekte auf Servern, in Containern und in Archiven zeigen, was der Server meldet (Größe, Datum, Zugriffsrechte).
+
 ## Schreibgeschützte Orte {#schreibgeschuetzt}
 
 In Archiven, gestoppten Containern und Containern ohne Shell kannst du nichts ändern. Ein Chip **Schreibgeschützt** (bzw. **Gestoppt**) in der Pfadleiste zeigt das an. Kopieren mit **F5** oder per Drag & Drop heraus geht immer.

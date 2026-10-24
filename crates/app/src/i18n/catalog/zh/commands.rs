@@ -6,6 +6,7 @@ use manta_plugin::i18n::Translations;
 pub const ENTRIES: Translations = &[
     ("cmd.open", "打开"),
     ("cmd.quick_look", "快速查看"),
+    ("cmd.get_info", "显示简介"),
     ("cmd.enclosing_folder", "上层文件夹"),
     ("cmd.back", "返回"),
     ("cmd.forward", "前进"),
@@ -55,6 +56,7 @@ pub const ENTRIES: Translations = &[
     ("cmd.cat.tools", "工具"),
     ("cmd.kw.open", "enter launch 打开 启动"),
     ("cmd.kw.quick_look", "preview view 预览 查看 快速查看"),
+    ("cmd.kw.get_info", "info properties details permissions size tags 简介 属性 权限 大小 标签"),
     ("cmd.kw.enclosing_folder", "parent up 上层 上级 父文件夹"),
     ("cmd.kw.back", "history previous 历史 上一个 返回"),
     ("cmd.kw.forward", "history next 历史 下一个 前进"),

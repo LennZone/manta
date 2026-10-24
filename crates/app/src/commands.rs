@@ -8,6 +8,8 @@ use crate::icons as i;
 pub enum Cmd {
     Open,
     QuickLook,
+    /// ⌘I: the Info window of the selection (Finder's "Get Info").
+    GetInfo,
     EnclosingFolder,
     Back,
     Forward,
@@ -79,6 +81,7 @@ pub enum Cmd {
 pub const ALL: &[Cmd] = &[
     Cmd::Open,
     Cmd::QuickLook,
+    Cmd::GetInfo,
     Cmd::EnclosingFolder,
     Cmd::Back,
     Cmd::Forward,
@@ -147,6 +150,7 @@ impl Cmd {
         match self {
             Cmd::Open => t!("cmd.open"),
             Cmd::QuickLook => t!("cmd.quick_look"),
+            Cmd::GetInfo => t!("cmd.get_info"),
             Cmd::EnclosingFolder => t!("cmd.enclosing_folder"),
             Cmd::Back => t!("cmd.back"),
             Cmd::Forward => t!("cmd.forward"),
@@ -203,6 +207,7 @@ impl Cmd {
         match self {
             Cmd::Open => crate::icons::RETURN,
             Cmd::QuickLook => t!("cmd.shortcut.space"),
+            Cmd::GetInfo => "⌘I",
             Cmd::EnclosingFolder => "⌘↑",
             Cmd::Back => "⌘[",
             Cmd::Forward => "⌘]",
@@ -256,6 +261,7 @@ impl Cmd {
         match self {
             Cmd::Open => i::FOLDER_OPEN,
             Cmd::QuickLook => i::EYE,
+            Cmd::GetInfo => i::INFO,
             Cmd::EnclosingFolder => i::ARROW_UP,
             Cmd::Back => i::CARET_LEFT,
             Cmd::Forward => i::CARET_RIGHT,
@@ -326,6 +332,7 @@ impl Cmd {
             | Cmd::DeletePermanently
             | Cmd::EmptyTrash
             | Cmd::Compress
+            | Cmd::GetInfo
             | Cmd::ExtractHere => t!("cmd.cat.file"),
             Cmd::SelectAll | Cmd::Filter => t!("cmd.cat.select"),
             Cmd::ToggleHidden
@@ -365,6 +372,7 @@ impl Cmd {
         match self {
             Cmd::Open => t!("cmd.kw.open"),
             Cmd::QuickLook => t!("cmd.kw.quick_look"),
+            Cmd::GetInfo => t!("cmd.kw.get_info"),
             Cmd::EnclosingFolder => t!("cmd.kw.enclosing_folder"),
             Cmd::Back => t!("cmd.kw.back"),
             Cmd::Forward => t!("cmd.kw.forward"),

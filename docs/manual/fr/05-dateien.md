@@ -243,6 +243,36 @@ Pour ouvrir la corbeille elle-même, cliquez sur **Corbeille** dans la barre lat
 > [!CAUTION]
 > Dans les **dossiers cloud** (iCloud Drive, Google Drive, OneDrive, Dropbox), un élément placé dans la corbeille disparaît aussi du cloud dès que votre Mac se synchronise. **Remettre** le restaure généralement ; certains fournisseurs conservent aussi une corbeille sur leur site web. Voir [Stockage cloud](09-cloud.md).
 
+## Tags {#tags}
+
+Manta lit et attribue les mêmes tags que le Finder (ils sont enregistrés avec le fichier : le Finder, Spotlight et les autres apps les voient donc). Les éléments dotés de tags affichent des pastilles de couleur à côté de leur nom dans toutes les présentations – après le nom en Liste et en Colonnes, avant le nom en Icônes et en Galerie. Les tags fonctionnent pour les éléments de ce Mac, y compris iCloud Drive et les autres dossiers cloud ; les serveurs et les archives n’en ont pas.
+
+**Ajouter ou supprimer un tag :**
+
+1. Sélectionnez les éléments et ouvrez le menu contextuel.
+2. Choisissez **Tags**. Les sept couleurs se trouvent en haut : un clic ajoute le tag à tous les éléments sélectionnés, ou le supprime si tous l’ont déjà (une coche signifie que tous l’ont, un tiret que certains l’ont). Vos autres tags sont listés en dessous.
+3. Pour créer un tag, tapez son nom dans **Nouveau tag…** et appuyez sur **↩**.
+
+Les tags standard portent les noms que le Finder utilise sur votre Mac (par exemple « Rouge » sur un Mac en français, « Red » sur un Mac en anglais).
+
+**Trouver les éléments dotés d’un tag :** la section **Tags** de la barre latérale liste vos tags tels que le Finder les affiche (si Manta ne peut pas lire la liste du Finder, ce sont les tags qu’il a rencontrés sur des fichiers). Un clic affiche dans la sous-fenêtre active tous les éléments dotés de ce tag, trouvés par Spotlight. Dans le champ de filtre, `tag:Rouge` affiche les éléments du dossier actuel qui portent ce tag (voir [Filtrer les fichiers](04-navigation.md#filtern)).
+
+## Lire les informations {#informationen}
+
+**⌘I** (**Lire les informations**, également dans le menu contextuel et le menu Fichier) ouvre une fenêtre d’informations sur la sélection, comme dans le Finder : une fenêtre par élément (la redemander la ramène au premier plan), une fenêtre récapitulative pour plusieurs éléments. Six fenêtres d’informations au maximum peuvent être ouvertes ; la plus ancienne se ferme pour laisser place à une nouvelle. Ce sont des fenêtres ordinaires : vous pouvez continuer à travailler dans la fenêtre principale.
+
+Une fenêtre d’informations affiche :
+
+- le **nom** – modifiez-le et appuyez sur **↩** pour renommer l’élément,
+- **Type**, **Taille** (les dossiers et les sélections multiples sont calculés en arrière-plan), **Emplacement**, **Création**, **Modification** et **Dernière ouverture** (la date de Spotlight),
+- **Tags** – supprimez-en un avec son ×, ajoutez-en un avec **Ajouter un tag**,
+- **Verrouillé** (l’élément ne peut être ni modifié, ni renommé, ni placé dans la corbeille) et **Masqué**,
+- **Commentaires** – le commentaire Spotlight défini dans le Finder (Manta l’affiche mais ne peut pas le modifier : macOS n’offre aucun moyen de le faire, hormis en pilotant le Finder par script),
+- **Ouvrir avec** – l’app par défaut, et le menu **Ouvrir avec** pour ouvrir le fichier une fois avec une autre app. macOS ne permet pas aux autres apps de changer, par une interface publique, l’app d’un seul fichier ; il n’y a donc pas de bouton « Tout modifier… » : utilisez le Finder pour cela,
+- **Partage et permissions** – lecture, écriture et exécution pour le propriétaire, le groupe et tout le monde, ainsi que la valeur octale (par exemple `644`). Sur ce Mac et sur les serveurs SFTP, vous pouvez les modifier directement (chmod) ; ailleurs, elles sont affichées en lecture seule.
+
+Pour les éléments situés sur des serveurs, dans des conteneurs et dans des archives, la fenêtre affiche ce que le serveur indique (taille, date, permissions).
+
 ## Emplacements en lecture seule {#schreibgeschuetzt}
 
 Dans les archives, les conteneurs arrêtés et les conteneurs sans shell, vous ne pouvez rien modifier. Une pastille **Lecture seule** (ou **Arrêté**) dans la barre du chemin d’accès l’indique. La copie vers l’extérieur avec **F5** ou par glisser-déposer fonctionne toujours.

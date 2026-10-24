@@ -2769,6 +2769,7 @@ dependencies = [
  "egui_system_font_provider",
  "env_logger",
  "image",
+ "libc",
  "log",
  "manta-core",
  "manta-ops",

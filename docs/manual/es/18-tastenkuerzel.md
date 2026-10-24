@@ -76,6 +76,7 @@ Los atajos actúan sobre el panel activo. Consulta [Visualizaciones](03-ansichte
 | Atajo | Comando |
 |---|---|
 | Barra espaciadora o ⌘Y | Vista Rápida / vista previa (la barra espaciadora o esc la cierran) |
+| ⌘I | Obtener información |
 | F5 | Copiar al otro panel… |
 | F6 | Mover al otro panel… |
 | F2 | Renombrar… (varios ítems: renombrar en lote) |

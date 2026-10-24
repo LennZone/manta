@@ -20,6 +20,7 @@ mod app;
 mod commands;
 mod common;
 mod dialogs;
+mod finder;
 mod help;
 mod pane;
 mod panels;
@@ -44,6 +45,7 @@ pub const ALL: &[Entries] = &[
     updates::ENTRIES,
     help::ENTRIES,
     views::ENTRIES,
+    finder::ENTRIES,
 ];
 
 // Translations: one folder per language, one file per area.
@@ -83,4 +85,5 @@ pub const AREAS: &[(&str, Entries)] = &[
     ("Viewer", viewer::ENTRIES),
     ("Updates", updates::ENTRIES),
     ("Help", help::ENTRIES),
+    ("Tags, search and Get Info", finder::ENTRIES),
 ];

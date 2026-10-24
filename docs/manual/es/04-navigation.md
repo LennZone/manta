@@ -85,6 +85,27 @@ El filtro muestra solo los ítems cuyo nombre contiene un texto.
 
 El filtro se aplica solo a la carpeta actual y a esta pestaña. La barra de estado muestra *que coinciden con “…”*. Si nada coincide, ves *Ningún ítem coincide con “…”* con un botón **Borrar filtro**. **esc** en el campo borra el filtro. En paneles más estrechos (por ejemplo, dos paneles en una ventana pequeña), el campo es una lupa: haz clic en ella o pulsa **⌘F** para abrirlo; permanece abierto mientras contiene texto y se pliega de nuevo cuando está vacío y haces clic en otro sitio o pulsas **esc**. Así queda espacio para la etiqueta de ubicación y la ruta; mientras el campo está abierto, los botones de visualización se agrupan en un único botón de menú.
 
+Para filtrar por [etiqueta](05-dateien.md#tags), escribe `tag:` y el nombre de la etiqueta, por ejemplo `tag:Rojo` o `tag:"Muy importante"`; también funciona el nombre del color (`tag:rojo` encuentra también una etiqueta roja llamada “Urgente”). Se puede combinar con un nombre: `tag:Rojo factura`.
+
+## Buscar en varias carpetas {#suchen}
+
+El filtro solo examina la carpeta que ves. Para buscar también en sus subcarpetas, o en todo el Mac, usa la barra de ámbito que aparece bajo la barra de ruta mientras usas el campo:
+
+- **Esta carpeta**: el filtro descrito más arriba.
+- **Subcarpetas**: la carpeta y todo lo que contiene. En este Mac se leen varias carpetas a la vez; los ítems ocultos solo se buscan cuando se muestran los archivos ocultos, y el contenido de los paquetes (apps, fototecas) se omite. En servidores, contenedores y archivos comprimidos, Manta recorre las carpetas una a una, como máximo 12 niveles de profundidad y 5.000 carpetas.
+- **Este Mac**: Spotlight; nombres *y* contenido de los archivos, en todos los lugares que Spotlight indexa (solo carpetas locales).
+
+1. Pulsa **⌘F** y escribe lo que buscas.
+2. Haz clic en **Subcarpetas** o en **Este Mac**. La búsqueda empieza un momento después de que dejes de escribir (o de inmediato con **↩**).
+
+Un nombre coincide si contiene el texto (no importan mayúsculas ni minúsculas). Con `*` o `?`, el texto es un patrón para el nombre completo: `*.pdf`, `report-202?.xlsx`. Los términos `tag:` también funcionan aquí.
+
+Los resultados llenan el panel como una lista mientras la búsqueda está en curso: la barra de ruta indica **Búsqueda: “…”** y dónde, la barra de ámbito muestra cuántos ítems se han encontrado, y una columna **Ruta** muestra la carpeta en la que está cada uno. Puedes abrir, ver con Vista Rápida, copiar, mover, renombrar, etiquetar y eliminar los resultados como de costumbre. **Mostrar en la carpeta contenedora** en el menú contextual (o **⌘↑**) abre la carpeta del ítem con el ítem seleccionado. El botón de detener de la barra de ámbito detiene una búsqueda larga (los resultados encontrados hasta entonces se conservan); **⌘R** la vuelve a ejecutar. Se muestran como máximo 10.000 resultados.
+
+**esc** en el campo de búsqueda, **⌘[** o borrar el texto cierra la búsqueda y vuelve a mostrar la carpeta; abrir otra carpeta también.
+
+Si Subcarpetas no encuentra nada, el panel vacío ofrece **Buscar en este Mac**.
+
 ## Archivos ocultos {#unsichtbare-dateien}
 
 Los archivos cuyo nombre empieza por un punto (como `.git` o `.env`) y los archivos marcados como ocultos no se muestran normalmente.
@@ -102,5 +123,6 @@ Las carpetas de **servidores**, **contenedores**, **S3** y **archivos comprimido
 
 ## Consulta también
 
+- [Etiquetas y Obtener información](05-dateien.md#tags)
 - [Favoritos y barra lateral](07-favoriten-seitenleiste.md)
 - [Atajos de teclado](18-tastenkuerzel.md#navigation)
