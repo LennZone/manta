@@ -388,6 +388,15 @@ fn apple_python_shim_runs_in_the_sandbox() {
     if !dev.exists() || !Path::new("/usr/bin/python3").exists() {
         return;
     }
+    // The shim must work outside the sandbox first (some CI images have
+    // Xcode without a python3).
+    let plain = std::process::Command::new("/usr/bin/python3")
+        .args(["-c", "print('python ok')"])
+        .output();
+    if !plain.is_ok_and(|o| o.status.success()) {
+        eprintln!("/usr/bin/python3 doesn't run here even without the sandbox, skipping");
+        return;
+    }
     let tmp = tempfile::tempdir().unwrap();
     let data = tmp.path().join("data");
     let launch = command(

@@ -1047,6 +1047,10 @@ unsafe fn write_signal_report(cfg: &Config, name: &str) {
     let mut addrs = [std::ptr::null_mut(); MAX_FRAMES];
     let count = capture_addrs(&mut addrs);
     b.push(b"\nBacktrace:\n");
+    if count == 0 {
+        // Some macOS versions can't unwind from a signal handler.
+        b.push(b"  (no frames available)\n");
+    }
     for (i, a) in addrs[..count].iter().enumerate() {
         let a = *a as usize;
         // Like `format_frame`: "  3  0x0000000100004f20".

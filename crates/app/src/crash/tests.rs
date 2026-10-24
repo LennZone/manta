@@ -316,10 +316,16 @@ fn an_abort_writes_a_signal_report() {
     assert!(text.contains("Kind: signal SIGABRT"), "{text}");
     assert!(text.contains(&format!("Manta: {}", env!("CARGO_PKG_VERSION"))));
     assert!(
-        text.contains("\nUUID: ") && text.contains("\nBacktrace:\n  0  0x"),
+        text.contains("\nUUID: ") && text.contains("\nBacktrace:\n"),
         "{text}"
     );
-    assert!(text.contains(" + 0x"), "frames in our binary: {text}");
+    // Unwinding from a signal handler works on current macOS but not on every
+    // version (macOS 14 CI runners give no frames): frames are best effort.
+    if text.contains("\nBacktrace:\n  0  0x") {
+        assert!(text.contains(" + 0x"), "frames in our binary: {text}");
+    } else {
+        assert!(text.contains("(no frames available)"), "{text}");
+    }
 }
 
 #[cfg(target_os = "macos")]

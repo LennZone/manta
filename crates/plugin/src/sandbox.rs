@@ -335,7 +335,12 @@ pub fn exec_targets(program: &Path, path_var: &OsStr) -> Vec<PathBuf> {
 
 /// The active developer folder (`xcode-select -p`): Xcode's, if chosen.
 fn developer_dir() -> Option<PathBuf> {
-    let link = std::fs::read_link("/private/var/db/xcode_select_link").ok()?;
+    // DEVELOPER_DIR wins over xcode-select (CI runners use it).
+    let link = std::env::var_os("DEVELOPER_DIR")
+        .map(PathBuf::from)
+        .or_else(|| std::fs::read_link("/private/var/db/xcode_select_link").ok())?;
+    // The sandbox matches real paths: resolve symlinks (Xcode.app → Xcode_15.4.app).
+    let link = std::fs::canonicalize(&link).unwrap_or(link);
     // ".../Xcode.app/Contents/Developer": allow the whole app (its tools
     // load frameworks from Contents/SharedFrameworks).
     let app = link
