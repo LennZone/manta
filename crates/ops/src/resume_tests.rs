@@ -294,7 +294,13 @@ fn network_drop_waits_and_resumes_at_the_exact_offset() {
     let st = wait_done(&tm, id);
     assert_eq!(sha(&local.read_all("/dl/big.iso").unwrap()), sha(&content));
     assert!(!local.exists("/dl/.big.iso.manta-part"));
-    assert_eq!(*flaky.read_offsets.lock().unwrap(), vec![0, drop_at]);
+    // The source is read again 64 KiB before the partial's size: those
+    // bytes are compared with the end of the partial file, then the copy
+    // goes on at exactly the partial's size.
+    assert_eq!(
+        *flaky.read_offsets.lock().unwrap(),
+        vec![0, drop_at - 64 * 1024]
+    );
     assert!(flaky.reconnects.load(Ordering::SeqCst) >= 1);
     assert_eq!(st.bytes_done, content.len() as u64);
     assert_eq!(st.files_done, 1);
@@ -335,7 +341,10 @@ fn reconnect_is_retried_with_backoff_until_the_network_returns() {
     wait_done(&tm, id);
     assert_eq!(sha(&local.read_all("/in/a.bin").unwrap()), sha(&content));
     assert!(flaky.reconnects.load(Ordering::SeqCst) >= 3);
-    assert_eq!(*flaky.read_offsets.lock().unwrap(), vec![0, 100_000]);
+    assert_eq!(
+        *flaky.read_offsets.lock().unwrap(),
+        vec![0, 100_000 - 64 * 1024]
+    );
 }
 
 #[test]
@@ -837,4 +846,263 @@ fn journal_is_throttled_but_follows_state_changes() {
         );
         std::thread::sleep(Duration::from_millis(10));
     }
+}
+
+// ------------------------------------------- quit while a chunk is written
+
+/// The restored job's resolver: `Local` is `dst`, anything else `src`.
+fn resolver<'a>(
+    src: &'a SharedVfs,
+    dst: &'a SharedVfs,
+) -> impl Fn(&Endpoint) -> Option<SharedVfs> + 'a {
+    move |ep: &Endpoint| {
+        Some(if matches!(ep, Endpoint::Local) {
+            dst.clone()
+        } else {
+            src.clone()
+        })
+    }
+}
+
+/// Starts a journaled copy of `/s/movie.mov` and freezes its worker in the
+/// middle of writing a chunk (the write gate is closed).
+fn copy_frozen_mid_chunk(
+    opts: TransferOptions,
+    src: &SharedVfs,
+    dst: &SharedVfs,
+    b: &MemFs,
+) -> (TransferManager, Arc<crate::memfs::WriteGate>) {
+    let tm = TransferManager::with_options(opts);
+    let id = tm.enqueue_with_endpoints(
+        copy_job(src, &["/s/movie.mov"], dst, "/d", ConflictPolicy::Overwrite),
+        media_endpoint(),
+        Some(Endpoint::Local),
+    );
+    wait_for(&tm, id, "progress", |s| s.bytes_done > 300_000);
+    let gate = crate::memfs::WriteGate::closed();
+    b.set_write_gate(Some(gate.clone()));
+    assert!(gate.wait_for_writers(1, Duration::from_secs(60)));
+    (tm, gate)
+}
+
+/// The CI failure of `journal_restores_jobs_after_a_restart`: the worker
+/// of the quit manager wrote one more chunk into the part file after the
+/// restored job had taken the part file's size as its offset, so that
+/// chunk ended up twice in the file — and the job still reported success.
+#[test]
+fn resume_never_appends_while_an_old_worker_still_writes() {
+    let td = tempfile::tempdir().unwrap();
+    let journal = td.path().join("transfers.json");
+    let (a, content) = slow_source(2 * 1024 * 1024);
+    let b = MemFs::new();
+    let (src, dst): (SharedVfs, SharedVfs) = (Arc::new(a.clone()), Arc::new(b.clone()));
+    let opts = || TransferOptions {
+        max_parallel: 1,
+        journal: Some(journal.clone()),
+        // The old worker stays stuck in its write past the quit (like a
+        // network write that takes longer than the shutdown wait).
+        shutdown_timeout: Duration::ZERO,
+        ..Default::default()
+    };
+    let (tm, gate) = copy_frozen_mid_chunk(opts(), &src, &dst, &b);
+    drop(tm);
+    let tm = TransferManager::with_options(opts());
+    let ids = tm.restore_interrupted(&resolver(&src, &dst));
+    // The restored job must not continue while the old worker can still
+    // write: it waits for it (before the fix it continued at once).
+    let st = wait_for(&tm, ids[0], "waiting or resumed", |s| {
+        s.resume.resumed_from.is_some()
+            || s.resume.log.iter().any(|l| l.contains("earlier transfer"))
+    });
+    assert_eq!(st.resume.resumed_from, None, "{st:?}");
+    gate.open();
+    // Once the old worker stopped, the job continues the partial file.
+    let st = wait_for(&tm, ids[0], "resumed", |s| {
+        s.resume.resumed_from.is_some() || s.state.is_finished()
+    });
+    assert!(st.resume.resumed_from.is_some(), "{st:?}");
+    let st = wait_done(&tm, ids[0]);
+    assert_eq!(st.state, JobState::Done, "{st:?}");
+    let got = b.read_all("/d/movie.mov").unwrap();
+    assert_eq!(got.len(), content.len());
+    assert_eq!(sha(&got), sha(&content));
+}
+
+/// Quitting waits for the workers to stop writing, so the partial file is
+/// final when the manager is gone and the last journal write follows it.
+#[test]
+fn quit_waits_for_workers_before_the_last_journal_write() {
+    let td = tempfile::tempdir().unwrap();
+    let journal = td.path().join("transfers.json");
+    let (a, content) = slow_source(2 * 1024 * 1024);
+    let b = MemFs::new();
+    let (src, dst): (SharedVfs, SharedVfs) = (Arc::new(a.clone()), Arc::new(b.clone()));
+    let opts = TransferOptions {
+        max_parallel: 1,
+        journal: Some(journal.clone()),
+        shutdown_timeout: Duration::from_secs(600),
+        ..Default::default()
+    };
+    let (tm, gate) = copy_frozen_mid_chunk(opts, &src, &dst, &b);
+    let shared = tm.shared_for_tests();
+    let quit = std::thread::spawn(move || drop(tm));
+    // The quit waits for the frozen write: release it.
+    gate.open();
+    quit.join().unwrap();
+    assert_eq!(shared.running_threads(), 0, "all transfer threads joined");
+    let part = b.read_all("/d/.movie.mov.manta-part").unwrap();
+    assert!(!part.is_empty() && part.len() < content.len());
+    assert_eq!(part, content[..part.len()], "the partial file is a prefix");
+    let jobs = crate::journal::Journal::new(journal.clone()).load();
+    assert_eq!(jobs.len(), 1);
+    assert_eq!(jobs[0].state, JournalState::Paused, "{:?}", jobs[0]);
+    assert_eq!(
+        jobs[0].bytes_done,
+        part.len() as u64,
+        "journal matches the file"
+    );
+    // Resuming continues exactly there.
+    let tm = TransferManager::with_options(TransferOptions {
+        max_parallel: 1,
+        journal: Some(journal.clone()),
+        ..Default::default()
+    });
+    let ids = tm.restore_interrupted(&resolver(&src, &dst));
+    let st = wait_for(&tm, ids[0], "resumed", |s| {
+        s.resume.resumed_from.is_some() || s.state.is_finished()
+    });
+    assert_eq!(st.resume.resumed_from, Some(part.len() as u64));
+    wait_done(&tm, ids[0]);
+    assert_eq!(sha(&b.read_all("/d/movie.mov").unwrap()), sha(&content));
+}
+
+#[test]
+fn a_partial_file_that_does_not_match_the_source_is_not_continued() {
+    let (a, content) = slow_source(2 * 1024 * 1024);
+    let b = MemFs::new();
+    let (src, dst): (SharedVfs, SharedVfs) = (Arc::new(a.clone()), Arc::new(b.clone()));
+    let tm = TransferManager::new(1);
+    let id = tm.enqueue(copy_job(
+        &src,
+        &["/s/movie.mov"],
+        &dst,
+        "/d",
+        ConflictPolicy::Overwrite,
+    ));
+    pause_midway(&tm, id);
+    // Something else changed the end of the partial file.
+    let mut part = b.read_all("/d/.movie.mov.manta-part").unwrap();
+    let n = part.len();
+    part[n - 10..].copy_from_slice(&[0xAA; 10]);
+    b.put("/d/.movie.mov.manta-part", &part, t(0));
+    tm.resume(id);
+    let st = wait_done(&tm, id);
+    assert_eq!(st.state, JobState::Done);
+    assert_eq!(st.resume.resumed_from, None, "{st:?}");
+    assert!(
+        st.resume.log.iter().any(|l| l.contains("doesn't match")),
+        "{st:?}"
+    );
+    assert_eq!(sha(&b.read_all("/d/movie.mov").unwrap()), sha(&content));
+}
+
+#[test]
+fn a_copy_of_the_wrong_size_is_redone_and_never_reported_as_done() {
+    let content = data(600_000, 5);
+    let a = MemFs::new();
+    a.put("/s/f.bin", &content, t(0));
+    a.set_read_throttle(32 * 1024, None);
+    let b = MemFs::new();
+    let (src, dst): (SharedVfs, SharedVfs) = (Arc::new(a.clone()), Arc::new(b.clone()));
+    let tm = TransferManager::new(1);
+    // One chunk is lost: the copy is redone from the start.
+    b.lose_writes(1);
+    let id = tm.enqueue(copy_job(
+        &src,
+        &["/s/f.bin"],
+        &dst,
+        "/d",
+        ConflictPolicy::Overwrite,
+    ));
+    let st = wait_done(&tm, id);
+    assert_eq!(st.state, JobState::Done, "{st:?}");
+    assert!(
+        st.resume.log.iter().any(|l| l.contains("instead of")),
+        "{st:?}"
+    );
+    assert_eq!(st.bytes_done, content.len() as u64);
+    assert_eq!(sha(&b.read_all("/d/f.bin").unwrap()), sha(&content));
+    // Losing data again on the second try: an error, not a bad file.
+    b.lose_writes(usize::MAX);
+    let id = tm.enqueue(copy_job(
+        &src,
+        &["/s/f.bin"],
+        &dst,
+        "/e",
+        ConflictPolicy::Overwrite,
+    ));
+    let st = wait_done(&tm, id);
+    assert!(!st.errors.is_empty(), "{st:?}");
+    assert!(!b.exists("/e/f.bin"), "{:?}", b.paths());
+    assert!(!b.exists("/e/.f.bin.manta-part"), "{:?}", b.paths());
+}
+
+#[test]
+fn the_same_file_copied_twice_at_once_uses_separate_partial_files() {
+    let (a, content) = slow_source(1024 * 1024);
+    let b = MemFs::new();
+    let (src, dst): (SharedVfs, SharedVfs) = (Arc::new(a.clone()), Arc::new(b.clone()));
+    let tm = TransferManager::new(2);
+    let gate = crate::memfs::WriteGate::closed();
+    b.set_write_gate(Some(gate.clone()));
+    let one = tm.enqueue(copy_job(
+        &src,
+        &["/s/movie.mov"],
+        &dst,
+        "/d",
+        ConflictPolicy::Overwrite,
+    ));
+    let two = tm.enqueue(copy_job(
+        &src,
+        &["/s/movie.mov"],
+        &dst,
+        "/d",
+        ConflictPolicy::Overwrite,
+    ));
+    // Both are writing at the same time.
+    assert!(gate.wait_for_writers(2, Duration::from_secs(60)));
+    let parts: Vec<String> = b
+        .paths()
+        .into_iter()
+        .filter(|p| p.ends_with(".manta-part"))
+        .collect();
+    assert_eq!(
+        parts,
+        vec!["/d/.movie.mov.manta-part", "/d/.movie.mov~2.manta-part"]
+    );
+    gate.open();
+    for id in [one, two] {
+        let st = wait_done(&tm, id);
+        assert_eq!(st.state, JobState::Done, "{st:?}");
+        assert!(st.errors.is_empty(), "{st:?}");
+    }
+    assert_eq!(sha(&b.read_all("/d/movie.mov").unwrap()), sha(&content));
+    assert_eq!(b.paths(), vec!["/d", "/d/movie.mov"]);
+}
+
+fn media_endpoint() -> Endpoint {
+    Endpoint::remote(&ConnectionConfig {
+        name: "Media".into(),
+        protocol: Protocol::Sftp,
+        host: "media.example".into(),
+        port: 22,
+        username: "me".into(),
+        auth: Auth::None,
+        initial_path: None,
+        s3: None,
+        container: None,
+        ftp: None,
+        webdav: None,
+        smb: None,
+    })
 }

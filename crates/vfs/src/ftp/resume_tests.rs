@@ -161,7 +161,12 @@ fn download_resumes_after_a_drop_with_rest() {
     assert_eq!(std::fs::read(td.path().join("big.iso")).unwrap(), content);
     assert!(!part.exists());
     assert!(
-        server.commands().iter().any(|c| c == "REST 1000000"),
+        // 64 KiB before the partial's size: compared with the end of
+        // the partial file, then the download goes on.
+        server
+            .commands()
+            .iter()
+            .any(|c| c == &format!("REST {}", 1_000_000 - 64 * 1024)),
         "{:?}",
         server.commands()
     );

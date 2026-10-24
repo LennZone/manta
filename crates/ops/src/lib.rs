@@ -230,6 +230,11 @@ pub struct TransferOptions {
     /// Minimum time between two journal writes for progress only (state
     /// changes are written at once).
     pub journal_interval: Duration,
+    /// How long dropping the manager waits for running jobs to stop at
+    /// their next chunk (so nothing is written to a partial file after the
+    /// journal's last write). Jobs still busy after it are left to stop in
+    /// the background; their partial files stay claimed until they do.
+    pub shutdown_timeout: Duration,
 }
 
 impl Default for TransferOptions {
@@ -240,6 +245,7 @@ impl Default for TransferOptions {
             network: None,
             backoff: Backoff::default(),
             journal_interval: Duration::from_secs(1),
+            shutdown_timeout: Duration::from_secs(5),
         }
     }
 }
@@ -379,9 +385,18 @@ impl TransferManager {
     }
 }
 
+#[cfg(test)]
+impl TransferManager {
+    /// The engine, to inspect it after the manager is dropped.
+    pub(crate) fn shared_for_tests(&self) -> Arc<transfer::Shared> {
+        self.shared.clone()
+    }
+}
+
 impl Drop for TransferManager {
-    /// Cancels all jobs and lets the worker threads wind down in the
-    /// background (they are not joined, so dropping never blocks on IO).
+    /// Stops all jobs (journaled ones like a pause, the rest cancelled),
+    /// waits up to [`TransferOptions::shutdown_timeout`] for the worker
+    /// threads to stop writing, then writes the journal one last time.
     fn drop(&mut self) {
         self.shared.shutdown();
     }

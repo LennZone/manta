@@ -19,6 +19,14 @@
 //!   is simply run again later: the re-run skips finished files and
 //!   continues the file in flight at the part file's size (if the source is
 //!   unchanged and the destination can append), otherwise starts it over.
+//! - Byte-exact resume: the offset is always the part file's real size
+//!   (stat), never a counter or the journal; the last 64 KiB of the part
+//!   file are compared with the source before it is continued; a job owns
+//!   its part file for the whole copy (process-wide claim, so a worker that
+//!   is still stopping can't write into a part file another job continues);
+//!   quitting waits for the workers to stop before the last journal write;
+//!   and a finished copy whose size isn't offset + bytes streamed is redone
+//!   once from the start, then reported as an error — never as done.
 //! - Errors are classified (`VfsError::class`). A transient one stops the
 //!   whole job in `WaitingForNetwork`; a scheduler thread re-queues it after
 //!   an exponential backoff or as soon as the network monitor reports
@@ -51,7 +59,7 @@ use manta_core::{
 
 use crate::journal::{Journal, JournalJob, JournalState};
 use crate::network::NetworkMonitor;
-use crate::resume::{part_path, Backoff, Endpoint, Partial, Progress};
+use crate::resume::{part_path, Backoff, Endpoint, Partial, Progress, PART_SUFFIX};
 use crate::{
     CompressJob, ConflictChoice, ConflictItem, ConflictPolicy, ConflictQuestion, Job, JobId,
     JobKind, JobState, JobStatus, ResumeInfo, TransferOptions,
@@ -171,6 +179,11 @@ pub(crate) struct JobSlot {
 }
 
 impl JobSlot {
+    /// Asked to stop (pause, cancel or quit).
+    fn stopping(&self) -> bool {
+        self.pause.load(Ordering::SeqCst) || self.cancel.load(Ordering::SeqCst)
+    }
+
     /// Journal this job? (copy/move/delete whose endpoints can be reopened)
     fn journaled(&self) -> bool {
         self.desc.is_some()
@@ -265,7 +278,25 @@ pub(crate) struct Shared {
     backoff: Backoff,
     journal_interval: Duration,
     max_parallel: usize,
+    /// Threads of this manager (workers, retry scheduler, journal writer)
+    /// still running, and their handles (joined at shutdown).
+    threads: Mutex<(usize, Vec<std::thread::JoinHandle<()>>)>,
+    threads_cv: Condvar,
+    shutdown_timeout: Duration,
 }
+
+/// Counts a manager thread as running until it returns (or panics).
+struct ThreadGuard(Arc<Shared>);
+
+impl Drop for ThreadGuard {
+    fn drop(&mut self) {
+        lock(&self.0.threads).0 -= 1;
+        self.0.threads_cv.notify_all();
+    }
+}
+
+/// Name prefix of the manager's threads.
+const THREAD_PREFIX: &str = "manta-transfer";
 
 fn new_status(id: JobId, kind: JobKind, title: String, can_pause: bool) -> JobStatus {
     JobStatus {
@@ -312,21 +343,16 @@ impl Shared {
             backoff: opts.backoff,
             journal_interval: opts.journal_interval,
             max_parallel: opts.max_parallel.max(1),
+            threads: Mutex::new((0, Vec::new())),
+            threads_cv: Condvar::new(),
+            shutdown_timeout: opts.shutdown_timeout,
         });
         for i in 0..shared.max_parallel {
             shared.spawn_worker(i);
         }
-        let s = shared.clone();
-        std::thread::Builder::new()
-            .name("manta-transfer-retry".into())
-            .spawn(move || s.scheduler())
-            .expect("spawn transfer scheduler");
+        shared.spawn_thread("retry", |s| s.scheduler());
         if shared.journal.is_some() {
-            let s = shared.clone();
-            std::thread::Builder::new()
-                .name("manta-transfer-journal".into())
-                .spawn(move || s.journal_writer())
-                .expect("spawn transfer journal");
+            shared.spawn_thread("journal", |s| s.journal_writer());
         }
         if let Some(net) = &shared.network {
             let weak: Weak<Shared> = Arc::downgrade(&shared);
@@ -581,6 +607,15 @@ impl Shared {
     /// partial files stay for the next start) and the journal is written one
     /// last time; everything else is cancelled.
     pub(crate) fn shutdown(&self) {
+        self.stop_all();
+        // Nothing may write to a partial file after the journal's last
+        // snapshot: wait for the workers to stop at their next chunk.
+        self.join_threads();
+        self.write_journal(true);
+    }
+
+    /// Flag every job to stop and wake every thread.
+    fn stop_all(&self) {
         let mut inner = lock(&self.inner);
         inner.shutdown = true;
         let keep = self.journal.is_some();
@@ -594,10 +629,52 @@ impl Shared {
         }
         inner.queue.clear();
         drop(inner);
-        self.write_journal(true);
         self.cv.notify_all();
         self.sched_cv.notify_all();
-        self.signal.cv.notify_all();
+        // Sets the flag under its lock: the journal writer can't miss it
+        // and sleep a whole interval before it notices the shutdown.
+        self.signal.urgent();
+    }
+
+    /// Manager threads still running.
+    #[cfg(test)]
+    pub(crate) fn running_threads(&self) -> usize {
+        lock(&self.threads).0
+    }
+
+    /// Wait (up to `shutdown_timeout`) until the manager's threads have
+    /// returned, then join them. Called from one of those threads (the
+    /// last handle dropped by a runner) it can't wait for itself: no-op.
+    fn join_threads(&self) {
+        if std::thread::current()
+            .name()
+            .is_some_and(|n| n.starts_with(THREAD_PREFIX))
+        {
+            return;
+        }
+        let deadline = Instant::now() + self.shutdown_timeout;
+        let mut threads = lock(&self.threads);
+        while threads.0 > 0 {
+            let left = deadline.saturating_duration_since(Instant::now());
+            if left.is_zero() {
+                log::warn!(
+                    "transfers: {} thread(s) still busy after {:?}; they stop in the background",
+                    threads.0,
+                    self.shutdown_timeout
+                );
+                return;
+            }
+            threads = self
+                .threads_cv
+                .wait_timeout(threads, left)
+                .unwrap_or_else(|e| e.into_inner())
+                .0;
+        }
+        let handles = std::mem::take(&mut threads.1);
+        drop(threads);
+        for h in handles {
+            let _ = h.join();
+        }
     }
 
     // ------------------------------------------------------------ restore
@@ -790,11 +867,24 @@ impl Shared {
     // ------------------------------------------------------------- threads
 
     fn spawn_worker(self: &Arc<Self>, n: usize) {
-        let s = self.clone();
-        std::thread::Builder::new()
-            .name(format!("manta-transfer-{n}"))
-            .spawn(move || s.worker())
-            .expect("spawn transfer worker");
+        self.spawn_thread(&n.to_string(), |s| s.worker());
+    }
+
+    /// Start a manager thread, counted in `threads` until it returns.
+    fn spawn_thread(self: &Arc<Self>, name: &str, f: impl FnOnce(&Arc<Shared>) + Send + 'static) {
+        let mut threads = lock(&self.threads);
+        threads.0 += 1;
+        // Finished handles of extra workers don't pile up.
+        threads.1.retain(|h| !h.is_finished());
+        let guard = ThreadGuard(self.clone());
+        let h = std::thread::Builder::new()
+            .name(format!("{THREAD_PREFIX}-{name}"))
+            .spawn(move || {
+                let guard = guard;
+                f(&guard.0);
+            })
+            .expect("spawn transfer thread");
+        threads.1.push(h);
     }
 
     fn worker(self: &Arc<Self>) {
@@ -1971,6 +2061,31 @@ impl<'a> Runner<'a> {
         self.status().resume.resumed_from = None;
         let caps = dst_fs.supports_resume();
 
+        // Own the part file for the whole copy: a worker of an earlier
+        // run that is still stopping, or another job copying to the same
+        // file, never writes into it at the same time.
+        let claim = if caps.upload_session {
+            None
+        } else {
+            let want = resuming
+                .as_ref()
+                .and_then(|p| p.part.as_deref())
+                .map(VfsPath::new)
+                .unwrap_or_else(|| part_path(dst));
+            Some(self.claim_part(dst_fs, &want)?)
+        };
+        let mut resuming = resuming;
+        if let (Some(c), Some(Some(part))) = (&claim, resuming.as_ref().map(|p| p.part.as_deref()))
+        {
+            if part != c.path.as_str() {
+                self.note(format!(
+                    "{}: its partial file is in use by another transfer; copying it again from the start",
+                    src.path
+                ));
+                resuming = None;
+            }
+        }
+
         // Can the earlier attempt be continued?
         let mut continued = None;
         if let Some(p) = resuming {
@@ -2004,7 +2119,7 @@ impl<'a> Runner<'a> {
                 Partial {
                     src: src.path.to_string(),
                     dst: dst.to_string(),
-                    part: (!caps.upload_session).then(|| part_path(dst).to_string()),
+                    part: claim.as_ref().map(|c| c.path.to_string()),
                     size: src.size,
                     mtime: src.modified,
                     tag,
@@ -2016,7 +2131,39 @@ impl<'a> Runner<'a> {
         self.set_partial(Some(partial.clone()));
 
         let mut copied = 0u64;
-        let result = self.stream(src_fs, src, dst_fs, &partial, resumed, &mut copied);
+        let mut result = self.stream(src_fs, src, dst_fs, &partial, resumed, &mut copied);
+        // Never report a copy as done whose size isn't what was streamed
+        // (offset + bytes written): copy it again once from the start, then
+        // give up with an error.
+        let mut fresh = false;
+        while result.is_ok() {
+            match self.verify_size(dst_fs, &partial, copied) {
+                Ok(None) => break,
+                Ok(Some(found)) => {
+                    let msg = format!(
+                        "{}: the copy has {found} bytes instead of {copied}",
+                        src.path
+                    );
+                    log::warn!("transfer job {}: {msg}", self.slot.id);
+                    if fresh {
+                        result = Err(StreamError::Write(VfsError::Other(msg)));
+                        break;
+                    }
+                    self.note(format!("{msg}; copying it again from the start"));
+                    fresh = true;
+                    if partial.part.is_some() {
+                        discard_partial_files(Some(dst_fs), None, &partial);
+                    }
+                    {
+                        let mut st = self.status();
+                        st.bytes_done = st.bytes_done.saturating_sub(copied);
+                    }
+                    copied = 0;
+                    result = self.stream(src_fs, src, dst_fs, &partial, false, &mut copied);
+                }
+                Err(e) => result = Err(StreamError::Write(e)),
+            }
+        }
         let stopped = matches!(result, Err(StreamError::Stop(_)))
             || matches!(&result, Err(StreamError::Open(e) | StreamError::Read(e) | StreamError::Write(e)) if self.is_transient(e));
 
@@ -2046,6 +2193,7 @@ impl<'a> Runner<'a> {
             }
         };
         self.set_partial(None);
+        drop(claim);
         // Keep the progress consistent if the file was shorter than scanned
         // or the copy failed half-way.
         self.add_bytes(src.size.saturating_sub(copied));
@@ -2161,7 +2309,7 @@ impl<'a> Runner<'a> {
         copied: &mut u64,
     ) -> Result<(), StreamError> {
         let dst = VfsPath::new(&partial.dst);
-        let (mut writer, offset) = match &partial.part {
+        let (mut writer, mut reader, offset) = match &partial.part {
             None => {
                 let session = if resumed {
                     partial.session.as_ref()
@@ -2177,11 +2325,16 @@ impl<'a> Runner<'a> {
                         src.path
                     ));
                 }
-                (up.writer, up.offset)
+                let reader = src_fs
+                    .open_read_at(&src.path, up.offset)
+                    .map_err(StreamError::Open)?;
+                (up.writer, reader, up.offset)
             }
             Some(part) => {
                 let part = VfsPath::new(part);
                 let caps = dst_fs.supports_resume();
+                // The partial file's real size is the offset: never what
+                // the journal or a counter says.
                 let mut offset = 0;
                 if resumed {
                     match dst_fs.stat(&part) {
@@ -2199,18 +2352,34 @@ impl<'a> Runner<'a> {
                         Err(e) => return Err(StreamError::Write(e)),
                     }
                 }
+                let mut reader = None;
+                if offset > 0 {
+                    match self.open_after_tail_check(src_fs, src, dst_fs, &part, offset)? {
+                        Some(r) => reader = Some(r),
+                        None => {
+                            self.note(format!(
+                                "{}: the end of the partial file doesn't match the source; copying it again from the start",
+                                src.path
+                            ));
+                            offset = 0;
+                        }
+                    }
+                }
+                let reader = match reader {
+                    Some(r) => r,
+                    None => src_fs
+                        .open_read_at(&src.path, 0)
+                        .map_err(StreamError::Open)?,
+                };
                 let w = if offset > 0 {
                     dst_fs.open_append(&part)
                 } else {
                     dst_fs.open_write(&part)
                 }
                 .map_err(StreamError::Write)?;
-                (w, offset)
+                (w, reader, offset)
             }
         };
-        let mut reader = src_fs
-            .open_read_at(&src.path, offset)
-            .map_err(StreamError::Open)?;
         if offset > 0 {
             log::info!(
                 "transfer job {}: continuing {} at byte {offset}",
@@ -2248,6 +2417,159 @@ impl<'a> Runner<'a> {
         drop(reader);
         result
     }
+}
+
+impl Runner<'_> {
+    /// Claim `part` on `fs` for this job. A claim held by a job that is
+    /// stopping (pause, cancel, quit) is waited for; one held by a running
+    /// job (the same file copied twice at once) gets a numbered part file
+    /// instead (`.NAME~2.manta-part`).
+    fn claim_part(&self, fs: &dyn Vfs, part: &VfsPath) -> Result<PartClaim, Stop> {
+        let deadline = Instant::now() + CLAIM_WAIT;
+        let mut noted = false;
+        let mut n = 1u32;
+        let mut claims = lock(&PART_CLAIMS);
+        loop {
+            let path = if n == 1 {
+                part.clone()
+            } else {
+                numbered_part(part, n)
+            };
+            let key = part_key(fs, &path);
+            let holder = claims
+                .iter()
+                .find(|(k, _)| *k == key)
+                .map(|(_, h)| h.clone());
+            match holder {
+                None => {
+                    claims.push((key.clone(), self.slot.clone()));
+                    return Ok(PartClaim { key, path });
+                }
+                Some(h) if n == 1 && h.stopping() && Instant::now() < deadline => {
+                    drop(claims);
+                    if !noted {
+                        self.note(format!(
+                            "{part}: waiting for an earlier transfer of this file to stop"
+                        ));
+                        noted = true;
+                    }
+                    self.check_stop()?;
+                    claims = lock(&PART_CLAIMS);
+                    // Re-check the stop flags now and then while waiting.
+                    claims = PART_CLAIMS_CV
+                        .wait_timeout(claims, Duration::from_millis(50))
+                        .unwrap_or_else(|e| e.into_inner())
+                        .0;
+                }
+                Some(_) => n += 1,
+            }
+        }
+    }
+
+    /// Before a partial file of `len` bytes is continued, its last bytes
+    /// are compared with the source's at the same position, so a partial
+    /// file that grew or shifted behind Manta's back is never continued.
+    /// Returns the source reader positioned at `len` (the compared bytes
+    /// come from it, so the check costs no extra source request), or
+    /// `None` when the bytes differ.
+    fn open_after_tail_check(
+        &self,
+        src_fs: &dyn Vfs,
+        src: &Entry,
+        dst_fs: &dyn Vfs,
+        part: &VfsPath,
+        len: u64,
+    ) -> Result<Option<Box<dyn Read + Send>>, StreamError> {
+        if !dst_fs.supports_resume().read_at {
+            // Checking would download the whole partial file; the size
+            // check at the end still applies.
+            return src_fs
+                .open_read_at(&src.path, len)
+                .map(Some)
+                .map_err(StreamError::Open);
+        }
+        let n = len.min(TAIL_CHECK);
+        // Read the partial file to its end (an aborted download is not
+        // supported everywhere, e.g. FTP servers without ABOR).
+        let mut theirs = Vec::with_capacity(n as usize);
+        dst_fs
+            .open_read_at(part, len - n)
+            .and_then(|mut r| Ok(r.read_to_end(&mut theirs)?))
+            .map_err(StreamError::Write)?;
+        let mut reader = src_fs
+            .open_read_at(&src.path, len - n)
+            .map_err(StreamError::Open)?;
+        let mut ours = Vec::with_capacity(n as usize);
+        (&mut reader)
+            .take(n)
+            .read_to_end(&mut ours)
+            .map_err(|e| StreamError::Read(e.into()))?;
+        Ok((theirs == ours && ours.len() as u64 == n).then_some(reader))
+    }
+
+    /// The finished copy's size, if it isn't `expected` (`None`: matches,
+    /// or the backend can't tell).
+    fn verify_size(
+        &self,
+        fs: &dyn Vfs,
+        partial: &Partial,
+        expected: u64,
+    ) -> Result<Option<u64>, VfsError> {
+        let path = VfsPath::new(partial.part.as_deref().unwrap_or(&partial.dst));
+        match fs.stat(&path) {
+            Ok(e) if e.size == expected => Ok(None),
+            Ok(e) => Ok(Some(e.size)),
+            // The part file was just written: gone means lost.
+            Err(VfsError::NotFound(_)) if partial.part.is_some() => Ok(Some(0)),
+            Err(e) if self.is_transient(&e) => Err(e),
+            Err(e) => {
+                log::info!("{path}: size not verified ({e})");
+                Ok(None)
+            }
+        }
+    }
+}
+
+/// Bytes compared at the end of a partial file before it is continued.
+const TAIL_CHECK: u64 = 64 * 1024;
+
+/// How long a job waits for an earlier job that is stopping to release a
+/// part file before it uses a numbered one.
+const CLAIM_WAIT: Duration = Duration::from_secs(120);
+
+/// Part files being written in this process: (backend + path, job).
+static PART_CLAIMS: Mutex<Vec<(String, Arc<JobSlot>)>> = Mutex::new(Vec::new());
+static PART_CLAIMS_CV: Condvar = Condvar::new();
+
+/// A claimed part file; released on drop.
+struct PartClaim {
+    key: String,
+    path: VfsPath,
+}
+
+impl Drop for PartClaim {
+    fn drop(&mut self) {
+        lock(&PART_CLAIMS).retain(|(k, _)| *k != self.key);
+        PART_CLAIMS_CV.notify_all();
+    }
+}
+
+/// Identifies a part file across backends: the real path for local
+/// files, otherwise the backend instance and path.
+fn part_key(fs: &dyn Vfs, part: &VfsPath) -> String {
+    match fs.local_path(part) {
+        Some(p) => format!("local:{}", p.display()),
+        None => format!("{:p}:{part}", fs as *const dyn Vfs as *const u8),
+    }
+}
+
+/// `.NAME.manta-part` -> `.NAME~N.manta-part`.
+fn numbered_part(part: &VfsPath, n: u32) -> VfsPath {
+    let name = part.file_name();
+    let stem = name.strip_suffix(PART_SUFFIX).unwrap_or(name);
+    part.parent()
+        .unwrap_or_else(VfsPath::root)
+        .join(&format!("{stem}~{n}{PART_SUFFIX}"))
 }
 
 /// Copy `from` to `to` on the same backend by streaming (no rename).

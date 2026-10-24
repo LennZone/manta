@@ -35,6 +35,75 @@ struct State {
     no_rename: bool,
     /// When true, `open_append` returns `Unsupported` (no resume).
     no_append: bool,
+    /// While set and closed, writes block (see [`WriteGate`]).
+    write_gate: Option<Arc<WriteGate>>,
+    /// Write calls that report success without storing anything (a
+    /// backend that silently loses data).
+    lost_writes: usize,
+}
+
+/// Holds writers of a [`MemFs`] at a known point: while closed, every
+/// `write` call blocks before it touches the tree. Tests use it to freeze a
+/// transfer in the middle of a chunk (no sleeps).
+#[derive(Debug, Default)]
+pub struct WriteGate {
+    /// (closed, writers waiting)
+    state: Mutex<(bool, usize)>,
+    cv: std::sync::Condvar,
+}
+
+impl WriteGate {
+    /// A closed gate.
+    pub fn closed() -> Arc<WriteGate> {
+        Arc::new(WriteGate {
+            state: Mutex::new((true, 0)),
+            cv: std::sync::Condvar::new(),
+        })
+    }
+
+    /// Let every writer through (now and later).
+    pub fn open(&self) {
+        self.state.lock().unwrap_or_else(|e| e.into_inner()).0 = false;
+        self.cv.notify_all();
+    }
+
+    /// Writers blocked right now.
+    pub fn waiting(&self) -> usize {
+        self.state.lock().unwrap_or_else(|e| e.into_inner()).1
+    }
+
+    /// Block until `n` writers wait at the gate (or `timeout` passes;
+    /// returns whether they do).
+    pub fn wait_for_writers(&self, n: usize, timeout: Duration) -> bool {
+        let deadline = std::time::Instant::now() + timeout;
+        let mut st = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        while st.1 < n {
+            let left = deadline.saturating_duration_since(std::time::Instant::now());
+            if left.is_zero() {
+                return false;
+            }
+            st = self
+                .cv
+                .wait_timeout(st, left)
+                .unwrap_or_else(|e| e.into_inner())
+                .0;
+        }
+        true
+    }
+
+    fn pass(&self) {
+        let mut st = self.state.lock().unwrap_or_else(|e| e.into_inner());
+        if !st.0 {
+            return;
+        }
+        st.1 += 1;
+        self.cv.notify_all();
+        while st.0 {
+            st = self.cv.wait(st).unwrap_or_else(|e| e.into_inner());
+        }
+        st.1 -= 1;
+        self.cv.notify_all();
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -157,6 +226,16 @@ impl MemFs {
         self.put(path, data, modified);
     }
 
+    /// Route every write through `gate` (`None`: no gate).
+    pub fn set_write_gate(&self, gate: Option<Arc<WriteGate>>) {
+        self.st().write_gate = gate;
+    }
+
+    /// The next `n` write calls claim success but store nothing.
+    pub fn lose_writes(&self, n: usize) {
+        self.st().lost_writes = n;
+    }
+
     pub fn disable_rename(&self) {
         self.st().no_rename = true;
     }
@@ -223,7 +302,15 @@ struct MemWriter {
 
 impl Write for MemWriter {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let gate = self.fs.st().write_gate.clone();
+        if let Some(g) = gate {
+            g.pass();
+        }
         let mut st = self.fs.st();
+        if st.lost_writes > 0 {
+            st.lost_writes -= 1;
+            return Ok(buf.len());
+        }
         match st.nodes.get_mut(&self.path) {
             Some(Node {
                 content: Content::File(d),
