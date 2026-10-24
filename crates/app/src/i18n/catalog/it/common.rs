@@ -24,6 +24,5 @@ pub const ENTRIES: Translations = &[
     ("error.name_empty", "Il nome non può essere vuoto"),
     ("error.name_reserved", "“.” e “..” sono riservati"),
     ("error.name_slash", "Il nome non può contenere “/”"),
-    ("migrate.imported", "Dati di RustLift importati"),
     ("error.save_settings", "Impossibile salvare le impostazioni"),
 ];

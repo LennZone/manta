@@ -60,7 +60,7 @@ import time
 API_VERSION = 1
 SHUTDOWN_GRACE = 0.5
 MAX_LINE = 1024 * 1024
-RESERVED = ("manta", "rustlift")
+RESERVED = ("manta",)
 
 TONES = {"neutral", "accent", "success", "warning", "danger", "info", "muted"}
 TOAST_LEVELS = {"info", "success", "warning", "error"}

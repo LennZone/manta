@@ -36,10 +36,6 @@ Manta 是一款 Mac 文件管理器，可以并排显示多个面板。本章介
 
 此操作只需执行一次。另请参阅[故障排除](19-fehlerbehebung.md#gatekeeper)。
 
-## 来自 RustLift 的数据 {#rustlift}
-
-Manta 以前名为 RustLift。如果你使用过 RustLift，Manta 会在首次启动时接管你的设置、个人收藏和插件数据，并显示“已导入你的 RustLift 数据”提示加以确认。
-
 ## macOS 为什么会请求权限 {#berechtigungen}
 
 macOS 会保护某些文件夹和功能。每个 App 在使用它们之前都必须先请求一次许可，文件管理器也不例外。这些请求不会在启动时一次性出现，而是在你第一次打开相应文件夹或使用相应功能时才会出现。

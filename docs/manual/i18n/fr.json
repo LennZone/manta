@@ -3,7 +3,7 @@
   "chapters": {
     "erste-schritte": {
       "title": "Premiers pas",
-      "keywords": ["installer", "installation", "dmg", "applications", "gatekeeper", "ouvrir quand même", "autorisations", "confidentialité", "accès complet au disque", "gestionnaire de fichiers par défaut", "palette de commandes", "rustlift", "premier lancement"]
+      "keywords": ["installer", "installation", "dmg", "applications", "gatekeeper", "ouvrir quand même", "autorisations", "confidentialité", "accès complet au disque", "gestionnaire de fichiers par défaut", "palette de commandes", "premier lancement"]
     },
     "bereiche-tabs": {
       "title": "Sous-fenêtres et onglets",

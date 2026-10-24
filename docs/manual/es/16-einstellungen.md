@@ -11,6 +11,8 @@ Todos los ajustes de Manta, sección por sección. Todos los cambios se aplican 
 
 Los ajustes son una ventana propia con las secciones **General** y **Plugins**. Ciérrala con el botón rojo de la ventana o con **⌘W**. **⌘,** la vuelve a traer al frente.
 
+Mientras los ajustes están abiertos, la ventana principal espera: se oscurece ligeramente y los clics y atajos en ella no hacen nada; un clic trae los ajustes al frente con el sonido de alerta. Cierra los ajustes para continuar. La ventana de ayuda, en cambio, puede quedarse abierta mientras trabajas.
+
 ![Ajustes → General](images/settings-general.png)
 
 ## General {#allgemein}

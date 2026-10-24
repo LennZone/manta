@@ -27,9 +27,6 @@
 #   MANTA_DMG             0 = skip the DMG (e.g. update ZIP only)
 #   MANTA_VERSION         override the version in Info.plist and file names (testing update
 #                         flows; normally bump the version in Cargo.toml instead)
-#
-# The pre-rename names (RUSTLIFT_SIGN_IDENTITY, …) still work for now, with a
-# deprecation warning.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -38,16 +35,6 @@ cd "$ROOT"
 say()  { printf '\033[1m==> %s\033[0m\n' "$*"; }
 warn() { printf '\033[33mwarning:\033[0m %s\n' "$*" >&2; }
 die()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
-
-# Deprecation aliases: accept the variable names from before the rename to Manta.
-for name in SIGN_IDENTITY NOTARY_PROFILE BUNDLE_ID BUILD_NUMBER ARCHS MIN_MACOS DMG_LAYOUT DMGBUILD \
-    DIST_DIR UPDATE_ZIP UPDATE_URL UPDATE_PUBKEY DMG VERSION; do
-    old="RUSTLIFT_$name" new="MANTA_$name"
-    if [ -n "${!old+x}" ] && [ -z "${!new+x}" ]; then
-        warn "$old is deprecated, use $new"
-        export "$new=${!old}"
-    fi
-done
 
 [ "$(uname -s)" = Darwin ] || die "macOS only (codesign, hdiutil, lipo)"
 for tool in cargo rustup lipo codesign hdiutil plutil; do

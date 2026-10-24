@@ -336,6 +336,10 @@ pub struct MantaApp {
     goto_recent: Vec<(Option<u64>, VfsPath)>,
     /// Tab key presses intercepted in `raw_input_hook` (switch panes).
     pending_tab_switch: bool,
+    /// A press outside an open popup was swallowed: drop its release too.
+    popup_swallow_release: bool,
+    /// `modal_open()` when the menu bar was last updated.
+    menu_modal: bool,
     plugins: PluginHost,
     settings: SettingsView,
     prefs: Prefs,
@@ -709,6 +713,8 @@ impl MantaApp {
             goto: None,
             goto_recent: Vec::new(),
             pending_tab_switch: false,
+            popup_swallow_release: false,
+            menu_modal: false,
             plugins,
             settings: SettingsView::with_client_file(init.gdrive_client_file.clone().or_else(
                 || {
@@ -796,9 +802,6 @@ impl MantaApp {
         }
         if let Some(e) = fav_error {
             app.set_error(e);
-        }
-        if !cfg!(test) && crate::migrate::take_imported() {
-            app.set_success(t!("migrate.imported"));
         }
         // `manta --plugin-dev <dir>` (or MANTA_PLUGIN_DEV=<dir>:<dir>):
         // run plugins straight from their folders for this session.
@@ -3062,6 +3065,38 @@ impl MantaApp {
     }
 
     /// Whether a command can run right now (greys it out in the palette and toolbar).
+    /// Commands picked in the menu bar run like palette commands (unless
+    /// greyed out, or a modal opened since).
+    pub(crate) fn menu_commands(&self, cmds: Vec<Cmd>, actions: &mut Vec<Action>) {
+        let modal = self.modal_open();
+        for cmd in cmds {
+            if self.menu_cmd_enabled(cmd, modal) {
+                log::debug!("menu bar: {cmd:?}");
+                actions.extend(self.cmd_actions(cmd));
+            } else {
+                log::debug!("menu bar: {cmd:?} ignored (disabled or modal open)");
+            }
+        }
+    }
+
+    /// A menu bar command can run now: while a modal is open only the
+    /// ones that open another window or the browser (Settings, Help, the
+    /// web links) do; the rest would act on the main window behind it.
+    pub(crate) fn menu_cmd_enabled(&self, cmd: Cmd, modal: bool) -> bool {
+        let behind_modal = matches!(
+            cmd,
+            Cmd::Settings
+                | Cmd::Help
+                | Cmd::Support
+                | Cmd::SourceCode
+                | Cmd::ReportIssue
+                | Cmd::SuggestIdea
+                | Cmd::ThirdPartyLicenses
+                | Cmd::BrowsePlugins
+        );
+        (!modal || behind_modal) && self.cmd_enabled(cmd)
+    }
+
     fn cmd_enabled(&self, cmd: Cmd) -> bool {
         if self.cmd_disabled_reason(cmd).is_some() {
             return false;
@@ -4857,6 +4892,95 @@ impl MantaApp {
         !self.open_panels(PanelPlacement::Modal, None).is_empty()
     }
 
+    /// The app-modal window that is open, if any (see `modal.rs`):
+    /// Software Update (opened from Settings, so it is in front) or
+    /// Settings. Help, Compare & Sync and the preview are not modal.
+    pub(crate) fn modal_window(&self) -> Option<crate::aux_window::AuxKind> {
+        use crate::aux_window::AuxKind;
+        if self.updates.open {
+            Some(AuxKind::Update)
+        } else if self.settings.open {
+            Some(AuxKind::Settings)
+        } else {
+            None
+        }
+    }
+
+    /// A dialog, sheet or overlay inside the main window is up (a
+    /// question, the palette, Go to Path, a plugin sheet, a confirmation
+    /// in Settings).
+    pub(crate) fn sheet_open(&self) -> bool {
+        self.dialog.is_some()
+            || self.palette.open
+            || self.goto.is_some()
+            || self.settings.modal_open()
+            || self.plugin_modal_open()
+            // The default-file-manager question: Esc / ↩ answer it.
+            || self.viewer.prompt_open
+    }
+
+    /// Anything modal is open: the main window's shortcuts, menu bar
+    /// commands, toast commands and file drops stay off until it closes.
+    pub(crate) fn modal_open(&self) -> bool {
+        self.sheet_open() || self.modal_window().is_some()
+    }
+
+    /// The user clicked or typed into the main window behind an app-modal
+    /// window: bring that window back to the front, with the alert sound.
+    fn bounce_to_modal_window(&mut self, ctx: &egui::Context) {
+        use crate::aux_window::AuxKind;
+        let Some(kind) = self.modal_window() else {
+            return;
+        };
+        log::debug!("main window used while {kind:?} is open: bringing it to the front");
+        match kind {
+            AuxKind::Update => self.updates.window.request_focus(),
+            _ => self.settings.bring_to_front(),
+        }
+        crate::modal::beep();
+        ctx.request_repaint();
+    }
+
+    /// Per frame while an app-modal window is open: dim the main window
+    /// and, when the window is drawn inside the main window (no native
+    /// windows: tests, fallback), keep it above the dimming, make it egui's
+    /// modal layer (nothing behind it reacts) and bounce clicks outside it.
+    fn modal_window_frame(&mut self, ctx: &egui::Context) {
+        let Some(kind) = self.modal_window() else {
+            return;
+        };
+        let scrim = crate::modal::scrim(ctx, ctx.embed_viewports());
+        if !ctx.embed_viewports() {
+            // Native window: `raw_input_hook` keeps the input away.
+            return;
+        }
+        let win = egui::LayerId::new(egui::Order::Middle, kind.window_id());
+        let below = ctx.memory(|m| {
+            let ids: Vec<egui::LayerId> = m.layer_ids().collect();
+            let at = |l: egui::LayerId| ids.iter().position(|x| *x == l);
+            at(win) < at(scrim)
+        });
+        if below {
+            ctx.move_to_top(win);
+        }
+        ctx.memory_mut(|m| m.set_modal_layer(win));
+        let press = ctx.input(|i| {
+            i.pointer
+                .any_pressed()
+                .then(|| i.pointer.interact_pos())
+                .flatten()
+        });
+        if let Some(pos) = press {
+            let rect = ctx.data(|d| d.get_temp::<egui::Rect>(kind.window_id().with("rect")));
+            // `layer_id_at` reports the modal layer for anything behind it.
+            let behind = ctx.layer_id_at(pos).is_none_or(|l| l == win)
+                && !rect.is_some_and(|r| r.contains(pos));
+            if behind {
+                self.bounce_to_modal_window(ctx);
+            }
+        }
+    }
+
     /// The open `Modal` plugin panel (if any): a centred sheet over a
     /// dimmed window with a title bar. Like a macOS sheet it has no close
     /// button: Esc or the panel's own buttons close it.
@@ -4963,27 +5087,17 @@ impl MantaApp {
     // ------------------------------------------------------------ keyboard
 
     fn handle_keys(&mut self, ctx: &egui::Context, actions: &mut Vec<Action>) {
-        if std::mem::take(&mut self.pending_tab_switch)
-            && self.dialog.is_none()
-            && !self.palette.open
-            && self.goto.is_none()
-        {
+        if std::mem::take(&mut self.pending_tab_switch) && !self.modal_open() {
             self.activate(crate::pane_set::cycle(&self.pane_order(), self.active, 1));
         }
-        if self.dialog.is_some()
-            || self.palette.open
-            || self.goto.is_some()
-            || self.settings.modal_open()
-            || self.plugin_modal_open()
-            // The default-file-manager question: Esc / ↩ answer it.
-            || self.viewer.prompt_open
-        {
+        // Sheets handle their own keys (Esc, ↩, typing).
+        if self.sheet_open() {
             return;
         }
-        // Fallback mode (no native windows): while an auxiliary window has
-        // keyboard focus, the main window's shortcuts stay off; ⌘, still
-        // brings Settings forward.
-        if crate::aux_window::embedded_key(ctx).is_some() {
+        // An app-modal window, or (fallback mode, no native windows) an
+        // auxiliary window with keyboard focus: the main window's shortcuts
+        // stay off; ⌘, still brings Settings forward and ⌘? opens Help.
+        if self.modal_window().is_some() || crate::aux_window::embedded_key(ctx).is_some() {
             if ctx.input_mut(|i| i.consume_key(Modifiers::COMMAND, Key::Comma)) {
                 actions.push(Action::ShowSettings);
             }
@@ -5999,6 +6113,24 @@ fn draw_panel_area(
 
 impl eframe::App for MantaApp {
     fn raw_input_hook(&mut self, ctx: &egui::Context, raw_input: &mut egui::RawInput) {
+        // Settings / Software Update are open as native windows: the main
+        // window takes no input; trying brings the modal window back.
+        if self.modal_window().is_some() && !ctx.embed_viewports() {
+            if crate::modal::block_input(raw_input) {
+                self.bounce_to_modal_window(ctx);
+            }
+            return;
+        }
+        // No file drops onto panes or the sidebar behind a modal.
+        if self.modal_open() {
+            raw_input.hovered_files.clear();
+            raw_input.dropped_files.clear();
+        }
+        crate::modal::dismiss_popup_on_outside_press(
+            ctx,
+            raw_input,
+            &mut self.popup_swallow_release,
+        );
         // "Go to Path" uses Tab for completion: take it before egui moves focus.
         if let Some(g) = &mut self.goto {
             raw_input.events.retain(|e| match e {
@@ -6019,10 +6151,7 @@ impl eframe::App for MantaApp {
         }
         // Intercept Tab (pane switching) before egui uses it for focus navigation,
         // but only when no text field or dialog wants it.
-        if self.dialog.is_some()
-            || self.palette.open
-            || self.settings.modal_open()
-            || self.plugin_modal_open()
+        if self.modal_open()
             || ctx.memory(|m| m.focused().is_some())
             || crate::aux_window::embedded_key(ctx).is_some()
         {
@@ -6121,30 +6250,34 @@ impl MantaApp {
         self.default_viewer_requests(&ctx);
 
         let mut actions: Vec<Action> = Vec::new();
+        // Behind a modal the menu bar's commands are greyed out (like macOS
+        // does behind app-modal panels) and ignored if one slips through.
+        let modal = self.modal_open();
         let vs = &self.viewer.status;
         crate::app_menu::set_viewer_state(
             self.viewer.supported().then_some(vs.is_default),
-            self.viewer.can_toggle(),
+            self.viewer.can_toggle() && !modal,
         );
         crate::app_menu::sync(&ctx);
         if crate::app_menu::take_viewer_toggle_request() {
-            log::debug!("menu bar: default file manager");
-            actions.push(Action::ToggleDefaultViewer);
-        }
-        // Commands picked in the menu bar run like palette commands.
-        for cmd in crate::app_menu::take_commands() {
-            log::debug!("menu bar: {cmd:?}");
-            if self.cmd_enabled(cmd) {
-                actions.extend(self.cmd_actions(cmd));
+            if modal {
+                log::debug!("menu bar: default file manager ignored (modal open)");
+            } else {
+                log::debug!("menu bar: default file manager");
+                actions.push(Action::ToggleDefaultViewer);
             }
         }
-        // Which menu items are greyed out (a few times a second is enough).
-        if self
-            .menu_checked
-            .is_none_or(|t| t.elapsed() >= Duration::from_millis(250))
+        self.menu_commands(crate::app_menu::take_commands(), &mut actions);
+        // Which menu items are greyed out (a few times a second is enough,
+        // right away when a modal opens or closes).
+        if self.menu_modal != modal
+            || self
+                .menu_checked
+                .is_none_or(|t| t.elapsed() >= Duration::from_millis(250))
         {
             self.menu_checked = Some(Instant::now());
-            crate::app_menu::set_enabled(|c| self.cmd_enabled(c));
+            self.menu_modal = modal;
+            crate::app_menu::set_enabled(|c| self.menu_cmd_enabled(c, modal));
         }
         if crate::app_menu::take_settings_request() {
             log::debug!("menu bar: Settings…");
@@ -6308,6 +6441,7 @@ impl MantaApp {
             self.preview_window
                 .hidden(&ctx, crate::aux_window::AuxKind::Preview);
         }
+        self.modal_window_frame(&ctx);
         self.settings_window(&ctx);
         crate::update_window::window(&ctx, &mut self.updates);
         let help = self.help.ui(&ctx);
@@ -6346,6 +6480,8 @@ impl MantaApp {
         {
             if cmd == crate::updates::TOAST_COMMAND {
                 actions.push(Action::ShowUpdate);
+            } else if self.modal_open() {
+                log::debug!("toast command {cmd} ignored (modal open)");
             } else {
                 actions.push(Action::RunPluginCommand(cmd));
             }

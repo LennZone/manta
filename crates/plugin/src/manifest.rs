@@ -121,10 +121,8 @@ impl fmt::Display for ManifestError {
 
 impl std::error::Error for ManifestError {}
 
-/// Id prefixes of the built-in plugins: `manta` and `manta.*`, plus the
-/// pre-rename `rustlift` / `rustlift.*` so no external plugin can claim an id
-/// that migrated user data (plugins.json, plugin-data/) may still refer to.
-pub const RESERVED_PREFIXES: &[&str] = &["manta", "rustlift"];
+/// Id prefixes of the built-in plugins: `manta` and `manta.*`.
+pub const RESERVED_PREFIXES: &[&str] = &["manta"];
 
 /// Plugin ids: lowercase letters, digits, `.`, `-`, `_`; 2–64 chars;
 /// starting with a letter or digit. The [`RESERVED_PREFIXES`] are reserved.
@@ -373,9 +371,6 @@ placement = "right_sidebar"
         let e = parse(&GOOD.replace("hello-python", "Hello Python")).unwrap_err();
         assert!(e.contains("lowercase"), "{e}");
         let e = parse(&GOOD.replace("hello-python", "manta.git")).unwrap_err();
-        assert!(e.contains("reserved"), "{e}");
-        // The pre-rename prefix stays reserved.
-        let e = parse(&GOOD.replace("hello-python", "rustlift.git")).unwrap_err();
         assert!(e.contains("reserved"), "{e}");
         assert!(valid_id("mantarays").is_ok());
         let e = parse(&GOOD.replace("[\"python3\", \"main.py\"]", "[]")).unwrap_err();

@@ -97,7 +97,7 @@ still loads.
 
 | Key | Required | Meaning |
 |---|---|---|
-| `id` | yes | 2–64 chars: lowercase letters, digits, `.` `-` `_`, starting with a letter or digit. `manta`, `manta.*`, `rustlift`, `rustlift.*` are reserved. The installed folder is named after it. |
+| `id` | yes | 2–64 chars: lowercase letters, digits, `.` `-` `_`, starting with a letter or digit. `manta` and `manta.*` are reserved. The installed folder is named after it. |
 | `name`, `version` | yes | Shown in Settings. Use semver (`1.2.0`); updates compare versions that way. |
 | `api_version` | yes | `1`. See [compatibility](#versioning-and-compatibility). |
 | `command` | yes | Program and arguments (see below). |

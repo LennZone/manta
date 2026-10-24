@@ -37,7 +37,6 @@
           "festplattenvollzugriff",
           "standard-dateimanager",
           "befehlspalette",
-          "rustlift",
           "erster start"
         ],
         "en": [
@@ -51,7 +50,6 @@
           "full disk access",
           "default file manager",
           "command palette",
-          "rustlift",
           "first launch"
         ],
         "zh-Hans": [
@@ -65,7 +63,6 @@
           "完全磁盘访问权限",
           "默认文件管理器",
           "命令面板",
-          "RustLift",
           "首次启动",
           "系统要求"
         ],
@@ -81,7 +78,6 @@
           "acceso total al disco",
           "gestor de archivos predeterminado",
           "paleta de comandos",
-          "rustlift",
           "primer arranque",
           "requisitos"
         ],
@@ -97,7 +93,6 @@
           "accès complet au disque",
           "gestionnaire de fichiers par défaut",
           "palette de commandes",
-          "rustlift",
           "premier lancement"
         ],
         "it": [
@@ -112,7 +107,6 @@
           "accesso completo al disco",
           "gestore file predefinito",
           "palette dei comandi",
-          "rustlift",
           "primo avvio"
         ],
         "ru": [
@@ -127,7 +121,6 @@
           "полный доступ к диску",
           "файловый менеджер по умолчанию",
           "палитра команд",
-          "rustlift",
           "первый запуск"
         ]
       }

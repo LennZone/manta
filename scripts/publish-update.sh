@@ -67,7 +67,6 @@
 #   MANTA_PUBLISH_SITE    1 (default) = run MANTA_SITE_PUBLISH after a real publish,
 #                           0 = leave the website alone
 #   plus everything scripts/build-release.sh understands (MANTA_SIGN_IDENTITY, MANTA_VERSION, …)
-# The pre-rename RUSTLIFT_* names still work, with a deprecation warning.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -85,16 +84,6 @@ DEFAULT_FEED_URL=https://manta-filemanager.com/updates/update.json
 DEFAULT_SEED_URL=
 DEFAULT_DOWNLOAD_URL=https://manta-filemanager.com/download/
 KC_SERVICE=${MANTA_FTP_KEYCHAIN_SERVICE:-manta-update-ftp}
-
-# Deprecation aliases: accept the variable names from before the rename to Manta.
-for name in UPDATE_URL UPDATE_DEST UPDATE_KEY UPDATE_STAGING UPDATE_NEW_FEED RELEASE_NOTES_DIR \
-    FTP_USER UPDATE_PUBKEY VERSION DIST_DIR MIN_MACOS; do
-    old="RUSTLIFT_$name" new="MANTA_$name"
-    if [ -n "${!old+x}" ] && [ -z "${!new+x}" ]; then
-        warn "$old is deprecated, use $new"
-        export "$new=${!old}"
-    fi
-done
 
 setup_help() {
     cat <<HELP

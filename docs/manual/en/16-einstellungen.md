@@ -11,6 +11,8 @@ Every one of Manta's settings, section by section. All changes apply immediately
 
 Settings is a window of its own with the sections **General** and **Plugins**. Close it with the red window button or **⌘W**. **⌘,** brings it back to the front.
 
+While Settings is open, the main window waits: it is slightly dimmed, and clicks and shortcuts there do nothing – a click brings Settings back to the front with the alert sound. Close Settings to continue. The Help window, by contrast, can stay open while you work.
+
 ![Settings → General](images/settings-general.png)
 
 ## General {#allgemein}

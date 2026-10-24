@@ -31,9 +31,6 @@ panes as you need. It is free and open source: no ads, no tracking, no account. 
 no usage data; it only goes online for the connections you open yourself and to check for
 updates.
 
-<sub>Manta used to be called RustLift. On first launch it takes over your RustLift settings,
-favorites and plugin data.</sub>
-
 ## Features
 
 **Panes and views**

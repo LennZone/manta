@@ -11,6 +11,8 @@ Tutte le impostazioni di Manta, sezione per sezione. Tutte le modifiche hanno ef
 
 Le Impostazioni sono una finestra a sé con le sezioni **Generali** e **Plug-in**. Chiudila con il pulsante rosso della finestra o con **⌘W**. **⌘,** la riporta in primo piano.
 
+Finché le Impostazioni sono aperte, la finestra principale resta in attesa: è leggermente oscurata e clic e scorciatoie al suo interno non hanno effetto; un clic riporta le Impostazioni in primo piano con il suono di avviso. Chiudi le Impostazioni per continuare. La finestra dell’aiuto invece può restare aperta mentre lavori.
+
 ![Impostazioni → Generali](images/settings-general.png)
 
 ## Generali {#allgemein}

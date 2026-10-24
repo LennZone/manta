@@ -253,52 +253,6 @@ pub fn holds_folders(os: &dyn ViewerOs) -> bool {
     is_ours(os, os.folder_handler().as_deref())
 }
 
-/// Migration: the bundle id the app had as RustLift, its former name.
-pub const OLD_BUNDLE_ID: &str = "app.rustlift";
-
-/// Migration from RustLift: when `NSFileViewer` (or the folder handler)
-/// still names the old bundle id *and* `default-viewer.json` shows that the
-/// old app took the role (a saved previous holder, or a "Set as default"
-/// answer), hand the role to this app's new bundle id. Anything else (e.g.
-/// another file manager holding the role) is never touched. Saved previous
-/// holders that point at the old id are dropped (switching off must not give
-/// the role back to an app that no longer exists). Returns what changed, for
-/// the log; `prefs` is updated in place.
-pub fn adopt_old_bundle_id(os: &dyn ViewerOs, prefs: &mut ViewerPrefs) -> Vec<String> {
-    let mut done = Vec::new();
-    let Some(me) = os.bundle_id() else {
-        return done;
-    };
-    if same_id(&me, OLD_BUNDLE_ID) {
-        return done;
-    }
-    let is_old = |id: Option<&str>| id.is_some_and(|id| same_id(id, OLD_BUNDLE_ID));
-    let took_role = prefs.prev_file_viewer.is_some()
-        || prefs.prev_folder_handler.is_some()
-        || prefs.prompt_state == PromptState::Answered;
-    if took_role && is_old(os.file_viewer().as_deref()) {
-        match os.set_file_viewer(Some(&me)) {
-            Ok(()) => done.push(format!("NSFileViewer {OLD_BUNDLE_ID} → {me}")),
-            Err(e) => done.push(format!("could not move NSFileViewer to {me}: {e}")),
-        }
-    }
-    if took_role && is_old(os.folder_handler().as_deref()) {
-        match os.set_folder_handler(&me) {
-            Ok(()) => done.push(format!("folder handler {OLD_BUNDLE_ID} → {me}")),
-            Err(e) => done.push(format!("could not move the folder handler to {me}: {e}")),
-        }
-    }
-    if is_old(prefs.prev_file_viewer.as_deref()) {
-        prefs.prev_file_viewer = None;
-        done.push("dropped the saved previous file viewer (old bundle id)".into());
-    }
-    if is_old(prefs.prev_folder_handler.as_deref()) {
-        prefs.prev_folder_handler = None;
-        done.push("dropped the saved previous folder handler (old bundle id)".into());
-    }
-    done
-}
-
 /// What switching off would do.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RestorePlan {
@@ -543,18 +497,7 @@ pub struct DefaultViewer {
 
 impl DefaultViewer {
     pub fn new(os: Arc<dyn ViewerOs>, path: Option<PathBuf>) -> Self {
-        let mut prefs = path.as_deref().map(ViewerPrefs::load).unwrap_or_default();
-        let adopted = adopt_old_bundle_id(&*os, &mut prefs);
-        if !adopted.is_empty() {
-            for line in &adopted {
-                log::info!("default viewer, migration from RustLift: {line}");
-            }
-            if let Some(p) = &path {
-                if let Err(e) = prefs.save(p) {
-                    log::warn!("default viewer: can't save {}: {e}", p.display());
-                }
-            }
-        }
+        let prefs = path.as_deref().map(ViewerPrefs::load).unwrap_or_default();
         let status = Self::read_status(&*os, &prefs);
         DefaultViewer {
             os,

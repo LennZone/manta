@@ -23,7 +23,7 @@ mod live_refresh;
 mod logging;
 #[cfg(test)]
 mod manual_shots;
-mod migrate;
+mod modal;
 mod native_drag;
 mod palette;
 mod pane;
@@ -54,13 +54,7 @@ mod worker;
 use eframe::egui;
 
 fn main() -> eframe::Result {
-    // Before anything opens the support or log folders: import RustLift data
-    // (the app's former name) once. The report is logged once the logger runs.
-    let migration = migrate::Paths::platform().map(|p| migrate::run(&p));
     logging::init();
-    if let Some(r) = &migration {
-        r.log();
-    }
     // `MANTA_QL_SELFTEST=/path/file.png` shows the real Quick Look panel
     // for 2 s, logs what AppKit reports and quits.
     #[cfg(target_os = "macos")]

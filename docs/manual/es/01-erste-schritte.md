@@ -36,10 +36,6 @@ En versiones anteriores a macOS 15 basta con hacer Control + clic en Manta en Fi
 
 Solo tienes que hacerlo una vez. Consulta también [Solución de problemas](19-fehlerbehebung.md#gatekeeper).
 
-## Datos de RustLift {#rustlift}
-
-Manta se llamaba antes RustLift. Si usabas RustLift, Manta adopta tus ajustes, favoritos y datos de plugins en el primer arranque. El aviso “Se han importado tus datos de RustLift” lo confirma.
-
 ## Por qué macOS pide permisos {#berechtigungen}
 
 macOS protege ciertas carpetas y funciones. Todas las apps tienen que pedir permiso una vez antes de usarlas, también un gestor de archivos. Las preguntas no aparecen todas al abrir la app: cada una surge la primera vez que abres esa carpeta o usas esa función.

@@ -786,7 +786,9 @@ pub fn pane_ui(
             && i.pointer
                 .interact_pos()
                 .is_some_and(|pos| outer_rect.contains(pos))
-    });
+    }) && ui.ctx().layer_id_at(ui.input(|i| i.pointer.interact_pos()).unwrap_or_default())
+        // Not through a dialog, menu or modal window on top.
+        == Some(ui.layer_id());
     if pressed_inside && !info.is_active {
         actions.push(Action::Activate(side));
     }

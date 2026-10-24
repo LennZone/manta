@@ -93,6 +93,12 @@ impl AuxWindow {
         self.focus = true;
     }
 
+    /// Test seam: a bring-to-front is pending.
+    #[cfg(test)]
+    pub fn focus_requested(&self) -> bool {
+        self.focus
+    }
+
     /// Call when the owner stops showing the window, so the next open is
     /// placed again (at the remembered position).
     pub fn hidden(&mut self, ctx: &egui::Context, kind: AuxKind) {

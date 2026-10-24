@@ -64,16 +64,9 @@ pub struct UpdaterConfig {
 /// 1. env `MANTA_UPDATE_URL` at run time (testing),
 /// 2. `MantaUpdateFeedURL` in the running bundle's Info.plist,
 /// 3. `MANTA_UPDATE_URL` at compile time, else `https://manta-filemanager.com/updates/update.json`.
-///
-/// The pre-rename `RUSTLIFT_UPDATE_URL` is still read in 1. (deprecation alias).
 pub fn configured_feed_url() -> Option<String> {
     let nonempty = |s: String| Some(s.trim().to_string()).filter(|s| !s.is_empty());
     if let Some(u) = std::env::var("MANTA_UPDATE_URL").ok().and_then(nonempty) {
-        return Some(u);
-    }
-    // Deprecation alias from before the rename to Manta.
-    if let Some(u) = std::env::var("RUSTLIFT_UPDATE_URL").ok().and_then(nonempty) {
-        log::warn!("RUSTLIFT_UPDATE_URL is deprecated, use MANTA_UPDATE_URL");
         return Some(u);
     }
     let exe = std::env::current_exe().ok()?;

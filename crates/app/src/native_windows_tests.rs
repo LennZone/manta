@@ -102,6 +102,8 @@ fn cmd_comma_focuses_open_settings() {
     assert!(app(&mut h).settings.open, "⌘, opens Settings");
     assert_eq!(embedded_key(&h.ctx), Some(AuxKind::Settings));
 
+    // Settings is modal: a click in the main window doesn't close it and
+    // brings it back to the front (it keeps the keyboard).
     click_main(&mut h);
     assert!(
         app(&mut h).settings.open,
@@ -109,8 +111,8 @@ fn cmd_comma_focuses_open_settings() {
     );
     assert_eq!(
         embedded_key(&h.ctx),
-        None,
-        "the main window has the keyboard"
+        Some(AuxKind::Settings),
+        "Settings keeps the keyboard"
     );
 
     // ⌘, again: brought to the front (still one window, now key).
@@ -144,20 +146,25 @@ fn shortcuts_stay_in_their_window() {
     assert_eq!(a.active, active, "Tab doesn't switch panes");
     assert!(!a.sync.open, "⇧⌘S doesn't open Compare & Sync");
 
-    // In the main window they work again, and ⌘W there doesn't close Settings.
+    // Settings is modal: a click into the main window doesn't make the
+    // shortcuts work there; they do once Settings is closed.
     click_main(&mut h);
+    h.key_press_modifiers(Modifiers::COMMAND | Modifiers::ALT, Key::L);
+    h.run_steps(2);
+    assert_eq!(
+        app(&mut h).show_transfers,
+        transfers,
+        "⌥⌘L does nothing while Settings is open"
+    );
+    h.key_press_modifiers(Modifiers::COMMAND, Key::W);
+    h.run_steps(2);
+    assert!(!app(&mut h).settings.open, "⌘W closes Settings");
     h.key_press_modifiers(Modifiers::COMMAND | Modifiers::ALT, Key::L);
     h.run_steps(2);
     assert_ne!(
         app(&mut h).show_transfers,
         transfers,
         "⌥⌘L works in the main window"
-    );
-    h.key_press_modifiers(Modifiers::COMMAND, Key::W);
-    h.run_steps(2);
-    assert!(
-        app(&mut h).settings.open,
-        "⌘W in the main window leaves Settings open"
     );
 }
 

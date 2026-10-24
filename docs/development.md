@@ -88,8 +88,6 @@ Steps:
 | `MANTA_DMG` | `1` | `0` skips the DMG (only with `MANTA_UPDATE_ZIP=1`) |
 | `MANTA_VERSION` | `Cargo.toml` | override the bundle version (testing update flows) |
 
-The pre-rename `RUSTLIFT_*` names of these variables still work, with a deprecation warning.
-
 Builds that are not notarized are blocked by Gatekeeper on first launch; users open them via
 System Settings → Privacy & Security → **Open Anyway** (see the manual,
 [Getting Started](manual/en/01-erste-schritte.md#gatekeeper)).

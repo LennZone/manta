@@ -24,6 +24,5 @@ pub const ENTRIES: Translations = &[
     ("error.name_empty", "名称不能为空"),
     ("error.name_reserved", "“.”和“..”为保留名称"),
     ("error.name_slash", "名称不能包含“/”"),
-    ("migrate.imported", "已导入你的 RustLift 数据"),
     ("error.save_settings", "无法存储设置"),
 ];

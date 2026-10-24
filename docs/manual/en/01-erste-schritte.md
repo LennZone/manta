@@ -36,10 +36,6 @@ On macOS versions before macOS 15 it's enough to Control-click Manta in Finder a
 
 You only need to do this once. See also [Troubleshooting](19-fehlerbehebung.md#gatekeeper).
 
-## Data from RustLift {#rustlift}
-
-Manta used to be called RustLift. If you used RustLift, Manta takes over your settings, favorites and plugin data at the first launch. A notice "Imported your RustLift data" confirms it.
-
 ## Why macOS asks for permission {#berechtigungen}
 
 macOS protects certain folders and features. Every app has to ask once before it uses them – a file manager too. The questions don't all come at launch; each comes the first time you open that folder or use that feature.

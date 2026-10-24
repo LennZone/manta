@@ -25,7 +25,6 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `accent.graphite` | Graphite | Graphit | 石墨色 | Grafito | Graphite | Grafite | Графитовый |
 | `date.today` | Today {time} | Heute {time} | 今天 {time} | Hoy {time} | Aujourd’hui {time} | Oggi {time} | Сегодня {time} |
 | `date.yesterday` | Yesterday {time} | Gestern {time} | 昨天 {time} | Ayer {time} | Hier {time} | Ieri {time} | Вчера {time} |
-| `migrate.imported` | Imported your RustLift data | Daten von RustLift übernommen | 已导入你的 RustLift 数据 | Se han importado tus datos de RustLift | Données de RustLift importées | Dati di RustLift importati | Данные RustLift перенесены |
 
 ## App: Commands and menus
 

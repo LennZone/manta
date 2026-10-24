@@ -390,9 +390,7 @@ macro_rules! require_gpu {
     () => {
         // Screenshots are opt-in: they need a GPU and are slow, so a plain
         // `cargo test` skips them. Set MANTA_RENDER_DIR to produce them.
-        if std::env::var_os("MANTA_RENDER_DIR").is_none()
-            && std::env::var_os("RUSTLIFT_RENDER_DIR").is_none()
-        {
+        if std::env::var_os("MANTA_RENDER_DIR").is_none() {
             return;
         }
         if !wgpu_available() {
@@ -3291,3 +3289,6 @@ mod readme_images_tests;
 
 #[path = "settings_scroll_ux_tests.rs"]
 mod settings_scroll_ux_tests;
+
+#[path = "modal_ux_tests.rs"]
+mod modal_ux_tests;

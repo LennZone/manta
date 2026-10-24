@@ -30,7 +30,6 @@ pub const ENTRIES: Translations = &[
         "error.name_slash",
         "Le nom ne peut pas contenir «\u{a0}/\u{a0}».",
     ),
-    ("migrate.imported", "Données de RustLift importées"),
     (
         "error.save_settings",
         "Impossible d’enregistrer les réglages.",

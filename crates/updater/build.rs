@@ -8,23 +8,15 @@
 //! Feed URL: env `MANTA_UPDATE_URL`, else [`DEFAULT_FEED_URL`] (the app's
 //! Info.plist key `MantaUpdateFeedURL` takes precedence at run time, see
 //! docs/updates.md). Set `MANTA_UPDATE_URL=` (empty) to compile without a feed.
-//! The pre-rename name `RUSTLIFT_UPDATE_URL` is still accepted (deprecation
-//! alias, with a build warning).
 use std::path::PathBuf;
 
 /// The feed the official builds look at.
 const DEFAULT_FEED_URL: &str = "https://manta-filemanager.com/updates/update.json";
 
-/// `MANTA_<name>`, or the deprecated `RUSTLIFT_<name>` alias with a warning.
+/// `MANTA_<name>`; rebuilds when it changes.
 fn env_var(name: &str) -> Option<String> {
     println!("cargo:rerun-if-env-changed=MANTA_{name}");
-    println!("cargo:rerun-if-env-changed=RUSTLIFT_{name}");
-    if let Ok(v) = std::env::var(format!("MANTA_{name}")) {
-        return Some(v);
-    }
-    let old = std::env::var(format!("RUSTLIFT_{name}")).ok()?;
-    println!("cargo:warning=RUSTLIFT_{name} is deprecated, use MANTA_{name}");
-    Some(old)
+    std::env::var(format!("MANTA_{name}")).ok()
 }
 
 fn main() {

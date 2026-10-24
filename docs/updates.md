@@ -376,8 +376,6 @@ never overwritten without `--force`.
 that the Keychain item exists (without reading the password or logging in) and prints the
 exact upload command a real run would execute.
 
-The pre-rename `RUSTLIFT_*` variable names still work, with a deprecation warning.
-
 Beta releases: give the version a pre-release suffix (`0.3.0-beta.1`, channel `beta`
 automatically) or pass `--channel beta`.
 

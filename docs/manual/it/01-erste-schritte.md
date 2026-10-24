@@ -36,10 +36,6 @@ Nelle versioni precedenti a macOS 15 basta fare clic su Manta nel Finder tenendo
 
 Devi farlo una sola volta. Vedi anche [Risoluzione dei problemi](19-fehlerbehebung.md#gatekeeper).
 
-## Dati da RustLift {#rustlift}
-
-In passato Manta si chiamava RustLift. Se hai usato RustLift, al primo avvio Manta ne riprende le impostazioni, i Preferiti e i dati dei plug-in. Un avviso “Dati di RustLift importati” lo conferma.
-
 ## Perché macOS chiede le autorizzazioni {#berechtigungen}
 
 macOS protegge determinate cartelle e funzioni. Ogni app deve chiedere il permesso una volta prima di usarle, anche un gestore file. Le richieste non arrivano tutte all’avvio: ognuna compare la prima volta che apri quella cartella o usi quella funzione.

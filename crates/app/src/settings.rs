@@ -194,6 +194,17 @@ impl SettingsView {
         }
     }
 
+    /// Bring the open window to the front (and make it key) next frame.
+    pub fn bring_to_front(&mut self) {
+        self.window.request_focus();
+    }
+
+    /// Test seam: a bring-to-front is pending.
+    #[cfg(test)]
+    pub fn focus_requested(&self) -> bool {
+        self.window.focus_requested()
+    }
+
     /// Test seam: expand a plugin's log.
     #[cfg(test)]
     pub fn expand_log(&mut self, id: &str) {

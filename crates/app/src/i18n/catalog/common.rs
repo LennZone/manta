@@ -36,12 +36,6 @@ pub const ENTRIES: Entries = &[
         "Name must not contain \"/\"",
         "Der Name darf kein „/“ enthalten.",
     ),
-    // Shown once after the support folder of RustLift (the former name) was imported.
-    (
-        "migrate.imported",
-        "Imported your RustLift data",
-        "Daten von RustLift übernommen",
-    ),
     (
         "error.save_settings",
         "Couldn't save settings",

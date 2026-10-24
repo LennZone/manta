@@ -2756,7 +2756,7 @@ dependencies = [
 
 [[package]]
 name = "manta"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "block2 0.6.2",
  "chrono",
@@ -2807,7 +2807,7 @@ dependencies = [
 
 [[package]]
 name = "manta-core"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "chrono",
  "serde",
@@ -2816,7 +2816,7 @@ dependencies = [
 
 [[package]]
 name = "manta-ops"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "block2 0.6.2",
  "chrono",
@@ -2836,7 +2836,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "base64 0.22.1",
  "dirs",
@@ -2854,7 +2854,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-duplicates"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "chrono",
  "egui",
@@ -2871,7 +2871,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-foldersize"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "egui",
  "egui-wgpu",
@@ -2886,7 +2886,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-git"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "egui",
  "egui-wgpu",
@@ -2900,7 +2900,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-imagetools"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2922,7 +2922,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-markdown"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "egui",
  "egui-wgpu",
@@ -2941,7 +2941,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-projectinfo"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "egui",
  "log",
@@ -2965,7 +2965,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-quickactions"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "egui",
  "libc",
@@ -2978,7 +2978,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-rename"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "chrono",
  "egui",
@@ -2993,7 +2993,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-sysstats"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "core-foundation-sys",
  "egui",
@@ -3007,7 +3007,7 @@ dependencies = [
 
 [[package]]
 name = "manta-plugin-terminal"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "alacritty_terminal",
  "egui",
@@ -3024,7 +3024,7 @@ dependencies = [
 
 [[package]]
 name = "manta-update-upload"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "manta-core",
  "manta-vfs",
@@ -3033,7 +3033,7 @@ dependencies = [
 
 [[package]]
 name = "manta-updater"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -3055,7 +3055,7 @@ dependencies = [
 
 [[package]]
 name = "manta-vfs"
-version = "0.3.5"
+version = "0.3.6"
 dependencies = [
  "base64 0.22.1",
  "bzip2",

@@ -24,6 +24,5 @@ pub const ENTRIES: Translations = &[
     ("error.name_empty", "Имя не может быть пустым."),
     ("error.name_reserved", "Имена «.» и «..» зарезервированы."),
     ("error.name_slash", "Имя не может содержать «/»."),
-    ("migrate.imported", "Данные RustLift перенесены"),
     ("error.save_settings", "Не удалось сохранить настройки."),
 ];

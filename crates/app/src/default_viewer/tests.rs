@@ -447,64 +447,6 @@ fn request_queue_drains() {
     assert_eq!(got, vec![a, b]);
 }
 
-// ------------------------------------------------------------------ migration from RustLift
-
-#[test]
-fn old_bundle_id_role_moves_to_the_new_id() {
-    let os = bundled();
-    os.st().file_viewer = Some(OLD_BUNDLE_ID.into());
-    os.st().folder = Some(OLD_BUNDLE_ID.into());
-    let mut prefs = ViewerPrefs {
-        prev_file_viewer: Some(FORKLIFT.into()),
-        prompt_state: PromptState::Answered,
-        ..Default::default()
-    };
-    let done = adopt_old_bundle_id(&os, &mut prefs);
-    assert_eq!(done.len(), 2, "{done:?}");
-    assert_eq!(os.file_viewer().as_deref(), Some(ME));
-    assert!(is_default(&os));
-    assert!(holds_folders(&os));
-    // The previous holder (to give the role back to) is kept.
-    assert_eq!(prefs.prev_file_viewer.as_deref(), Some(FORKLIFT));
-    // Second run: nothing left to do.
-    assert!(adopt_old_bundle_id(&os, &mut prefs).is_empty());
-}
-
-#[test]
-fn old_bundle_id_saved_as_previous_holder_is_dropped() {
-    let os = bundled();
-    os.st().file_viewer = Some(OLD_BUNDLE_ID.into());
-    let mut prefs = ViewerPrefs {
-        prev_file_viewer: Some(OLD_BUNDLE_ID.into()),
-        ..Default::default()
-    };
-    adopt_old_bundle_id(&os, &mut prefs);
-    assert_eq!(os.file_viewer().as_deref(), Some(ME));
-    assert_eq!(prefs.prev_file_viewer, None);
-}
-
-#[test]
-fn another_file_manager_holding_the_role_is_never_touched() {
-    let os = bundled(); // NSFileViewer = ForkLift
-    let mut prefs = ViewerPrefs {
-        prev_file_viewer: Some(FINDER_ID.into()),
-        prompt_state: PromptState::Answered,
-        ..Default::default()
-    };
-    assert!(adopt_old_bundle_id(&os, &mut prefs).is_empty());
-    assert_eq!(os.file_viewer().as_deref(), Some(FORKLIFT));
-    assert!(os.st().calls.is_empty());
-}
-
-#[test]
-fn old_bundle_id_without_saved_state_is_left_alone() {
-    let os = bundled();
-    os.st().file_viewer = Some(OLD_BUNDLE_ID.into());
-    let mut prefs = ViewerPrefs::default();
-    assert!(adopt_old_bundle_id(&os, &mut prefs).is_empty());
-    assert_eq!(os.file_viewer().as_deref(), Some(OLD_BUNDLE_ID));
-}
-
 // ------------------------------------------------------------------ command (palette, menu bar)
 
 /// The command asks first when off (Cancel records nothing), and gives the

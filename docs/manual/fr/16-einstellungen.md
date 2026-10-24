@@ -11,6 +11,8 @@ Tous les réglages de Manta, section par section. Toutes les modifications s’a
 
 Les Réglages s’affichent dans une fenêtre à part entière comprenant les sections **Général** et **Plug-ins**. Fermez-la avec le bouton rouge de la fenêtre ou **⌘W**. **⌘,** la ramène au premier plan.
 
+Tant que les Réglages sont ouverts, la fenêtre principale attend : elle est légèrement assombrie, et les clics et raccourcis n’y ont aucun effet – un clic ramène les Réglages au premier plan avec le son d’alerte. Fermez les Réglages pour continuer. La fenêtre d’aide, elle, peut rester ouverte pendant que vous travaillez.
+
 ![Réglages → Général](images/settings-general.png)
 
 ## Général {#allgemein}

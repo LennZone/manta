@@ -36,10 +36,6 @@ Unter älteren macOS-Versionen (vor macOS 15) reicht es, Manta im Finder mit ged
 
 Das musst du nur einmal tun. Mehr dazu unter [Fehlerbehebung](19-fehlerbehebung.md#gatekeeper).
 
-## Daten von RustLift {#rustlift}
-
-Manta hieß früher RustLift. Hast du RustLift benutzt, übernimmt Manta beim ersten Start deine Einstellungen, Favoriten und Plugin-Daten. Eine Mitteilung „Daten von RustLift übernommen“ bestätigt das.
-
 ## Warum macOS um Erlaubnis fragt {#berechtigungen}
 
 macOS schützt bestimmte Ordner und Funktionen. Jede App muss einmal fragen, bevor sie darauf zugreift – auch ein Dateimanager. Die Fragen kommen nicht alle beim Start, sondern erst, wenn du den Ordner zum ersten Mal öffnest oder die Funktion zum ersten Mal brauchst.

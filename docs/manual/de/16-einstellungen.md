@@ -11,6 +11,8 @@ Hier findest du jede Einstellung von Manta, Abschnitt für Abschnitt. Alle Ände
 
 Die Einstellungen sind ein eigenes Fenster mit den Bereichen **Allgemein** und **Plugins**. Schließen: rote Fenstertaste oder **⌘W**. **⌘,** holt das Fenster wieder nach vorn.
 
+Solange die Einstellungen offen sind, ruht das Hauptfenster: Es ist leicht abgedunkelt, und Klicks und Tastenkürzel dort wirken nicht – ein Klick holt die Einstellungen mit einem Hinweiston nach vorn. Schließ sie, um weiterzuarbeiten. Das Hilfefenster bleibt dagegen frei nutzbar.
+
 ![Einstellungen → Allgemein](images/settings-general.png)
 
 ## Allgemein {#allgemein}

@@ -73,7 +73,7 @@ def check(data):
             problems.append(f"{where}: unknown key \"{k}\"")
         if not isinstance(pid, str) or not ID_RE.match(pid):
             problems.append(f"{where}: id must be 2–64 lowercase letters, digits, '.', '-', '_'")
-        elif pid == "manta" or pid.startswith("manta.") or pid == "rustlift" or pid.startswith("rustlift."):
+        elif pid == "manta" or pid.startswith("manta."):
             problems.append(f"{where}: the id is reserved for built-in plugins")
         if pid in seen:
             problems.append(f"{where}: id used twice")
