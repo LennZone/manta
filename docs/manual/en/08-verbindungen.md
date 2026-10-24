@@ -134,7 +134,7 @@ Good to know:
 - A share that is already mounted (by Finder, for example) is used as it is and stays mounted when you disconnect. A share Manta mounted is ejected again when you disconnect or quit Manta.
 - The location chip says, for example, "SMB · nas.local/Team".
 - Interrupted copies continue where they stopped. If the share disappears (network change, sleep), Manta mounts it again before it retries.
-- The list of shares comes from `smbutil`. If the server needs a password for it, Manta passes the password you entered to `smbutil` for a moment.
+- The list of shares comes from `smbutil`, without a password (guest, Kerberos or the Keychain). If the server wants a password for the list, just type the share name yourself.
 
 ![Connect dialog for SMB with the list of shares](images/connect-smb.png)
 

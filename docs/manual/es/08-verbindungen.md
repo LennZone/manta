@@ -134,7 +134,7 @@ Conviene saber:
 - Un recurso compartido que ya está montado (por ejemplo, por el Finder) se usa tal cual y sigue montado al desconectarte. Un recurso compartido que montó Manta se expulsa de nuevo al desconectarte o salir de Manta.
 - El chip de ubicación muestra, por ejemplo, “SMB · nas.local/Team”.
 - Las copias interrumpidas continúan donde se detuvieron. Si el recurso compartido desaparece (cambio de red, reposo), Manta lo vuelve a montar antes de reintentar.
-- La lista de recursos compartidos viene de `smbutil`. Si el servidor pide una contraseña para ella, Manta pasa brevemente a `smbutil` la contraseña que introdujiste.
+- La lista de recursos compartidos viene de `smbutil`, sin contraseña (invitado, Kerberos o el llavero). Si el servidor pide una contraseña para ella, escribe tú mismo el nombre del recurso.
 
 ![Diálogo de conexión para SMB con la lista de recursos compartidos](images/connect-smb.png)
 

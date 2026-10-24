@@ -216,15 +216,10 @@ impl Mounter for NetFsMounter {
         } else {
             format!("{}@", enc(&req.user))
         };
-        // First without a password (guest, Kerberos, the Keychain). Only if
-        // that is refused and a password was typed, with the password:
-        // smbutil takes it in the address only (briefly visible in `ps`).
-        let mut out = run(format!("//{user}{}", req.server))?;
-        if !out.status.success() {
-            if let Some(pw) = req.password.as_deref().filter(|_| !req.user.is_empty()) {
-                out = run(format!("//{}:{}@{}", enc(&req.user), enc(pw), req.server))?;
-            }
-        }
+        // Without a password only (guest, Kerberos, the Keychain): smbutil
+        // would take a password in the address, where it shows up in `ps`.
+        // If the server refuses, the share name is typed in by hand.
+        let out = run(format!("//{user}{}", req.server))?;
         let stdout = String::from_utf8_lossy(&out.stdout);
         if out.status.success() {
             return Ok(parse_smbutil_view(&stdout));

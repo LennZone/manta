@@ -134,7 +134,7 @@ Bon à savoir :
 - Un partage déjà monté (par le Finder, par exemple) est utilisé tel quel et reste monté lorsque vous vous déconnectez. Un partage monté par Manta est éjecté lorsque vous vous déconnectez ou quittez Manta.
 - La puce d’emplacement affiche par exemple « SMB · nas.local/Team ».
 - Les copies interrompues reprennent là où elles se sont arrêtées. Si le partage disparaît (changement de réseau, suspension d’activité), Manta le monte à nouveau avant de réessayer.
-- La liste des partages provient de `smbutil`. Si le serveur exige un mot de passe pour l’obtenir, Manta transmet brièvement à `smbutil` le mot de passe saisi.
+- La liste des partages provient de `smbutil`, sans mot de passe (invité, Kerberos ou trousseau). Si le serveur exige un mot de passe pour la fournir, saisissez simplement le nom du partage.
 
 ![Fenêtre de connexion SMB avec la liste des partages](images/connect-smb.png)
 

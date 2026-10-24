@@ -134,7 +134,7 @@ Gut zu wissen:
 - Eine Freigabe, die schon aktiviert ist (zum Beispiel vom Finder), nutzt Manta so, wie sie ist; sie bleibt beim Trennen aktiv. Eine Freigabe, die Manta aktiviert hat, wirft Manta beim Trennen oder Beenden wieder aus.
 - Der Ortschip zeigt zum Beispiel „SMB · nas.local/Team“.
 - Abgebrochene Kopien gehen dort weiter, wo sie aufgehört haben. Verschwindet die Freigabe (Netzwerkwechsel, Ruhezustand), aktiviert Manta sie vor dem nächsten Versuch neu.
-- Die Liste der Freigaben kommt von `smbutil`. Braucht der Server dafür ein Passwort, gibt Manta das eingegebene Passwort kurz an `smbutil` weiter.
+- Die Liste der Freigaben kommt von `smbutil`, ohne Passwort (Gast, Kerberos oder Schlüsselbund). Verlangt der Server dafür ein Passwort, gib den Namen der Freigabe einfach von Hand ein.
 
 ![Verbindungsdialog für SMB mit der Liste der Freigaben](images/connect-smb.png)
 

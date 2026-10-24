@@ -134,7 +134,7 @@ Buono a sapersi:
 - Una condivisione già montata (ad esempio dal Finder) viene usata così com’è e resta montata quando ti disconnetti. Una condivisione montata da Manta viene espulsa quando ti disconnetti o esci da Manta.
 - Il chip della posizione mostra ad esempio “SMB · nas.local/Team”.
 - Le copie interrotte riprendono da dove si erano fermate. Se la condivisione scompare (cambio di rete, stop), Manta la rimonta prima di riprovare.
-- L’elenco delle condivisioni proviene da `smbutil`. Se il server richiede una password per fornirlo, Manta passa brevemente a `smbutil` la password inserita.
+- L’elenco delle condivisioni proviene da `smbutil`, senza password (ospite, Kerberos o Portachiavi). Se il server richiede una password per fornirlo, digita tu il nome della condivisione.
 
 ![Finestra di connessione SMB con l’elenco delle condivisioni](images/connect-smb.png)
 
