@@ -138,6 +138,9 @@ fn copy_into_google_drive_shows_done_then_the_upload() {
         &d.my.join("Brand Guide.pdf"),
         Some(SyncInfo::new(SyncState::Uploading)),
     );
+    // "Done" lingers on the wall clock; keep it until the test lets it go, so a
+    // slow machine (CI) can't miss it.
+    app(&mut h).transfer_pill.linger = Duration::from_secs(3600);
     let ctx = h.ctx.clone();
     app(&mut h).handle_action(&ctx, Action::CopyToOther(Side::Right, false));
     if app(&mut h).dialog.is_some() {
