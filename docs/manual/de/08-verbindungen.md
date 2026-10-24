@@ -199,7 +199,7 @@ Manta übersetzt technische Fehler in verständliche Meldungen mit einem Tipp. D
 
 | Meldung | Was du tun kannst |
 |---|---|
-| „„host“ wurde nicht gefunden“ | Überprüfe die Serveradresse auf Tippfehler. |
+| „‚host‘ wurde nicht gefunden“ | Überprüfe die Serveradresse auf Tippfehler. |
 | „host hat die Verbindung auf Port … abgelehnt“ | Stimmen Port und Protokoll? Läuft der Server? |
 | „host antwortet nicht“ | Netzwerk, VPN und Firewall prüfen. |
 | „Der Server hat die Anmeldedaten nicht akzeptiert“ | Benutzername und Passwort prüfen oder eine andere Anmeldemethode wählen. |

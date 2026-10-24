@@ -49,7 +49,7 @@ Die anderen Optionen gelten für den ganzen Vorgang, ohne Rückfrage. Die Voraus
 
 ### Nachfragen {#nachfragen}
 
-Mit **Nachfragen** hält der Vorgang beim ersten Objekt an, das es am Ziel schon gibt. Manta zeigt „„Name“ ist bereits in „Ordner“ vorhanden“ mit beiden Objekten – Größe, Änderungsdatum und einem Hinweis **Neuer** beim jüngeren – und du wählst:
+Mit **Nachfragen** hält der Vorgang beim ersten Objekt an, das es am Ziel schon gibt. Manta zeigt „‚Name‘ ist bereits in ‚Ordner‘ vorhanden“ mit beiden Objekten – Größe, Änderungsdatum und einem Hinweis **Neuer** beim jüngeren – und du wählst:
 
 | Taste | Was passiert |
 |---|---|
@@ -233,7 +233,7 @@ So löschst du endgültig:
 
 1. Wähle die Objekte aus.
 2. Drücke **⌥⌘⌫** oder wähle **Sofort löschen …** in der Befehlspalette.
-3. Manta fragt nach: „„Name“ löschen?“ bzw. „3 Objekte löschen?“ – mit dem Hinweis, dass die Objekte nicht in den Papierkorb kommen und du das nicht widerrufen kannst.
+3. Manta fragt nach: „‚Name‘ löschen?“ bzw. „3 Objekte löschen?“ – mit dem Hinweis, dass die Objekte nicht in den Papierkorb kommen und du das nicht widerrufen kannst.
 4. Klicke auf **Löschen**.
 
 Auf einem **Server**, in einem **S3-Bucket** oder in einem **Container** gibt es keinen Papierkorb. **⌘⌫**, das Kontextmenü (dort **Sofort löschen …**) und der Knopf in der Symbolleiste fragen immer nach, und der Dialog sagt in Rot, dass dieser Ort keinen Papierkorb hat und Löschen dort endgültig ist. Ordner werden mit ihrem gesamten Inhalt gelöscht.

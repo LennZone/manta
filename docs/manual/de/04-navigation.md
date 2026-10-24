@@ -9,7 +9,7 @@ Dieses Kapitel zeigt, wie du dich in Ordnern bewegst: mit der Pfadleiste, mit **
 - **⌥↩** (**Mit Standard-App öffnen**) öffnet immer mit der Standard-App, auch Archive, die Manta sonst als Ordner öffnen würde (siehe [Archive](10-archive.md)).
 - **⌘↑** oder **⌫** (Rückschritttaste) geht zum **übergeordneten Ordner**.
 
-Dateien auf einem Server lädt Manta zum Öffnen in einen temporären Ordner und öffnet dann diese Kopie („„Name“ wird zum Öffnen geladen …“).
+Dateien auf einem Server lädt Manta zum Öffnen in einen temporären Ordner und öffnet dann diese Kopie („‚Name‘ wird zum Öffnen geladen …“).
 
 > [!WARNING]
 > Änderungen an einer so geöffneten Server-Datei landen nur in der temporären Kopie, nicht auf dem Server. Willst du eine Datei bearbeiten, kopiere sie in einen lokalen Ordner, bearbeite sie dort und kopiere sie zurück.
@@ -83,7 +83,7 @@ Der Filter zeigt nur Objekte, deren Name einen Text enthält.
 1. Drücke **⌘F** (**Dateien filtern**) oder klick in das Feld **Filtern** in der Pfadleiste.
 2. Tippe einen Teil des Namens, z. B. `.pdf` oder `rechnung`.
 
-Der Filter gilt nur für den aktuellen Ordner und nur für diesen Tab. Die Statusleiste zeigt „passend zu „…““. Passt nichts, siehst du „Keine Objekte passen zu „…““ mit der Taste **Filter löschen**. **esc** im Feld leert den Filter. In schmaleren Bereichen (etwa zwei Bereiche in einem kleinen Fenster) ist das Feld eine Lupe: Ein Klick darauf oder **⌘F** öffnet es; es bleibt offen, solange darin Text steht, und klappt wieder zu, wenn es leer ist und du woanders hinklickst oder **esc** drückst. Damit bleibt Platz für den Ort-Chip und die Pfadleiste; die Darstellungs-Tasten werden dabei, solange das Feld offen ist, zu einer einzigen Menü-Taste.
+Der Filter gilt nur für den aktuellen Ordner und nur für diesen Tab. Die Statusleiste zeigt „passend zu ‚…‘“. Passt nichts, siehst du „Keine Objekte passen zu ‚…‘“ mit der Taste **Filter löschen**. **esc** im Feld leert den Filter. In schmaleren Bereichen (etwa zwei Bereiche in einem kleinen Fenster) ist das Feld eine Lupe: Ein Klick darauf oder **⌘F** öffnet es; es bleibt offen, solange darin Text steht, und klappt wieder zu, wenn es leer ist und du woanders hinklickst oder **esc** drückst. Damit bleibt Platz für den Ort-Chip und die Pfadleiste; die Darstellungs-Tasten werden dabei, solange das Feld offen ist, zu einer einzigen Menü-Taste.
 
 Nach [Tags](05-dateien.md#tags) filterst du mit `tag:` und dem Namen des Tags, z. B. `tag:Rot` oder `tag:"Sehr wichtig"`; der Name der Farbe geht auch (`tag:rot` findet auch einen roten Tag namens „Dringend“). Das lässt sich mit einem Namen kombinieren: `tag:Rot rechnung`.
 

@@ -34,7 +34,7 @@ Solange die Einstellungen offen sind, ruht das Hauptfenster: Es ist leicht abged
 
 Denselben Schalter findest du im Menü **Manta** (**Manta als Standard-Dateimanager**, mit Häkchen, wenn er an ist) und in der Befehlspalette (**Manta als Standard-Dateimanager verwenden …**, bzw. **Standard-Dateimanager an … zurückgeben**, wenn Manta die Rolle hat). Beim Einschalten stellt Manta dort dieselbe Frage wie beim ersten Start, mit **Abbrechen**; das Ausschalten gibt die Rolle sofort zurück.
 
-Nur verfügbar, wenn Manta aus dem Ordner **Programme** läuft („Bewege Manta zuerst in den Ordner „Programme““).
+Nur verfügbar, wenn Manta aus dem Ordner **Programme** läuft („Bewege Manta zuerst in den Ordner ‚Programme‘“).
 
 ### Dateien {#dateien}
 

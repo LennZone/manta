@@ -49,7 +49,7 @@ Le altre opzioni valgono per l’intera operazione senza chiedere. Imposta il va
 
 ### Chiedi {#nachfragen}
 
-Con **Chiedi**, l’operazione si ferma al primo elemento che esiste già nella destinazione. Manta mostra ““nome” esiste già in “cartella”” con entrambi gli elementi (dimensione, data di modifica e l’etichetta **Più recente** su quello più recente) e tu scegli:
+Con **Chiedi**, l’operazione si ferma al primo elemento che esiste già nella destinazione. Manta mostra “‘nome’ esiste già in ‘cartella’” con entrambi gli elementi (dimensione, data di modifica e l’etichetta **Più recente** su quello più recente) e tu scegli:
 
 | Pulsante | Cosa succede |
 |---|---|

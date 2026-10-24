@@ -24,17 +24,17 @@ Manta ist ein Dateimanager für den Mac mit mehreren Bereichen nebeneinander. Di
 
 ## Der erste Start: Gatekeeper {#gatekeeper}
 
-Manta ist nicht von Apple beglaubigt (notarisiert). Deshalb blockiert macOS den ersten Start mit der Meldung „„Manta“ nicht geöffnet“. Das ist eine Schutzfunktion von macOS (Gatekeeper), kein Fehler in Manta. So öffnest du Manta trotzdem – das musst du nur einmal tun:
+Manta ist nicht von Apple beglaubigt (notarisiert). Deshalb blockiert macOS den ersten Start mit der Meldung „‚Manta‘ nicht geöffnet“. Das ist eine Schutzfunktion von macOS (Gatekeeper), kein Fehler in Manta. So öffnest du Manta trotzdem – das musst du nur einmal tun:
 
-1. Starte Manta. macOS zeigt „„Manta“ nicht geöffnet“. Klicke auf **Fertig** – nicht auf **In den Papierkorb legen**, sonst musst du Manta neu laden.
+1. Starte Manta. macOS zeigt „‚Manta‘ nicht geöffnet“. Klicke auf **Fertig** – nicht auf **In den Papierkorb legen**, sonst musst du Manta neu laden.
 
    ![Die Meldung „Manta“ nicht geöffnet mit den Tasten Fertig und In den Papierkorb legen, Fertig ist markiert](images/gatekeeper-blocked.png)
 
-2. Öffne **Systemeinstellungen** → **Datenschutz & Sicherheit** und scrolle nach unten zum Abschnitt **Sicherheit**. Dort steht „„Manta“ wurde blockiert, um deinen Mac zu schützen.“ Klicke daneben auf **Dennoch öffnen**.
+2. Öffne **Systemeinstellungen** → **Datenschutz & Sicherheit** und scrolle nach unten zum Abschnitt **Sicherheit**. Dort steht „‚Manta‘ wurde blockiert, um deinen Mac zu schützen.“ Klicke daneben auf **Dennoch öffnen**.
 
    ![Systemeinstellungen, Datenschutz & Sicherheit, Abschnitt Sicherheit: neben dem Hinweis zu Manta ist die Taste Dennoch öffnen markiert](images/gatekeeper-open-anyway.png)
 
-3. macOS fragt noch einmal nach: „„Manta“ öffnen?“. Klicke auf **Dennoch öffnen** und bestätige mit deinem Passwort oder Touch ID. Manta startet.
+3. macOS fragt noch einmal nach: „‚Manta‘ öffnen?“. Klicke auf **Dennoch öffnen** und bestätige mit deinem Passwort oder Touch ID. Manta startet.
 
    ![Die Rückfrage „Manta“ öffnen? mit den Tasten Dennoch öffnen und Fertig, Dennoch öffnen ist markiert](images/gatekeeper-confirm.png)
 

@@ -33,12 +33,12 @@ Le cartelle **all’interno degli archivi** non possono essere tra i Preferiti (
 
 1. Seleziona una o più cartelle in un pannello, in qualsiasi vista, in locale o su un server.
 2. Trascinale sulla sezione **Preferiti**. La sezione viene evidenziata, una linea mostra dove finiranno le cartelle e accanto al puntatore compare ad esempio “Aggiungi 2 cartelle ai Preferiti”.
-3. Rilascia. Manta conferma con ““Progetti” aggiunto ai Preferiti” o “2 cartelle aggiunte ai Preferiti”.
+3. Rilascia. Manta conferma con “‘Progetti’ aggiunto ai Preferiti” o “2 cartelle aggiunte ai Preferiti”.
 
 Buono a sapersi:
 
 - **Solo cartelle**: se trascini solo file, il puntatore indica “Solo le cartelle possono essere tra i Preferiti” e non succede nulla. Con una selezione mista Manta prende solo le cartelle.
-- **Niente doppioni**: se una cartella è già tra i Preferiti, la voce esistente lampeggia brevemente e Manta segnala ““nome” è già nei Preferiti”. Conta solo la posizione, non il nome del preferito.
+- **Niente doppioni**: se una cartella è già tra i Preferiti, la voce esistente lampeggia brevemente e Manta segnala “‘nome’ è già nei Preferiti”. Conta solo la posizione, non il nome del preferito.
 - **Cartelle sui server**: trascinando una cartella da un server crei un preferito del server con quella cartella come cartella iniziale, ad esempio “files.example.com – www”. Non viene salvata una nuova password; se il Portachiavi ne contiene già una per questo account del server (da un altro preferito), il nuovo preferito usa anche quella. Altrimenti Manta te la chiede quando lo apri (a meno che tu non acceda con ssh-agent o con un file chiave senza passphrase).
 
 ![Una cartella trascinata nei Preferiti](images/favorites-drag.png)

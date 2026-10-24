@@ -33,12 +33,12 @@ Ordner **in Archiven** können keine Favoriten sein („Ordner in Archiven könn
 
 1. Wähle in einem Bereich einen oder mehrere Ordner aus – in jeder Ansicht, lokal oder auf einem Server.
 2. Zieh sie auf den Abschnitt **Favoriten**. Der Abschnitt wird hervorgehoben, eine Linie zeigt, wo die Ordner eingefügt werden, und am Mauszeiger steht z. B. „2 Ordner zu den Favoriten“.
-3. Lass los. Manta meldet „„Projekte“ zu den Favoriten hinzugefügt“ bzw. „2 Ordner zu den Favoriten hinzugefügt“.
+3. Lass los. Manta meldet „‚Projekte‘ zu den Favoriten hinzugefügt“ bzw. „2 Ordner zu den Favoriten hinzugefügt“.
 
 Gut zu wissen:
 
 - **Nur Ordner**: Ziehst du nur Dateien, zeigt der Mauszeiger „Nur Ordner können Favoriten sein“ und nichts passiert. Bei gemischter Auswahl nimmt Manta nur die Ordner.
-- **Keine Doppelten**: Ist ein Ordner schon ein Favorit, blinkt der vorhandene Eintrag kurz auf, und Manta sagt „„Name“ ist schon in den Favoriten“. Der Name des Favoriten spielt dabei keine Rolle, nur der Ort.
+- **Keine Doppelten**: Ist ein Ordner schon ein Favorit, blinkt der vorhandene Eintrag kurz auf, und Manta sagt „‚Name‘ ist schon in den Favoriten“. Der Name des Favoriten spielt dabei keine Rolle, nur der Ort.
 - **Server-Ordner**: Ziehst du einen Ordner von einem Server, entsteht ein Server-Favorit mit diesem Ordner als Startordner, z. B. „files.example.com – www“. Ein neues Passwort wird dabei nicht gespeichert; liegt für diesen Server-Account schon eines im Schlüsselbund (von einem anderen Favoriten), nutzt der neue Favorit es mit. Sonst fragt Manta beim Öffnen danach (außer bei Anmeldung per ssh-agent oder Schlüsseldatei ohne Passphrase).
 
 ![Ordner wird auf die Favoriten gezogen](images/favorites-drag.png)
