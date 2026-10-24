@@ -74,7 +74,7 @@ Manta 会询问你，并预选 **拷贝**，即使在同一宗卷上也是如此
 
 ### Manta 是否支持 WebDAV、SMB，或在没有其 App 的情况下支持 Dropbox？ {#protokolle}
 
-Manta 可直接连接 SFTP、FTP、FTPS、S3 和容器。请在访达中装载 SMB 和 WebDAV 共享（**前往** → **连接服务器**）；之后它们会显示在 **设备** 下。Dropbox、OneDrive 等则由 Manta 通过服务提供商的 App 显示。
+支持。Manta 可直接连接 SFTP、FTP、FTPS、[WebDAV](08-verbindungen.md#webdav)、[SMB](08-verbindungen.md#smb)、S3 和容器——按 **⌘K**（**连接服务器…**）。在访达中装载的共享也会显示在 **设备** 下。Dropbox、OneDrive 等则由 Manta 通过服务提供商的 App 显示。
 
 ### 为什么 FTP 标签上有警告盾牌图标？ {#ftp-warnung}
 

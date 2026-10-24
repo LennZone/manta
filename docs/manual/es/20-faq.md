@@ -74,7 +74,7 @@ No. Instala **Google Drive para ordenadores** e inicia sesión ahí; Manta muest
 
 ### ¿Admite Manta WebDAV, SMB o Dropbox sin la app? {#protokolle}
 
-Manta se conecta directamente a SFTP, FTP, FTPS, S3 y contenedores. Monta los recursos compartidos SMB y WebDAV en Finder (**Ir** → **Conectarse al servidor**); después aparecen en **Dispositivos**. Manta muestra Dropbox, OneDrive y similares a través de las apps de los proveedores.
+Sí. Manta se conecta directamente a SFTP, FTP, FTPS, [WebDAV](08-verbindungen.md#webdav), [SMB](08-verbindungen.md#smb), S3 y contenedores: pulsa **⌘K** (**Conectarse al servidor…**). Los recursos compartidos montados en Finder también aparecen en **Dispositivos**. Manta muestra Dropbox, OneDrive y similares a través de las apps de los proveedores.
 
 ### ¿Por qué hay un escudo de advertencia en la etiqueta FTP? {#ftp-warnung}
 

@@ -74,7 +74,7 @@ Nein. Installiere **Google Drive für den Desktop** und melde dich dort an; Mant
 
 ### Unterstützt Manta WebDAV, SMB oder Dropbox ohne App? {#protokolle}
 
-Direkt verbinden kann Manta mit SFTP, FTP, FTPS, S3 und Containern. SMB- und WebDAV-Freigaben bindest du im Finder ein (**Gehe zu** → **Mit Server verbinden**); sie erscheinen dann unter **Geräte**. Dropbox, OneDrive & Co. zeigt Manta über die Apps der Anbieter.
+Ja. Direkt verbinden kann Manta mit SFTP, FTP, FTPS, [WebDAV](08-verbindungen.md#webdav), [SMB](08-verbindungen.md#smb), S3 und Containern – mit **⌘K** (**Mit Server verbinden …**). Im Finder eingebundene Freigaben erscheinen außerdem unter **Geräte**. Dropbox, OneDrive & Co. zeigt Manta über die Apps der Anbieter.
 
 ### Warum steht ein Warnschild am FTP-Chip? {#ftp-warnung}
 

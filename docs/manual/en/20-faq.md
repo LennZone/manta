@@ -74,7 +74,7 @@ No. Install **Google Drive for desktop** and sign in there; Manta then shows the
 
 ### Does Manta support WebDAV, SMB or Dropbox without the app? {#protokolle}
 
-Manta connects directly to SFTP, FTP, FTPS, S3 and containers. Mount SMB and WebDAV shares in Finder (**Go** → **Connect to Server**); they then appear under **Devices**. Manta shows Dropbox, OneDrive & co. through the providers' apps.
+Yes. Manta connects directly to SFTP, FTP, FTPS, [WebDAV](08-verbindungen.md#webdav), [SMB](08-verbindungen.md#smb), S3 and containers – press **⌘K** (**Connect to Server…**). Shares mounted in Finder also appear under **Devices**. Manta shows Dropbox, OneDrive & co. through the providers' apps.
 
 ### Why is there a warning shield on the FTP chip? {#ftp-warnung}
 
