@@ -49,8 +49,17 @@ impl QlKey {
 /// cursor's one current) or the single cursor / selected entry. Folders are
 /// allowed (Quick Look shows their icon and info, like Finder). `None` when
 /// any entry has no local path (remote server, archive).
+#[cfg(test)]
 pub fn target_for(
     selected: &[Entry],
+    cursor: Option<&Entry>,
+    local: impl Fn(&VfsPath) -> Option<PathBuf>,
+) -> Option<QlTarget> {
+    target_for_refs(&selected.iter().collect::<Vec<_>>(), cursor, local)
+}
+
+fn target_for_refs(
+    selected: &[&Entry],
     cursor: Option<&Entry>,
     local: impl Fn(&VfsPath) -> Option<PathBuf>,
 ) -> Option<QlTarget> {
@@ -58,9 +67,12 @@ pub fn target_for(
         let index = cursor
             .and_then(|c| selected.iter().position(|e| e.name == c.name))
             .unwrap_or(0);
-        (selected.iter().collect(), index)
+        (selected.to_vec(), index)
     } else {
-        (cursor.or(selected.first()).into_iter().collect(), 0)
+        (
+            cursor.or(selected.first().copied()).into_iter().collect(),
+            0,
+        )
     };
     if entries.is_empty() {
         return None;
@@ -78,9 +90,26 @@ pub fn tab_target(tab: &Tab) -> Option<QlTarget> {
         return None;
     }
     let fs = &tab.loc.fs;
-    target_for(&tab.selected_entries(), tab.cursor_entry(), |p| {
-        fs.local_path(p)
-    })
+    let sum = tab.selection_summary();
+    let selected: Vec<&Entry> = sum
+        .view_idx
+        .iter()
+        .filter_map(|&vi| tab.entry_at(vi))
+        .collect();
+    target_for_refs(&selected, tab.cursor_entry(), |p| fs.local_path(p))
+}
+
+/// [`tab_target`] would find something (cheap: menus ask every frame).
+pub fn tab_has_target(tab: &Tab) -> bool {
+    if tab.loc.archive.is_some() {
+        return false;
+    }
+    let sum = tab.selection_summary();
+    let one = tab
+        .cursor_entry()
+        .or_else(|| sum.view_idx.first().and_then(|&vi| tab.entry_at(vi)));
+    // One backend: every entry has a local path, or none has.
+    one.is_some_and(|e| tab.loc.fs.local_path(&e.path).is_some())
 }
 
 /// The AppKit side, behind a trait so tests don't touch AppKit.

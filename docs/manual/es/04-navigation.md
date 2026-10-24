@@ -117,7 +117,7 @@ Si una carpeta parece vacía pero contiene ítems ocultos, Manta te lo indica: �
 
 ## Actualizar {#aktualisieren}
 
-Las carpetas locales se mantienen actualizadas solas, como en Finder: cuando otra app crea, elimina, renombra o modifica un archivo, el cambio aparece en el panel al cabo de un momento. La selección, el cursor, la posición de desplazamiento y la selección escribiendo se mantienen. Manta solo vigila las carpetas visibles (en la visualización Columnas, también las columnas de la izquierda). Muchos cambios a la vez (al copiar miles de archivos, por ejemplo) se agrupan; la carpeta se vuelve a leer como mucho una vez por segundo. Mientras escribes un nombre (Renombrar, Nueva carpeta), la actualización espera a que termines.
+Las carpetas locales se mantienen actualizadas solas, como en Finder: cuando otra app crea, elimina, renombra o modifica un archivo, el cambio aparece en el panel al cabo de un momento. La selección, el cursor, la posición de desplazamiento y la selección escribiendo se mantienen. Manta vigila las carpetas de todas las pestañas abiertas (en la visualización Columnas, también las columnas de la izquierda). Una pestaña en segundo plano se vuelve a leer en cuanto cambias a ella, al instante y sin ⌘R. Muchos cambios a la vez (al copiar miles de archivos, por ejemplo) se agrupan; la carpeta se vuelve a leer como mucho una vez por segundo. Mientras escribes un nombre (Renombrar, Nueva carpeta), la actualización espera a que termines.
 
 Las carpetas de **servidores**, **contenedores**, **S3** y **archivos comprimidos** no se vigilan. Si otra persona cambia algo ahí, pulsa **⌘R** (**Actualizar**) para volver a leer la carpeta. Por supuesto, ⌘R también funciona en local.
 

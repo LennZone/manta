@@ -304,7 +304,19 @@ pub fn image_refs(doc: &Doc) -> Vec<(String, String)> {
     out
 }
 
-/// The embedded PNG for image `name` (`overview.png`) in `lang`: the dark
+/// The image loader's URI for embedded screenshot `key` (`en/sidebar.png`):
+/// the build embeds most of them as WebP (see `build.rs`), and the URI's
+/// extension says which.
+pub fn image_uri(key: &str, bytes: &[u8]) -> String {
+    let webp = bytes.len() > 12 && &bytes[..4] == b"RIFF" && &bytes[8..12] == b"WEBP";
+    match key.strip_suffix(".png") {
+        Some(stem) if webp => format!("bytes://manta-help/{stem}.webp"),
+        _ => format!("bytes://manta-help/{key}"),
+    }
+}
+
+/// The embedded screenshot (PNG or WebP bytes) for image `name`
+/// (`overview.png`) in `lang`: the dark
 /// variant when `dark` and present, else the light one, else the fallback
 /// language's (English), else any other language's (screenshots without
 /// text exist once).
@@ -701,6 +713,55 @@ mod tests {
             "en/sidebar.png"
         );
         assert!(image("no-such-image.png", "de", false).is_none());
+    }
+
+    /// Every embedded screenshot (WebP made by the build, or the PNG)
+    /// decodes, at the size of its PNG in the repository, and its URI names
+    /// the format the image loader has to use.
+    #[test]
+    fn embedded_images_decode_like_the_pngs() {
+        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/manual/images");
+        assert!(!files::IMAGE_FILES.is_empty());
+        for (key, bytes) in files::IMAGE_FILES {
+            let img = image::load_from_memory(bytes).unwrap_or_else(|e| panic!("{key}: {e}"));
+            let png = image::open(dir.join(key)).unwrap_or_else(|e| panic!("{key}: {e}"));
+            assert_eq!(
+                (img.width(), img.height()),
+                (png.width(), png.height()),
+                "{key}"
+            );
+            let uri = image_uri(key, bytes);
+            match image::guess_format(bytes).unwrap() {
+                image::ImageFormat::WebP => {
+                    assert!(uri.ends_with(".webp"), "{uri}");
+                    // Lossless: the same pixels as the PNG.
+                    assert!(img.to_rgba8() == png.to_rgba8(), "{key} differs");
+                }
+                image::ImageFormat::Png => assert!(uri.ends_with(".png"), "{uri}"),
+                f => panic!("{key}: unexpected {f:?}"),
+            }
+        }
+        // The help window's loaders (egui_extras, as installed by the app)
+        // turn an embedded screenshot into an image by its URI.
+        use eframe::egui;
+        let ctx = egui::Context::default();
+        egui_extras::install_image_loaders(&ctx);
+        let (key, bytes) = image("sidebar.png", "de", false).unwrap();
+        let uri = image_uri(&key, bytes);
+        ctx.include_bytes(uri.clone(), bytes);
+        let start = std::time::Instant::now();
+        let size = loop {
+            match ctx.try_load_image(&uri, egui::SizeHint::default()) {
+                Ok(egui::load::ImagePoll::Ready { image }) => break image.size,
+                Ok(egui::load::ImagePoll::Pending { .. }) => {
+                    assert!(start.elapsed().as_secs() < 30, "{uri} never loaded");
+                    std::thread::sleep(std::time::Duration::from_millis(5));
+                }
+                Err(e) => panic!("{uri}: {e}"),
+            }
+        };
+        let png = image::open(dir.join(&key)).unwrap();
+        assert_eq!(size, [png.width() as usize, png.height() as usize]);
     }
 
     #[test]

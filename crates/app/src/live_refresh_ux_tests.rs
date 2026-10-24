@@ -4,6 +4,7 @@
 //! only waits (bounded) for the result, it doesn't time anything.
 
 use super::*;
+use crate::app::Action;
 
 fn live(fx: &Fixture) -> H {
     harness_init(
@@ -133,4 +134,103 @@ fn no_reload_while_a_name_is_typed() {
             .iter()
             .any(|n| n == "while-renaming.txt")
     });
+}
+
+fn act(h: &mut H, a: Action) {
+    let ctx = h.ctx.clone();
+    app(h).handle_action(&ctx, a);
+    settle(h);
+}
+
+/// A tab in the background is watched too: it isn't reloaded while hidden
+/// (it only notes the change), and shows the new contents as soon as it is
+/// switched to, without ⌘R.
+#[test]
+fn background_tabs_catch_up_when_shown() {
+    let fx = fixture();
+    let mut h = live(&fx);
+    // Left pane: tab 0 shows the root, tab 1 shows Design/ ...
+    act(&mut h, Action::NewTab(Side::Left));
+    app(&mut h).navigate_path(
+        Side::Left,
+        VfsPath::new(&fx.root.join("Design").to_string_lossy()),
+    );
+    settle(&mut h);
+    // ... and tab 0 is the one shown.
+    act(&mut h, Action::SwitchTab(Side::Left, 0));
+    assert_eq!(app(&mut h).pane(Side::Left).active, 0);
+    let bg_gen = app(&mut h).pane(Side::Left).tabs[1].listing_gen;
+
+    std::fs::write(fx.root.join("Design/in-the-background.png"), "x").unwrap();
+    wait_until(&mut h, "the background tab to notice", |a| {
+        a.pane(Side::Left).tabs[1].stale.is_some()
+    });
+    for _ in 0..10 {
+        h.step();
+    }
+    let bg = &app(&mut h).pane(Side::Left).tabs[1];
+    assert_eq!(bg.listing_gen, bg_gen, "not reloaded while hidden");
+    assert!(!bg.entries.iter().any(|e| e.name == "in-the-background.png"));
+
+    // Shown again: fresh at once.
+    act(&mut h, Action::SwitchTab(Side::Left, 1));
+    wait_until(&mut h, "the switched-to tab", |a| {
+        a.pane(Side::Left)
+            .tab()
+            .entries
+            .iter()
+            .any(|e| e.name == "in-the-background.png")
+    });
+    let tab = app(&mut h).pane(Side::Left).tab();
+    assert!(tab.stale.is_none());
+    assert!(!tab.loading, "quiet reload");
+    // The tab now in the background (the root) is watched as well.
+    std::fs::write(fx.root.join("root-change.txt"), "x").unwrap();
+    wait_until(&mut h, "the root tab to notice", |a| {
+        a.pane(Side::Left).tabs[0].stale.is_some()
+    });
+}
+
+/// Columns view: a change in a folder left of the active column (a parent)
+/// updates that column too.
+#[test]
+fn columns_parents_are_refreshed() {
+    let fx = fixture();
+    let mut h = live(&fx);
+    app(&mut h).activate(Side::Left);
+    act(
+        &mut h,
+        Action::SetView(Side::Left, crate::views::ViewMode::Columns),
+    );
+    h.run_steps(3);
+    let root = VfsPath::new(&fx.root.to_string_lossy());
+    assert_eq!(
+        app(&mut h).pane(Side::Left).tab().view_state.cols.root,
+        Some(root.clone())
+    );
+    // Into Design/: the root is now the column left of the active one.
+    app(&mut h).navigate_path(Side::Left, root.join("Design"));
+    settle(&mut h);
+    h.run_steps(3);
+    let parent_has = |a: &MantaApp, name: &str| {
+        a.pane(Side::Left)
+            .tab()
+            .view_state
+            .cols
+            .listings
+            .get(&root)
+            .is_some_and(|l| l.entries.iter().any(|e| e.name == name))
+    };
+    assert!(parent_has(app(&mut h), "README.md"), "the root column");
+    std::fs::write(fx.root.join("parent-change.txt"), "x").unwrap();
+    wait_until(&mut h, "the parent column", |a| {
+        parent_has(a, "parent-change.txt")
+    });
+    assert!(app(&mut h)
+        .pane(Side::Left)
+        .tab()
+        .loc
+        .path
+        .as_str()
+        .ends_with("/Design"));
 }

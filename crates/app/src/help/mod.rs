@@ -830,7 +830,7 @@ fn image_table(
             ImageSource::File(p) if p.parent().is_some_and(|d| d.file_name() == "images") => {
                 match manual::image(p.file_name(), lang, dark) {
                     Some((key, bytes)) => ImageState::Ready {
-                        uri: format!("bytes://manta-help/{key}"),
+                        uri: manual::image_uri(&key, bytes),
                         bytes: Arc::from(bytes),
                     },
                     None => ImageState::Missing,

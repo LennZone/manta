@@ -41,6 +41,13 @@ pub enum WorkResult {
         gen: u64,
         result: Result<(VfsPath, Vec<Entry>), String>,
     },
+    /// What a listing has read so far (a very large folder shown fresh);
+    /// the `Listing` with the same `gen` replaces it.
+    ListingPart {
+        tab_id: u64,
+        gen: u64,
+        entries: Vec<Entry>,
+    },
     Connected {
         request: Box<ConnectRequest>,
         result: Result<(SharedVfs, VfsPath), String>,
@@ -168,6 +175,16 @@ impl Worker {
             });
         if let Err(e) = spawned {
             log::error!("failed to spawn worker thread: {e}");
+        }
+    }
+
+    /// Send results from a job before it is done (e.g. the first part of
+    /// a very large folder); wakes the UI.
+    pub fn messenger(&self) -> impl Fn(WorkResult) + Send + 'static {
+        let (tx, ctx) = (self.tx.clone(), self.ctx.clone());
+        move |r| {
+            let _ = tx.send(r);
+            ctx.request_repaint();
         }
     }
 

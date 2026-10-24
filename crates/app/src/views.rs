@@ -964,7 +964,7 @@ pub fn icons_view(
         if let Some(pos) = bg.interact_pointer_pos() {
             let mods = ui.input(|i| i.modifiers);
             let base = if mods.command || mods.shift {
-                tab.selected.clone()
+                tab.selected.names().clone()
             } else {
                 BTreeSet::new()
             };
@@ -992,7 +992,7 @@ pub fn icons_view(
                 tab.cursor = Some(last);
                 tab.anchor = Some(hits[0]);
             }
-            tab.selected = sel;
+            tab.selected = sel.into();
         }
     }
     if bg.drag_stopped() || !ui.input(|i| i.pointer.primary_down()) {
@@ -2424,20 +2424,20 @@ fn other_column(
 /// name, kind, size, dates) or a summary of several selected items.
 fn preview_column(ui: &mut egui::Ui, col: egui::Rect, info: &PaneInfo<'_>, tab: &Tab) {
     let p = pal(ui);
-    let sel = tab.selected_entries();
+    let sum = tab.selection_summary();
     let w = (col.width() - 2.0 * space::XL).clamp(80.0, PREVIEW_W - 2.0 * space::XL);
     let x = col.left() + space::XL;
     let mut y = col.top() + space::XL + 4.0;
     let cx = x + w / 2.0;
-    if sel.len() > 1 {
+    if sum.view_idx.len() > 1 {
         let r = egui::Rect::from_center_size(egui::pos2(cx, y + 50.0), egui::vec2(96.0, 96.0));
         widgets::paint_icon(ui, r, icons::COPY, 64.0, p.text_tertiary, false);
         y = r.bottom() + space::LG;
-        let bytes: u64 = sel.iter().map(|e| util::sort_size(e, &tab.dir_sizes)).sum();
+        let bytes = sum.size;
         ui.painter().text(
             egui::pos2(cx, y),
             egui::Align2::CENTER_TOP,
-            t!("view.selected_n", count = sel.len()),
+            t!("view.selected_n", count = sum.view_idx.len()),
             theme::medium(text::BODY),
             p.text,
         );
@@ -2450,7 +2450,10 @@ fn preview_column(ui: &mut egui::Ui, col: egui::Rect, info: &PaneInfo<'_>, tab: 
         );
         return;
     }
-    let Some(e) = sel.first() else { return };
+    let first = sum.view_idx.first().and_then(|&vi| tab.entry_at(vi));
+    let Some(e) = first.or_else(|| tab.cursor_entry()) else {
+        return;
+    };
     let deco = info.decorations.get(&e.name);
     let c = colors(p, e, deco, false);
     let pr = egui::Rect::from_min_size(egui::pos2(x, y), egui::vec2(w, w.min(col.height() * 0.45)));

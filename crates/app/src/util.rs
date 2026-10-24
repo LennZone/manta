@@ -168,42 +168,91 @@ impl SortSpec {
 }
 
 /// Case-insensitive "natural" comparison: `file2` < `file10`.
+///
+/// Allocation-free (sorting 300,000 names calls it millions of times):
+/// ASCII is compared byte by byte, other characters by their first
+/// lowercase character; digit runs by value; full ties by the bytes.
 pub fn natural_cmp(a: &str, b: &str) -> Ordering {
-    let mut ai = a.chars().peekable();
-    let mut bi = b.chars().peekable();
+    let (ab, bb) = (a.as_bytes(), b.as_bytes());
+    let (mut i, mut j) = (0, 0);
     loop {
-        match (ai.peek().copied(), bi.peek().copied()) {
+        let (x, y) = match (ab.get(i), bb.get(j)) {
             (None, None) => return a.cmp(b),
             (None, Some(_)) => return Ordering::Less,
             (Some(_), None) => return Ordering::Greater,
-            (Some(ca), Some(cb)) if ca.is_ascii_digit() && cb.is_ascii_digit() => {
-                let mut na = String::new();
-                while let Some(c) = ai.peek().copied().filter(char::is_ascii_digit) {
-                    na.push(c);
-                    ai.next();
-                }
-                let mut nb = String::new();
-                while let Some(c) = bi.peek().copied().filter(char::is_ascii_digit) {
-                    nb.push(c);
-                    bi.next();
-                }
-                let ta = na.trim_start_matches('0');
-                let tb = nb.trim_start_matches('0');
-                let ord = ta.len().cmp(&tb.len()).then_with(|| ta.cmp(tb));
-                if ord != Ordering::Equal {
-                    return ord;
-                }
+            (Some(&x), Some(&y)) => (x, y),
+        };
+        if x.is_ascii_digit() && y.is_ascii_digit() {
+            let (si, sj) = (i, j);
+            while ab.get(i).is_some_and(u8::is_ascii_digit) {
+                i += 1;
             }
-            (Some(ca), Some(cb)) => {
-                let la = ca.to_lowercase().next().unwrap_or(ca);
-                let lb = cb.to_lowercase().next().unwrap_or(cb);
-                if la != lb {
-                    return la.cmp(&lb);
-                }
-                ai.next();
-                bi.next();
+            while bb.get(j).is_some_and(u8::is_ascii_digit) {
+                j += 1;
             }
+            let trim = |d: &[u8]| -> usize { d.iter().take_while(|&&c| c == b'0').count() };
+            let (na, nb) = (&ab[si..i], &bb[sj..j]);
+            let (na, nb) = (&na[trim(na)..], &nb[trim(nb)..]);
+            let ord = na.len().cmp(&nb.len()).then_with(|| na.cmp(nb));
+            if ord != Ordering::Equal {
+                return ord;
+            }
+        } else if x.is_ascii() && y.is_ascii() {
+            let (lx, ly) = (x.to_ascii_lowercase(), y.to_ascii_lowercase());
+            if lx != ly {
+                return lx.cmp(&ly);
+            }
+            i += 1;
+            j += 1;
+        } else {
+            // Both are at a char boundary: only whole ASCII bytes or whole
+            // characters are ever skipped.
+            let ca = a[i..].chars().next().unwrap_or_default();
+            let cb = b[j..].chars().next().unwrap_or_default();
+            let la = ca.to_lowercase().next().unwrap_or(ca);
+            let lb = cb.to_lowercase().next().unwrap_or(cb);
+            if la != lb {
+                return la.cmp(&lb);
+            }
+            i += ca.len_utf8();
+            j += cb.len_utf8();
         }
+    }
+}
+
+/// `hay` contains `needle_lower` (already lowercase), ignoring case;
+/// without allocating when both are ASCII.
+pub fn contains_lowercase(hay: &str, needle_lower: &str) -> bool {
+    if needle_lower.is_empty() {
+        return true;
+    }
+    if hay.is_ascii() && needle_lower.is_ascii() {
+        let (h, n) = (hay.as_bytes(), needle_lower.as_bytes());
+        return h.len() >= n.len()
+            && h.windows(n.len())
+                .any(|w| w.iter().zip(n).all(|(a, b)| a.to_ascii_lowercase() == *b));
+    }
+    hay.to_lowercase().contains(needle_lower)
+}
+
+/// `name` starts with `prefix_lower` (already lowercase), ignoring case.
+pub fn starts_with_lowercase(name: &str, prefix_lower: &str) -> bool {
+    if name.is_ascii() && prefix_lower.is_ascii() {
+        let (h, n) = (name.as_bytes(), prefix_lower.as_bytes());
+        return h.len() >= n.len() && h.iter().zip(n).all(|(a, b)| a.to_ascii_lowercase() == *b);
+    }
+    name.to_lowercase().starts_with(prefix_lower)
+}
+
+/// `name` lowercased compared with `other_lower` (already lowercase);
+/// without allocating for ASCII names.
+pub fn cmp_lowercase(name: &str, other_lower: &str) -> Ordering {
+    if name.is_ascii() {
+        name.bytes()
+            .map(|b| b.to_ascii_lowercase())
+            .cmp(other_lower.bytes())
+    } else {
+        name.to_lowercase().as_str().cmp(other_lower)
     }
 }
 
@@ -286,9 +335,7 @@ pub fn visible_indices_tagged(
         .iter()
         .enumerate()
         .filter(|(_, e)| show_hidden || !(e.hidden || display_name(&e.name).starts_with('.')))
-        .filter(|(_, e)| {
-            needle.is_empty() || display_name(&e.name).to_lowercase().contains(&needle)
-        })
+        .filter(|(_, e)| contains_lowercase(display_name(&e.name), &needle))
         .filter(|(_, e)| {
             want_tags.is_empty()
                 || crate::tags::matches_tags(
@@ -299,7 +346,10 @@ pub fn visible_indices_tagged(
         })
         .map(|(i, _)| i)
         .collect();
-    idx.sort_by(|&x, &y| compare_entries(&entries[x], &entries[y], sort, dir_sizes));
+    // Names are unique in a folder and every column falls back to the
+    // name, so the order is total: an unstable sort gives the same result,
+    // faster.
+    idx.sort_unstable_by(|&x, &y| compare_entries(&entries[x], &entries[y], sort, dir_sizes));
     idx
 }
 
@@ -519,6 +569,122 @@ mod tests {
         assert_eq!(natural_cmp("File", "file"), Ordering::Less); // tie broken by byte cmp
         assert_eq!(natural_cmp("abc", "ABD"), Ordering::Less);
         assert_eq!(natural_cmp("a", "a1"), Ordering::Less);
+    }
+
+    /// The previous (allocating) implementation, as the reference.
+    fn natural_cmp_reference(a: &str, b: &str) -> Ordering {
+        let mut ai = a.chars().peekable();
+        let mut bi = b.chars().peekable();
+        loop {
+            match (ai.peek().copied(), bi.peek().copied()) {
+                (None, None) => return a.cmp(b),
+                (None, Some(_)) => return Ordering::Less,
+                (Some(_), None) => return Ordering::Greater,
+                (Some(ca), Some(cb)) if ca.is_ascii_digit() && cb.is_ascii_digit() => {
+                    let mut na = String::new();
+                    while let Some(c) = ai.peek().copied().filter(char::is_ascii_digit) {
+                        na.push(c);
+                        ai.next();
+                    }
+                    let mut nb = String::new();
+                    while let Some(c) = bi.peek().copied().filter(char::is_ascii_digit) {
+                        nb.push(c);
+                        bi.next();
+                    }
+                    let ta = na.trim_start_matches('0');
+                    let tb = nb.trim_start_matches('0');
+                    let ord = ta.len().cmp(&tb.len()).then_with(|| ta.cmp(tb));
+                    if ord != Ordering::Equal {
+                        return ord;
+                    }
+                }
+                (Some(ca), Some(cb)) => {
+                    let la = ca.to_lowercase().next().unwrap_or(ca);
+                    let lb = cb.to_lowercase().next().unwrap_or(cb);
+                    if la != lb {
+                        return la.cmp(&lb);
+                    }
+                    ai.next();
+                    bi.next();
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn natural_matches_the_reference() {
+        let names = [
+            "",
+            "a",
+            "A",
+            "a1",
+            "a01",
+            "a001b",
+            "a1b",
+            "a10",
+            "a9",
+            "file2",
+            "file10",
+            "File10",
+            "Ärger",
+            "ärger",
+            "arger",
+            "Zebra",
+            "zebra",
+            "über",
+            "Uber",
+            "007",
+            "7",
+            "0",
+            "00",
+            "x0y",
+            "x00y",
+            "x1y",
+            "IMG_000123.png",
+            "IMG_123.png",
+            "img_0123.PNG",
+            "Résumé",
+            "resume",
+            "ÉCOLE",
+            "école",
+            "日本1",
+            "日本10",
+            "日本2",
+            "\u{212a}elvin",
+            "kelvin",
+            "Ⅻ",
+            "ⅻ",
+            "notes 12 draft.txt",
+            "notes 2 draft.txt",
+            "a b",
+            "a-b",
+            "a_b",
+            "a.b",
+        ];
+        for a in names {
+            for b in names {
+                assert_eq!(
+                    natural_cmp(a, b),
+                    natural_cmp_reference(a, b),
+                    "{a:?} vs {b:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn case_insensitive_helpers() {
+        assert!(contains_lowercase("Hello World.TXT", "world"));
+        assert!(contains_lowercase("anything", ""));
+        assert!(!contains_lowercase("abc", "abcd"));
+        assert!(contains_lowercase("Über.txt", "über"));
+        assert!(contains_lowercase("Über.txt", "ber"));
+        assert!(starts_with_lowercase("README.md", "read"));
+        assert!(!starts_with_lowercase("RE", "read"));
+        assert!(starts_with_lowercase("Ärger", "är"));
+        assert_eq!(cmp_lowercase("ABC", "abc"), Ordering::Equal);
+        assert_eq!(cmp_lowercase("ABD", "abc"), Ordering::Greater);
+        assert_eq!(cmp_lowercase("Ä", "ä"), Ordering::Equal);
     }
 
     #[test]

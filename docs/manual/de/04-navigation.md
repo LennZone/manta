@@ -117,7 +117,7 @@ Ist ein Ordner scheinbar leer, enthält aber unsichtbare Objekte, sagt Manta das
 
 ## Aktualisieren {#aktualisieren}
 
-Lokale Ordner bleiben von selbst aktuell – wie im Finder: Legt eine andere App eine Datei an, löscht, benennt oder ändert sie, erscheint die Änderung nach einem kurzen Moment im Bereich. Auswahl, Cursor, Scrollposition und die Tipp-Auswahl bleiben dabei erhalten. Manta beobachtet nur die Ordner, die gerade sichtbar sind (in der Spaltenansicht auch die Spalten links davon). Viele Änderungen auf einmal – etwa beim Kopieren Tausender Dateien – fasst Manta zusammen und liest den Ordner höchstens etwa einmal pro Sekunde neu ein. Während du einen Namen eingibst (Umbenennen, Neuer Ordner), wartet die Aktualisierung, bis du fertig bist.
+Lokale Ordner bleiben von selbst aktuell – wie im Finder: Legt eine andere App eine Datei an, löscht, benennt oder ändert sie, erscheint die Änderung nach einem kurzen Moment im Bereich. Auswahl, Cursor, Scrollposition und die Tipp-Auswahl bleiben dabei erhalten. Manta beobachtet die Ordner aller offenen Tabs (in der Spaltenansicht auch die Spalten links davon). Ein Tab im Hintergrund wird neu eingelesen, sobald du zu ihm wechselst – sofort, ohne ⌘R. Viele Änderungen auf einmal – etwa beim Kopieren Tausender Dateien – fasst Manta zusammen und liest den Ordner höchstens etwa einmal pro Sekunde neu ein. Während du einen Namen eingibst (Umbenennen, Neuer Ordner), wartet die Aktualisierung, bis du fertig bist.
 
 Ordner auf **Servern**, in **Containern**, in **S3** und in **Archiven** werden nicht beobachtet. Ändert dort jemand anderes etwas, drücke **⌘R** (**Aktualisieren**), um den Ordner neu einzulesen. ⌘R funktioniert natürlich auch lokal.
 

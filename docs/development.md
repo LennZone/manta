@@ -3,7 +3,8 @@
 Notes for people working on Manta itself: building, releasing, testing, where the app keeps
 its data, and known limitations. For the contribution workflow see
 [CONTRIBUTING.md](../CONTRIBUTING.md); for the self-updater and publishing releases see
-[updates.md](updates.md); for plugins see [plugins.md](plugins.md).
+[updates.md](updates.md); for plugins see [plugins.md](plugins.md); for very large folders,
+the benchmark and the size of the update see [performance.md](performance.md).
 
 ## Building
 
@@ -49,8 +50,14 @@ scripts/build-release.sh
 
 produces `dist/Manta.app` and `dist/Manta-<version>.dmg` (the version comes from
 `[workspace.package]` in `Cargo.toml`). Requirements: macOS with the Xcode Command Line Tools
-(`codesign`, `lipo`, `hdiutil`, `plutil`), rustup and `python3`. The script installs a
-missing Rust target with `rustup target add`.
+(`codesign`, `lipo`, `hdiutil`, `plutil`), rustup, `python3` and `cwebp`
+(`brew install webp`). The script installs a missing Rust target with `rustup target add`.
+
+The manual's screenshots stay PNGs in `docs/manual/images` but are embedded into the binary
+as lossless WebP (about 30 % smaller), converted by `crates/app/build.rs` with `cwebp` and
+cached in the build folder. Without `cwebp` a dev build embeds the PNGs (with a build
+warning); the release script sets `MANTA_REQUIRE_CWEBP=1`, so a release can't silently
+fall back. `MANTA_CWEBP` names another `cwebp`, `MANTA_CWEBP=0` turns the conversion off.
 
 Steps:
 

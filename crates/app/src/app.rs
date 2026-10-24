@@ -614,12 +614,24 @@ fn start_quiet_listing(worker: &Worker, tab: &mut Tab) {
     spawn_listing(worker, tab, Some(p));
 }
 
+/// A folder being listed fresh shows what was read so far once it has
+/// this many entries, or after [`PART_FIRST_AFTER`] (once; the complete
+/// listing follows when it is read: more parts would cost the listing
+/// thread a copy and a sort each, for little).
+const PART_MIN: usize = 5_000;
+const PART_FIRST_AFTER: Duration = Duration::from_millis(40);
+
 fn spawn_listing(worker: &Worker, tab: &mut Tab, path: Option<VfsPath>) {
     tab.gen += 1;
     tab.listed_at = Some(Instant::now());
     let gen = tab.gen;
     let tab_id = tab.id;
     let fs = tab.loc.fs.clone();
+    // A folder shown fresh shows its first part at once (very large
+    // folders); a reload keeps the old listing until the new one is whole.
+    let stream = tab.entries.is_empty() && path.is_some();
+    let sort = tab.sort;
+    let send = worker.messenger();
     worker.spawn(
         "list",
         move || {
@@ -627,8 +639,32 @@ fn spawn_listing(worker: &Worker, tab: &mut Tab, path: Option<VfsPath>) {
                 Some(p) => p,
                 None => fs.home().map_err(|e| e.to_string())?,
             };
-            let entries = fs.list(&dir).map_err(|e| e.to_string())?;
-            Ok((dir, entries))
+            let start = Instant::now();
+            let mut entries: Vec<manta_core::Entry> = Vec::new();
+            let mut shown = !stream;
+            let no_sizes = HashMap::new();
+            // In the tab's order: sorting here keeps the UI thread's own
+            // sort (of already sorted entries) cheap.
+            let sorted = |mut v: Vec<manta_core::Entry>| {
+                v.sort_unstable_by(|a, b| util::compare_entries(a, b, sort, &no_sizes));
+                v
+            };
+            fs.list_parts(&dir, &mut |part| {
+                entries.extend(part);
+                if !shown && (entries.len() >= PART_MIN || start.elapsed() >= PART_FIRST_AFTER) {
+                    shown = true;
+                    // Sorted in place: the final sort then finds most of
+                    // the listing in order already.
+                    entries = sorted(std::mem::take(&mut entries));
+                    send(WorkResult::ListingPart {
+                        tab_id,
+                        gen,
+                        entries: entries.clone(),
+                    });
+                }
+            })
+            .map_err(|e| e.to_string())?;
+            Ok((dir, sorted(entries)))
         },
         move |result| WorkResult::Listing {
             tab_id,
@@ -1337,10 +1373,13 @@ impl MantaApp {
             return;
         }
         let now = Instant::now();
+        // Every open tab is watched (FSEvents streams are cheap); background
+        // tabs only remember that they changed (`Tab::stale`) and reload
+        // once they are shown.
         let mut wanted: std::collections::BTreeSet<PathBuf> = self
             .panes
             .iter()
-            .flat_map(|p| live_folders(p.tab(), p.view))
+            .flat_map(|p| p.tabs.iter().flat_map(move |t| live_folders(t, p.view)))
             .collect();
         // New or removed cloud providers (an app was installed or signed out).
         let storage = manta_vfs::cloud_local::cloud_storage_dir().filter(|d| d.is_dir());
@@ -1364,6 +1403,15 @@ impl MantaApp {
             }
             for pane in &mut self.panes {
                 let view = pane.view;
+                let active = pane.active;
+                for (i, tab) in pane.tabs.iter_mut().enumerate() {
+                    if i != active
+                        && !tab.listed_at.is_some_and(|t| t > last)
+                        && live_folders(tab, view).contains(&dir)
+                    {
+                        tab.stale = Some(tab.stale.map_or(last, |s| s.max(last)));
+                    }
+                }
                 let tab = pane.tab_mut();
                 if !live_folders(tab, view).contains(&dir) {
                     continue;
@@ -1380,8 +1428,26 @@ impl MantaApp {
                     continue;
                 }
                 log::debug!("live refresh: {}", tab.loc.path);
+                tab.stale = None;
                 start_quiet_listing(&self.worker, tab);
             }
+        }
+        // A tab that changed in the background is shown again: catch up
+        // (not under a name being typed, nor over a listing in progress).
+        for pane in &mut self.panes {
+            let tab = pane.tab_mut();
+            let Some(last) = tab.stale else { continue };
+            let naming = matches!(&self.dialog, Some(Dialog::Name(f)) if f.tab_id == tab.id);
+            if naming || tab.loading {
+                continue;
+            }
+            tab.stale = None;
+            // A listing started after the last change already shows it.
+            if tab.listed_at.is_none_or(|t| t > last) {
+                continue;
+            }
+            log::debug!("live refresh: {} (was in the background)", tab.loc.path);
+            start_quiet_listing(&self.worker, tab);
         }
     }
 
@@ -1521,6 +1587,20 @@ impl MantaApp {
                             tab.loading = false;
                             tab.error = Some(e);
                         }
+                    }
+                }
+                WorkResult::ListingPart {
+                    tab_id,
+                    gen,
+                    entries,
+                } => {
+                    if let Some(tab) = self
+                        .panes
+                        .iter_mut()
+                        .flat_map(|p| p.tabs.iter_mut())
+                        .find(|t| t.id == tab_id && t.gen == gen)
+                    {
+                        tab.apply_partial(entries);
                     }
                 }
                 WorkResult::Connected { request, result } => self.on_connected(*request, result),
@@ -3320,25 +3400,35 @@ impl MantaApp {
             Cmd::EmptyTrash => self.trash.dir.is_some() && self.trash.status.full() != Some(false),
             Cmd::NewFolder => !ro,
             Cmd::Compress => has_sel && !ro,
+            // Asked for every menu item every frame: no copies of the
+            // selection (it may be 300,000 items).
             Cmd::ExtractHere => {
+                let sum = tab.selection_summary();
                 tab.loc.archive.is_some()
-                    || tab
-                        .selected_entries()
-                        .iter()
-                        .any(|e| !e.is_dir() && manta_vfs::ArchiveFormat::detect(&e.name).is_some())
+                    || if sum.view_idx.is_empty() {
+                        tab.cursor_entry().is_some_and(crate::pane::is_archive_file)
+                    } else {
+                        sum.any_archive
+                    }
             }
             Cmd::QuickLook => {
+                let sum = tab.selection_summary();
+                let first = || sum.view_idx.first().and_then(|&vi| tab.entry_at(vi));
                 (self.quicklook.available()
                     && self.prefs.space_action == crate::prefs::SpaceAction::QuickLook
-                    && crate::quicklook::tab_target(tab).is_some())
+                    && crate::quicklook::tab_has_target(tab))
                     || tab
                         .cursor_entry()
-                        .cloned()
-                        .or_else(|| tab.selected_entries().into_iter().next())
+                        .or_else(first)
                         .is_some_and(|e| !e.is_dir())
             }
             Cmd::Rename if ro => false,
-            Cmd::Rename => match tab.selected_entries().len() {
+            Cmd::Rename => match tab
+                .selection_summary()
+                .view_idx
+                .len()
+                .max(usize::from(tab.cursor_entry().is_some()))
+            {
                 0 => false,
                 1 => true,
                 _ => self.batch_rename_available(),
@@ -4288,7 +4378,22 @@ impl MantaApp {
             local_path: tab.loc.fs.local_path(&tab.loc.path),
             protocol: tab.loc.fs.protocol(),
             backend_label: self.backend_label(&tab.loc),
-            selection: tab.selected_entries().into_iter().map(|e| e.path).collect(),
+            selection: {
+                // Paths only (no copies of whole entries: 300,000 selected).
+                let sum = tab.selection_summary();
+                if sum.view_idx.is_empty() {
+                    tab.cursor_entry()
+                        .map(|e| e.path.clone())
+                        .into_iter()
+                        .collect()
+                } else {
+                    sum.view_idx
+                        .iter()
+                        .filter_map(|&vi| tab.entry_at(vi))
+                        .map(|e| e.path.clone())
+                        .collect()
+                }
+            },
             active: side == self.active,
             remote: self.endpoint(&tab.loc.fs),
         }
@@ -4302,12 +4407,12 @@ impl MantaApp {
         let mut h = std::collections::hash_map::DefaultHasher::new();
         (tab.id, tab.loc.conn, &tab.loc.path, tab.listing_gen).hash(&mut h);
         (side == self.active).hash(&mut h);
+        // The selection by generation, not by its names: hashing 300,000
+        // names every frame was a large part of a frame.
         if tab.selected.is_empty() {
             tab.cursor_entry().map(|e| &e.name).hash(&mut h);
         } else {
-            for n in &tab.selected {
-                n.hash(&mut h);
-            }
+            tab.selected.gen().hash(&mut h);
         }
         h.finish()
     }

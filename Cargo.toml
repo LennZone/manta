@@ -78,6 +78,17 @@ codegen-units = 1
 panic = "unwind"
 incremental = false
 
+# Optimised like a release but quick to rebuild, with line tables for
+# profilers: the large-folder benchmarks (docs/performance.md) run with
+# `cargo test --profile perf`.
+[profile.perf]
+inherits = "release"
+lto = false
+codegen-units = 16
+incremental = true
+strip = false
+debug = "line-tables-only"
+
 # Dependencies (image codecs, crypto, egui) optimized even in dev/test builds:
 # debug-mode PNG/JPEG decoding and TLS dominate test time otherwise. Our own
 # crates stay unoptimized for fast incremental builds and good debugging.

@@ -106,6 +106,209 @@ fn entry_from_lstat(path: &VfsPath, name: String, lmeta: &Metadata) -> Entry {
     }
 }
 
+/// Entries per part of [`Vfs::list_parts`] on the portable path.
+const PART: usize = 4096;
+
+/// The entry `name` in `dir`, from `lstat` (a symlink also from its target).
+fn stat_entry(dir: &VfsPath, name: String) -> Entry {
+    let path = dir.join(&name);
+    match fs::symlink_metadata(os_path(&path)) {
+        Ok(m) => entry_from_lstat(&path, name, &m),
+        Err(e) => {
+            log::debug!("cannot stat {path}: {e}");
+            unknown_entry(path, name)
+        }
+    }
+}
+
+/// Listing with `getattrlistbulk(2)`: name, type, date, mode, flags and
+/// size of hundreds of entries per system call, read from the directory
+/// itself. `readdir` + one `lstat` per file needs a kernel vnode per file:
+/// a folder with more files than the vnode cache holds (`kern.maxvnodes`,
+/// about 260,000 here) took 3.4 s for 300,000 files that way.
+#[cfg(target_os = "macos")]
+mod bulk {
+    use std::ffi::CString;
+    use std::io;
+    use std::os::unix::ffi::OsStrExt;
+    use std::path::Path;
+
+    use chrono::{DateTime, Utc};
+    use manta_core::{Entry, EntryKind, VfsPath};
+
+    /// `vtype` values of `ATTR_CMN_OBJTYPE` (sys/vnode.h).
+    const VREG: u32 = 1;
+    const VDIR: u32 = 2;
+    const VLNK: u32 = 5;
+    const UF_HIDDEN: u32 = 0x8000;
+    /// sys/attr.h (not in the libc crate).
+    const ATTR_CMN_ERROR: u32 = 0x2000_0000;
+
+    struct Fd(libc::c_int);
+
+    impl Drop for Fd {
+        fn drop(&mut self) {
+            // SAFETY: an fd this module opened and nobody else closes.
+            unsafe { libc::close(self.0) };
+        }
+    }
+
+    fn u32_at(b: &[u8], at: usize) -> Option<u32> {
+        Some(u32::from_ne_bytes(b.get(at..at + 4)?.try_into().ok()?))
+    }
+
+    fn i32_at(b: &[u8], at: usize) -> Option<i32> {
+        Some(i32::from_ne_bytes(b.get(at..at + 4)?.try_into().ok()?))
+    }
+
+    fn i64_at(b: &[u8], at: usize) -> Option<i64> {
+        Some(i64::from_ne_bytes(b.get(at..at + 8)?.try_into().ok()?))
+    }
+
+    /// Hands the entries of `os` (shown as `dir`) to `part`, one part per
+    /// system call.
+    pub fn list(os: &Path, dir: &VfsPath, part: &mut dyn FnMut(Vec<Entry>)) -> io::Result<()> {
+        let c = CString::new(os.as_os_str().as_bytes())?;
+        // SAFETY: a valid NUL-terminated path; the result is checked.
+        let fd = unsafe {
+            libc::open(
+                c.as_ptr(),
+                libc::O_RDONLY | libc::O_DIRECTORY | libc::O_CLOEXEC,
+            )
+        };
+        if fd < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        let fd = Fd(fd);
+        // SAFETY: attrlist is plain old data; zero is a valid start.
+        let mut al: libc::attrlist = unsafe { std::mem::zeroed() };
+        al.bitmapcount = libc::ATTR_BIT_MAP_COUNT;
+        al.commonattr = libc::ATTR_CMN_RETURNED_ATTRS
+            | ATTR_CMN_ERROR
+            | libc::ATTR_CMN_NAME
+            | libc::ATTR_CMN_OBJTYPE
+            | libc::ATTR_CMN_MODTIME
+            | libc::ATTR_CMN_ACCESSMASK
+            | libc::ATTR_CMN_FLAGS;
+        al.fileattr = libc::ATTR_FILE_DATALENGTH;
+        let mut buf = vec![0u8; 256 * 1024];
+        loop {
+            // SAFETY: `al` and `buf` outlive the call; the size is buf's.
+            let n = unsafe {
+                libc::getattrlistbulk(
+                    fd.0,
+                    (&mut al as *mut libc::attrlist).cast(),
+                    buf.as_mut_ptr().cast(),
+                    buf.len(),
+                    0,
+                )
+            };
+            if n < 0 {
+                let e = io::Error::last_os_error();
+                if e.kind() == io::ErrorKind::Interrupted {
+                    continue;
+                }
+                return Err(e);
+            }
+            if n == 0 {
+                return Ok(());
+            }
+            let mut out = Vec::with_capacity(n as usize);
+            let mut at = 0usize;
+            for _ in 0..n {
+                let len = u32_at(&buf, at).ok_or_else(bad)? as usize;
+                let rec = buf.get(at..at + len).ok_or_else(bad)?;
+                if let Some(e) = parse(rec, dir) {
+                    out.push(e);
+                }
+                at += len;
+            }
+            part(out);
+        }
+    }
+
+    fn bad() -> io::Error {
+        io::Error::new(io::ErrorKind::InvalidData, "bad getattrlistbulk record")
+    }
+
+    /// One record; `None` for "." / ".." or a record without a name.
+    fn parse(rec: &[u8], dir: &VfsPath) -> Option<Entry> {
+        // length, then attribute_set_t (5 x u32) of what was returned.
+        let common = u32_at(rec, 4)?;
+        let file = u32_at(rec, 4 + 12)?;
+        let mut f = 4 + 20;
+        let mut error = 0;
+        if common & ATTR_CMN_ERROR != 0 {
+            error = u32_at(rec, f)?;
+            f += 4;
+        }
+        if common & libc::ATTR_CMN_NAME == 0 {
+            return None;
+        }
+        // attrreference_t: offset (from itself) and length (with the NUL).
+        let off = i32_at(rec, f)?;
+        let nlen = u32_at(rec, f + 4)? as usize;
+        let start = (f as i64 + off as i64) as usize;
+        let raw = rec.get(start..start + nlen.saturating_sub(1))?;
+        let name = String::from_utf8_lossy(raw).into_owned();
+        f += 8;
+        if name == "." || name == ".." {
+            return None;
+        }
+        let mut objtype = None;
+        if common & libc::ATTR_CMN_OBJTYPE != 0 {
+            objtype = Some(u32_at(rec, f)?);
+            f += 4;
+        }
+        let mut modified = None;
+        if common & libc::ATTR_CMN_MODTIME != 0 {
+            let (secs, nanos) = (i64_at(rec, f)?, i64_at(rec, f + 8)?);
+            modified = DateTime::<Utc>::from_timestamp(secs, nanos.clamp(0, 999_999_999) as u32);
+            f += 16;
+        }
+        let mut mode = None;
+        if common & libc::ATTR_CMN_ACCESSMASK != 0 {
+            mode = Some(u32_at(rec, f)? & 0o7777);
+            f += 4;
+        }
+        let mut flags = 0;
+        if common & libc::ATTR_CMN_FLAGS != 0 {
+            flags = u32_at(rec, f)?;
+            f += 4;
+        }
+        let mut size = 0;
+        if file & libc::ATTR_FILE_DATALENGTH != 0 {
+            size = i64_at(rec, f)?.max(0) as u64;
+        }
+        // Symlinks (their target decides kind, size and date) and anything
+        // the bulk call couldn't read: the per-file way.
+        let kind = match objtype {
+            _ if error != 0 => None,
+            Some(VREG) => Some(EntryKind::File),
+            Some(VDIR) => Some(EntryKind::Directory),
+            Some(VLNK) | None => None,
+            Some(_) => Some(EntryKind::Other),
+        };
+        let Some(kind) = kind else {
+            return Some(super::stat_entry(dir, name));
+        };
+        Some(Entry {
+            path: dir.join(&name),
+            hidden: name.starts_with('.') || flags & UF_HIDDEN != 0,
+            name,
+            kind,
+            size: if kind == EntryKind::Directory {
+                0
+            } else {
+                size
+            },
+            modified,
+            permissions: mode,
+            link_target: None,
+        })
+    }
+}
+
 /// Best-effort entry for something we could not stat.
 fn unknown_entry(path: VfsPath, name: String) -> Entry {
     Entry {
@@ -137,10 +340,31 @@ impl Vfs for LocalFs {
     }
 
     fn list(&self, dir: &VfsPath) -> VfsResult<Vec<Entry>> {
+        let mut out = Vec::new();
+        self.list_parts(dir, &mut |part| out.extend(part))?;
+        Ok(out)
+    }
+
+    fn list_parts(&self, dir: &VfsPath, part: &mut dyn FnMut(Vec<Entry>)) -> VfsResult<()> {
         let os = os_path(dir);
         let meta = fs::metadata(&os).map_err(|e| map_io(e, dir))?;
         if !meta.is_dir() {
             return Err(VfsError::NotADirectory(dir.to_string()));
+        }
+        #[cfg(target_os = "macos")]
+        {
+            let mut delivered = false;
+            match bulk::list(&os, dir, &mut |p| {
+                delivered = true;
+                part(p)
+            }) {
+                Ok(()) => return Ok(()),
+                // Nothing handed over yet: the portable way below.
+                Err(e) if !delivered => {
+                    log::debug!("getattrlistbulk failed in {dir}: {e}; using readdir")
+                }
+                Err(e) => return Err(map_io(e, dir)),
+            }
         }
         let rd = fs::read_dir(&os).map_err(|e| map_io(e, dir))?;
         let mut out = Vec::new();
@@ -153,16 +377,15 @@ impl Vfs for LocalFs {
                 }
             };
             let name = item.file_name().to_string_lossy().into_owned();
-            let path = dir.join(&name);
-            match fs::symlink_metadata(item.path()) {
-                Ok(m) => out.push(entry_from_lstat(&path, name, &m)),
-                Err(e) => {
-                    log::debug!("cannot stat {path}: {e}");
-                    out.push(unknown_entry(path, name));
-                }
+            out.push(stat_entry(dir, name));
+            if out.len() == PART {
+                part(std::mem::take(&mut out));
             }
         }
-        Ok(out)
+        if !out.is_empty() {
+            part(out);
+        }
+        Ok(())
     }
 
     fn stat(&self, path: &VfsPath) -> VfsResult<Entry> {
@@ -286,6 +509,82 @@ mod tests {
         let canon = fs::canonicalize(td.path()).expect("canonicalize");
         let root = VfsPath::new(&canon.to_string_lossy());
         (td, root, LocalFs::new())
+    }
+
+    /// The bulk listing (getattrlistbulk on macOS) gives exactly what
+    /// readdir + lstat give, in parts that add up to the whole folder.
+    #[test]
+    fn list_parts_match_per_file_stat() {
+        let (_td, root, l) = setup();
+        for i in 0..5000 {
+            write(
+                &l,
+                &root.join(&format!("file {i}.txt")),
+                &vec![b'x'; i % 300],
+            );
+        }
+        l.create_dir(&root.join("sub")).unwrap();
+        write(&l, &root.join(".dotfile"), b"x");
+        write(&l, &root.join("Ünïcødé ✓.md"), b"abc");
+        write(&l, &root.join("flagged"), b"x");
+        let flagged = root.join("flagged");
+        assert!(std::process::Command::new("chflags")
+            .args(["hidden", flagged.as_str()])
+            .status()
+            .unwrap()
+            .success());
+        fs::set_permissions(
+            root.join("Ünïcødé ✓.md").as_str(),
+            fs::Permissions::from_mode(0o640),
+        )
+        .unwrap();
+        std::os::unix::fs::symlink("sub", root.join("link-to-dir").as_str()).unwrap();
+        std::os::unix::fs::symlink("missing", root.join("broken").as_str()).unwrap();
+        let mut parts = 0;
+        let mut got = Vec::new();
+        l.list_parts(&root, &mut |p| {
+            parts += 1;
+            got.extend(p)
+        })
+        .unwrap();
+        let mut want: Vec<Entry> = fs::read_dir(root.as_str())
+            .unwrap()
+            .map(|e| stat_entry(&root, e.unwrap().file_name().to_string_lossy().into_owned()))
+            .collect();
+        got.sort_by(|a, b| a.name.cmp(&b.name));
+        want.sort_by(|a, b| a.name.cmp(&b.name));
+        assert_eq!(got.len(), 5006);
+        assert!(parts > 1, "a big folder comes in several parts");
+        for (g, w) in got.iter().zip(&want) {
+            assert_eq!(
+                (
+                    &g.name,
+                    &g.path,
+                    g.kind,
+                    g.size,
+                    g.permissions,
+                    &g.link_target,
+                    g.hidden
+                ),
+                (
+                    &w.name,
+                    &w.path,
+                    w.kind,
+                    w.size,
+                    w.permissions,
+                    &w.link_target,
+                    w.hidden
+                )
+            );
+            assert_eq!(g.modified, w.modified, "{}", g.name);
+        }
+        let by = |n: &str| got.iter().find(|e| e.name == n).unwrap();
+        assert!(by("flagged").hidden);
+        assert!(by(".dotfile").hidden);
+        assert_eq!(by("link-to-dir").kind, EntryKind::Directory);
+        assert_eq!(by("Ünïcødé ✓.md").permissions, Some(0o640));
+        assert_eq!(by("file 299.txt").size, 299);
+        assert_eq!(l.list(&root).unwrap().len(), 5006);
     }
 
     fn write(fs_: &LocalFs, p: &VfsPath, data: &[u8]) {

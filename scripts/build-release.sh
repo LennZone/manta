@@ -43,6 +43,10 @@ die()  { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 for tool in cargo rustup lipo codesign hdiutil plutil; do
     command -v "$tool" >/dev/null || die "$tool not found"
 done
+# The manual's screenshots are embedded as lossless WebP (crates/app/build.rs);
+# without cwebp they would be embedded as PNG, ~5 MB bigger.
+command -v "${MANTA_CWEBP:-cwebp}" >/dev/null || die "cwebp not found (brew install webp)"
+export MANTA_REQUIRE_CWEBP=1
 
 # From Cargo.toml itself (cargo pkgid reads Cargo.lock, which lags behind a
 # freshly bumped version until the next build).

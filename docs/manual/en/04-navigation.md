@@ -117,7 +117,7 @@ If a folder looks empty but has hidden items, Manta says so: "3 hidden items —
 
 ## Refresh {#aktualisieren}
 
-Local folders stay up to date by themselves – like in Finder: when another app creates, deletes, renames or changes a file, the change shows up in the pane after a moment. The selection, cursor, scroll position and type-to-select stay as they are. Manta only watches the folders that are visible (in the Columns view also the columns to the left). Many changes at once – copying thousands of files, say – are combined; the folder is read again about once a second at most. While you type a name (Rename, New Folder), the refresh waits until you're done.
+Local folders stay up to date by themselves – like in Finder: when another app creates, deletes, renames or changes a file, the change shows up in the pane after a moment. The selection, cursor, scroll position and type-to-select stay as they are. Manta watches the folders of all open tabs (in the Columns view also the columns to the left). A tab in the background is read again as soon as you switch to it – right away, without ⌘R. Many changes at once – copying thousands of files, say – are combined; the folder is read again about once a second at most. While you type a name (Rename, New Folder), the refresh waits until you're done.
 
 Folders on **servers**, in **containers**, in **S3** and in **archives** aren't watched. If someone else changes something there, press **⌘R** (**Refresh**) to read the folder again. ⌘R works locally too, of course.
 

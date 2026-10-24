@@ -126,8 +126,9 @@ fn cmd_backspace_moves_local_items_to_the_trash() {
     select(&mut h, Side::Left, &["README.md", "src"]);
     press(&mut h, Modifiers::COMMAND, Key::Backspace);
     assert!(app(&mut h).dialog.is_none(), "no confirmation, like Finder");
+    // Both, whichever is moved last.
     wait_for(&mut h, "items in the Trash", |_| {
-        fake_trash(&fx).join("src").exists()
+        fake_trash(&fx).join("src").exists() && fake_trash(&fx).join("README.md").exists()
     });
     assert!(
         !fx.root.join("README.md").exists() && !fx.root.join("src").exists(),

@@ -118,7 +118,7 @@ Se una cartella sembra vuota ma contiene elementi nascosti, Manta te lo dice: �
 
 ## Aggiornare {#aktualisieren}
 
-Le cartelle locali restano aggiornate da sole, come nel Finder: quando un’altra app crea, elimina, rinomina o modifica un file, la modifica compare nel pannello dopo un istante. Selezione, cursore, posizione di scorrimento e selezione digitando restano invariati. Manta tiene d’occhio solo le cartelle visibili (nella vista Colonne anche le colonne a sinistra). Molte modifiche contemporanee, come la copia di migliaia di file, vengono raggruppate: la cartella viene riletta al massimo circa una volta al secondo. Mentre digiti un nome (Rinomina, Nuova cartella), l’aggiornamento aspetta che tu abbia finito.
+Le cartelle locali restano aggiornate da sole, come nel Finder: quando un’altra app crea, elimina, rinomina o modifica un file, la modifica compare nel pannello dopo un istante. Selezione, cursore, posizione di scorrimento e selezione digitando restano invariati. Manta tiene d’occhio le cartelle di tutte le schede aperte (nella vista Colonne anche le colonne a sinistra). Una scheda in secondo piano viene riletta appena ci passi, subito e senza ⌘R. Molte modifiche contemporanee, come la copia di migliaia di file, vengono raggruppate: la cartella viene riletta al massimo circa una volta al secondo. Mentre digiti un nome (Rinomina, Nuova cartella), l’aggiornamento aspetta che tu abbia finito.
 
 Le cartelle sui **server**, nei **container**, in **S3** e negli **archivi** non vengono sorvegliate. Se qualcun altro cambia qualcosa lì, premi **⌘R** (**Aggiorna**) per rileggere la cartella. Naturalmente ⌘R funziona anche in locale.
 

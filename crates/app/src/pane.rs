@@ -217,15 +217,157 @@ impl DragPayload {
     }
 }
 
+/// The selected entry names of a tab (names are unique within a folder).
+///
+/// Reads go through `Deref` to the set; every change goes through a method
+/// that gives the selection a new generation, so what is derived from it
+/// (status bar size, menus, plugin state) is computed once per change
+/// instead of once per frame — with 300,000 selected items that is the
+/// difference between 2 and 200 ms a frame.
+#[derive(Debug, Clone, Default)]
+pub struct Selection {
+    names: BTreeSet<String>,
+    gen: u64,
+}
+
+/// Generations are unique across all selections (a new selection never
+/// looks like an old one).
+fn next_selection_gen() -> u64 {
+    static GEN: AtomicU64 = AtomicU64::new(1);
+    GEN.fetch_add(1, Ordering::Relaxed)
+}
+
+impl std::ops::Deref for Selection {
+    type Target = BTreeSet<String>;
+    fn deref(&self) -> &BTreeSet<String> {
+        &self.names
+    }
+}
+
+impl From<BTreeSet<String>> for Selection {
+    fn from(names: BTreeSet<String>) -> Self {
+        Selection {
+            names,
+            gen: next_selection_gen(),
+        }
+    }
+}
+
+impl FromIterator<String> for Selection {
+    fn from_iter<I: IntoIterator<Item = String>>(iter: I) -> Self {
+        BTreeSet::from_iter(iter).into()
+    }
+}
+
+impl Selection {
+    /// Changes whenever the selection changes.
+    pub fn gen(&self) -> u64 {
+        self.gen
+    }
+
+    /// The names as a plain set.
+    pub fn names(&self) -> &BTreeSet<String> {
+        &self.names
+    }
+
+    fn touch(&mut self) {
+        self.gen = next_selection_gen();
+    }
+
+    pub fn clear(&mut self) {
+        if !self.names.is_empty() {
+            self.names.clear();
+            self.touch();
+        }
+    }
+
+    pub fn insert(&mut self, name: String) -> bool {
+        let new = self.names.insert(name);
+        if new {
+            self.touch();
+        }
+        new
+    }
+
+    pub fn remove(&mut self, name: &str) -> bool {
+        let had = self.names.remove(name);
+        if had {
+            self.touch();
+        }
+        had
+    }
+
+    pub fn extend<I: IntoIterator<Item = String>>(&mut self, names: I) {
+        self.names.extend(names);
+        self.touch();
+    }
+
+    pub fn retain(&mut self, keep: impl FnMut(&String) -> bool) {
+        let before = self.names.len();
+        self.names.retain(keep);
+        if self.names.len() != before {
+            self.touch();
+        }
+    }
+}
+
+/// Frees a replaced listing: a big one on a background thread (freeing
+/// 300,000 entries took tens of milliseconds of a frame).
+fn drop_later(old: Vec<Entry>) {
+    if old.len() < 10_000 {
+        return;
+    }
+    let _ = std::thread::Builder::new()
+        .name("manta-free-listing".into())
+        .spawn(move || drop(old));
+}
+
+/// What is derived from a tab's selection (see [`Tab::selection_summary`]).
+#[derive(Debug, Default)]
+pub struct SelectionSummary {
+    /// View indices of the selected entries, in view order.
+    pub view_idx: Vec<usize>,
+    /// Bytes of the selected entries (folders once their size is known).
+    pub size: u64,
+    /// One of them is an archive file (Extract Here).
+    pub any_archive: bool,
+}
+
+/// A file that Manta opens as an archive.
+pub fn is_archive_file(e: &Entry) -> bool {
+    !e.is_dir() && manta_vfs::ArchiveFormat::detect(&e.name).is_some()
+}
+
+/// The key a [`SelectionSummary`] was computed for: selection, listing,
+/// view order and folder sizes.
+type SummaryKey = (u64, u64, u64, Option<u64>);
+
+/// [`Tab::tag_menu`]: the menu, for the summary key, the folder's tags
+/// and the known tags it was made from.
+type TagMenuCache = (
+    SummaryKey,
+    Option<std::sync::Arc<crate::tags::FolderTags>>,
+    std::sync::Arc<crate::tags::KnownTags>,
+    Option<crate::tags::TagMenu>,
+);
+
 pub struct Tab {
     pub id: u64,
     pub loc: Location,
-    /// Raw listing in backend order.
+    /// The listing (sorted by `sort` when it was listed; `view` is what is
+    /// shown, filtered and sorted).
     pub entries: Vec<Entry>,
     /// Indices into `entries`, filtered and sorted.
     pub view: Vec<usize>,
     /// Selected entry names (names are unique within a directory).
-    pub selected: BTreeSet<String>,
+    pub selected: Selection,
+    /// Bumped whenever `view` is rebuilt (sort, filter, listing).
+    pub view_gen: u64,
+    /// The selection summary and what it was computed for.
+    sel_summary: std::cell::RefCell<Option<(SummaryKey, std::rc::Rc<SelectionSummary>)>>,
+    /// The Tags menu for the selection and what it was made for (the menus
+    /// are built every frame).
+    tag_menu: std::cell::RefCell<Option<TagMenuCache>>,
     /// Anchor for Shift-click range selection (index into `view`).
     pub anchor: Option<usize>,
     /// Keyboard cursor (index into `view`).
@@ -298,6 +440,10 @@ pub struct Tab {
     pub search: Option<crate::search::Search>,
     /// When the typed query (re)starts the search (typing is debounced).
     pub search_due: Option<Instant>,
+    /// Live refresh saw changes while the tab was in the background; it is
+    /// reloaded (quietly) as soon as it is shown again. The time of the
+    /// newest change.
+    pub stale: Option<Instant>,
 }
 
 impl Tab {
@@ -307,7 +453,10 @@ impl Tab {
             loc,
             entries: Vec::new(),
             view: Vec::new(),
-            selected: BTreeSet::new(),
+            selected: Selection::default(),
+            view_gen: 0,
+            sel_summary: Default::default(),
+            tag_menu: Default::default(),
             anchor: None,
             cursor: None,
             back: Vec::new(),
@@ -343,6 +492,7 @@ impl Tab {
             scope: crate::search::Scope::Folder,
             search: None,
             search_due: None,
+            stale: None,
             view_state: Default::default(),
         }
     }
@@ -353,6 +503,49 @@ impl Tab {
     }
 
     /// The tags of the entry named `name`.
+    /// The Tags menu for the selection (`None` where items can't be
+    /// tagged or nothing is selected); made again only when the selection,
+    /// the listing, the items' tags or the known tags change.
+    pub fn tag_menu(&self, ctx: &egui::Context) -> Option<crate::tags::TagMenu> {
+        if !crate::tags::taggable(&self.loc) {
+            return None;
+        }
+        let known = crate::tags::known(ctx);
+        let key = (
+            self.selected.gen(),
+            self.listing_gen,
+            self.view_gen,
+            self.sizes_gen,
+        );
+        let same_tags = |a: &Option<std::sync::Arc<crate::tags::FolderTags>>| match (a, &self.tags)
+        {
+            (Some(a), Some(b)) => std::sync::Arc::ptr_eq(a, b),
+            (None, None) => true,
+            _ => false,
+        };
+        if let Some((k, t, kn, menu)) = &*self.tag_menu.borrow() {
+            if *k == key && same_tags(t) && **kn == *known {
+                return menu.clone();
+            }
+        }
+        let sum = self.selection_summary();
+        let sel: Vec<&Entry> = if sum.view_idx.is_empty() {
+            self.cursor_entry().into_iter().collect()
+        } else {
+            sum.view_idx
+                .iter()
+                .filter_map(|&vi| self.entry_at(vi))
+                .collect()
+        };
+        let menu = (!sel.is_empty()).then(|| {
+            let selection: Vec<&[crate::tags::Tag]> =
+                sel.iter().map(|e| self.tags_of(&e.name)).collect();
+            crate::tags::TagMenu::new(&known, &selection)
+        });
+        *self.tag_menu.borrow_mut() = Some((key, self.tags.clone(), known, menu.clone()));
+        menu
+    }
+
     pub fn tags_of(&self, name: &str) -> &[crate::tags::Tag] {
         self.tags
             .as_deref()
@@ -468,8 +661,25 @@ impl Tab {
             &self.dir_sizes,
             self.tags.as_deref(),
         );
-        let visible: BTreeSet<String> = self.view_entries().map(|e| e.name.clone()).collect();
-        self.selected.retain(|n| visible.contains(n));
+        self.view_gen += 1;
+        // Selected items that aren't shown any more leave the selection
+        // (one pass over the view; hash lookups for big selections).
+        if !self.selected.is_empty() {
+            let big: Option<HashSet<&str>> = (self.selected.len() > 16)
+                .then(|| self.selected.iter().map(String::as_str).collect());
+            let shown: Vec<&str> = self
+                .view_entries()
+                .map(|e| e.name.as_str())
+                .filter(|n| match &big {
+                    Some(set) => set.contains(n),
+                    None => self.selected.contains(*n),
+                })
+                .collect();
+            if shown.len() != self.selected.len() {
+                let keep: HashSet<String> = shown.into_iter().map(str::to_string).collect();
+                self.selected.retain(|n| keep.contains(n));
+            }
+        }
         self.cursor = cursor_name.and_then(|n| self.view_index_of(&n));
         self.anchor = anchor_name.and_then(|n| self.view_index_of(&n));
     }
@@ -486,6 +696,21 @@ impl Tab {
 
     pub fn cursor_entry(&self) -> Option<&Entry> {
         self.cursor.and_then(|c| self.entry_at(c))
+    }
+
+    /// The part of a folder read so far, while the listing goes on (a very
+    /// large folder shows its first items at once); the complete listing
+    /// replaces it through [`Tab::apply_listing`] and keeps the cursor and
+    /// selection made meanwhile.
+    pub fn apply_partial(&mut self, entries: Vec<Entry>) {
+        let cursor_name = self.cursor_entry().map(|e| e.name.clone());
+        let anchor_name = self
+            .anchor
+            .and_then(|a| self.entry_at(a))
+            .map(|e| e.name.clone());
+        drop_later(std::mem::replace(&mut self.entries, entries));
+        self.view.clear();
+        self.rebuild_view_keeping(cursor_name, anchor_name);
     }
 
     /// Replace the listing (keeps selection by name where possible).
@@ -514,7 +739,7 @@ impl Tab {
                 .collect(),
             None => HashSet::new(),
         };
-        self.entries = entries;
+        drop_later(std::mem::replace(&mut self.entries, entries));
         self.listing_gen += 1;
         self.view.clear();
         self.loading = false;
@@ -544,16 +769,25 @@ impl Tab {
     /// cursor goes to the first of them (in view order) and is scrolled to.
     /// Returns how many were selected (nothing changes if none is shown).
     pub fn select_names(&mut self, names: &[String]) -> usize {
-        let mut idxs: Vec<usize> = names.iter().filter_map(|n| self.view_index_of(n)).collect();
+        let wanted: HashSet<&str> = names.iter().map(String::as_str).collect();
+        let idxs: Vec<usize> = self
+            .view
+            .iter()
+            .enumerate()
+            .filter(|(_, &i)| {
+                self.entries
+                    .get(i)
+                    .is_some_and(|e| wanted.contains(e.name.as_str()))
+            })
+            .map(|(vi, _)| vi)
+            .collect();
         if idxs.is_empty() {
             return 0;
         }
-        idxs.sort_unstable();
-        idxs.dedup();
-        self.selected = names
+        self.selected = idxs
             .iter()
-            .filter(|n| self.view_index_of(n).is_some())
-            .cloned()
+            .filter_map(|&vi| self.entry_at(vi))
+            .map(|e| e.name.clone())
             .collect();
         self.cursor = Some(idxs[0]);
         self.anchor = Some(idxs[0]);
@@ -563,26 +797,62 @@ impl Tab {
 
     /// Selected entries in view order; falls back to the cursor entry.
     pub fn selected_entries(&self) -> Vec<Entry> {
-        let sel: Vec<Entry> = self
-            .view_entries()
-            .filter(|e| self.selected.contains(&e.name))
-            .cloned()
-            .collect();
-        if sel.is_empty() {
+        let sum = self.selection_summary();
+        if sum.view_idx.is_empty() {
             self.cursor_entry().cloned().into_iter().collect()
         } else {
-            sel
+            sum.view_idx
+                .iter()
+                .filter_map(|&vi| self.entry_at(vi))
+                .cloned()
+                .collect()
         }
+    }
+
+    /// The selected entries (shown ones, in view order) and their size,
+    /// computed once per change of the selection, listing, view or folder
+    /// sizes (the status bar, menus and plugins ask for it every frame).
+    pub fn selection_summary(&self) -> std::rc::Rc<SelectionSummary> {
+        let key = (
+            self.selected.gen(),
+            self.listing_gen,
+            self.view_gen,
+            self.sizes_gen,
+        );
+        if let Some((k, s)) = &*self.sel_summary.borrow() {
+            if *k == key {
+                return s.clone();
+            }
+        }
+        let mut sum = SelectionSummary::default();
+        if !self.selected.is_empty() {
+            // Hash lookups for big selections, the tree for small ones.
+            let big: Option<HashSet<&str>> = (self.selected.len() > 16)
+                .then(|| self.selected.iter().map(String::as_str).collect());
+            for (vi, &i) in self.view.iter().enumerate() {
+                let Some(e) = self.entries.get(i) else {
+                    continue;
+                };
+                let hit = match &big {
+                    Some(set) => set.contains(e.name.as_str()),
+                    None => self.selected.contains(&e.name),
+                };
+                if hit {
+                    sum.view_idx.push(vi);
+                    sum.size += util::sort_size(e, &self.dir_sizes);
+                    sum.any_archive = sum.any_archive || is_archive_file(e);
+                }
+            }
+        }
+        let sum = std::rc::Rc::new(sum);
+        *self.sel_summary.borrow_mut() = Some((key, sum.clone()));
+        sum
     }
 
     /// Bytes of the selected entries; folders count once their size is
     /// known (measured by a plugin, possibly still counting).
     pub fn selection_size(&self) -> u64 {
-        self.entries
-            .iter()
-            .filter(|e| self.selected.contains(&e.name))
-            .map(|e| util::sort_size(e, &self.dir_sizes))
-            .sum()
+        self.selection_summary().size
     }
 
     /// Take new plugin folder sizes; re-sorts if sorted by size.
@@ -665,27 +935,28 @@ impl Tab {
         self.type_ahead.push_str(&text.to_lowercase());
         self.type_ahead_at = Some(now);
         let needle = self.type_ahead.as_str();
-        let names: Vec<String> = self
-            .view
-            .iter()
-            .map(|&i| {
-                self.entries
-                    .get(i)
-                    .map(|e| e.name.to_lowercase())
-                    .unwrap_or_default()
-            })
-            .collect();
-        let hit = names
-            .iter()
-            .position(|n| n.starts_with(needle))
+        let name = |vi: usize| self.entry_at(vi).map_or("", |e| e.name.as_str());
+        let n = self.view.len();
+        let hit = (0..n)
+            .position(|vi| util::starts_with_lowercase(name(vi), needle))
             .or_else(|| {
                 // Nearest following name in the current order (Finder-like).
-                names
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, n)| n.as_str() > needle)
-                    .min_by(|a, b| a.1.cmp(b.1))
-                    .map(|(i, _)| i)
+                let mut best: Option<(usize, String)> = None;
+                for vi in 0..n {
+                    let nm = name(vi);
+                    if util::cmp_lowercase(nm, needle) != std::cmp::Ordering::Greater {
+                        continue;
+                    }
+                    let lower = || nm.to_lowercase();
+                    let better = match &best {
+                        None => true,
+                        Some((_, b)) => util::cmp_lowercase(nm, b) == std::cmp::Ordering::Less,
+                    };
+                    if better {
+                        best = Some((vi, lower()));
+                    }
+                }
+                best.map(|(vi, _)| vi)
             });
         if let Some(i) = hit {
             self.select_only(i);
@@ -3040,7 +3311,18 @@ impl MenuCtx {
     }
 
     pub(crate) fn of(ctx: &egui::Context, tab: &Tab, single: bool) -> MenuCtx {
-        let sel = tab.selected_entries();
+        // Built every frame: references only (no clones of the selection).
+        let sum = tab.selection_summary();
+        let sel: Vec<&Entry> = if sum.view_idx.is_empty() {
+            tab.cursor_entry().into_iter().collect()
+        } else if sum.view_idx.len() == 1 || tab.cloud.is_some() {
+            sum.view_idx
+                .iter()
+                .filter_map(|&vi| tab.entry_at(vi))
+                .collect()
+        } else {
+            Vec::new() // only the count matters below
+        };
         MenuCtx {
             read_only: tab.loc.read_only(),
             outer_writable: tab
@@ -3059,17 +3341,16 @@ impl MenuCtx {
             // In the Trash itself: "Delete Immediately…".
             trash: (crate::app::can_trash(&tab.loc.fs) || tab.loc.archive.is_some())
                 && !crate::app::shows_trash(ctx, &tab.loc),
-            cloud: crate::cloud::menu_offer(
-                tab.cloud.as_deref(),
-                &sel.iter()
-                    .map(|e| (e.name.clone(), e.is_dir()))
-                    .collect::<Vec<_>>(),
-            ),
-            tags: (crate::tags::taggable(&tab.loc) && !sel.is_empty()).then(|| {
-                let selection: Vec<&[crate::tags::Tag]> =
-                    sel.iter().map(|e| tab.tags_of(&e.name)).collect();
-                crate::tags::TagMenu::new(&crate::tags::known(ctx), &selection)
-            }),
+            cloud: match tab.cloud.as_deref() {
+                Some(states) => crate::cloud::menu_offer(
+                    Some(states),
+                    &sel.iter()
+                        .map(|e| (e.name.clone(), e.is_dir()))
+                        .collect::<Vec<_>>(),
+                ),
+                None => Default::default(),
+            },
+            tags: tab.tag_menu(ctx),
             search: tab.in_search(),
         }
     }

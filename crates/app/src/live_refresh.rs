@@ -1,9 +1,11 @@
 //! Live folder refresh (like Finder): local folders shown in a pane update
 //! by themselves when other apps create, delete, rename or change files.
 //!
-//! - Watches (macOS FSEvents through `notify`) exactly the local folders
-//!   that are visible: each pane's active tab, plus the folders of the
-//!   Columns view. Folders that aren't shown any more are unwatched.
+//! - Watches (macOS FSEvents through `notify`) the local folders of every
+//!   open tab, plus the folders of the Columns view. Folders no tab shows
+//!   any more are unwatched. A tab in the background is not reloaded: it
+//!   is marked stale (`Tab::stale`) and reloads quietly as soon as it is
+//!   shown again, so switching to it needs no ⌘R.
 //!   Servers, containers, cloud APIs and archives are never watched (⌘R).
 //! - Events are coalesced per folder: a folder is reloaded once it has been
 //!   quiet for [`QUIET`], or at the latest [`MAX_DELAY`] after its first

@@ -610,6 +610,14 @@ pub trait Vfs: Send + Sync {
     fn home(&self) -> VfsResult<VfsPath>;
 
     fn list(&self, dir: &VfsPath) -> VfsResult<Vec<Entry>>;
+    /// [`Vfs::list`] in parts as they are read, so very large folders can
+    /// show their first items at once: `part` is called with consecutive
+    /// pieces of the listing (together the same entries `list` returns).
+    /// The default reads everything and hands it over in one part.
+    fn list_parts(&self, dir: &VfsPath, part: &mut dyn FnMut(Vec<Entry>)) -> VfsResult<()> {
+        part(self.list(dir)?);
+        Ok(())
+    }
     fn stat(&self, path: &VfsPath) -> VfsResult<Entry>;
 
     fn create_dir(&self, path: &VfsPath) -> VfsResult<()>;

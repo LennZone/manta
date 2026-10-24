@@ -3281,6 +3281,12 @@ mod conflict_ux_tests;
 #[path = "live_refresh_ux_tests.rs"]
 mod live_refresh_ux_tests;
 
+#[path = "bench_listing_tests.rs"]
+mod bench_listing_tests;
+
+#[path = "large_folder_ux_tests.rs"]
+mod large_folder_ux_tests;
+
 #[path = "cloud_ux_tests.rs"]
 mod cloud_ux_tests;
 
