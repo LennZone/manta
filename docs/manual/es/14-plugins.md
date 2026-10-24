@@ -8,7 +8,7 @@ Muchas funciones de Manta están en plugins integrados. Vienen activados desde e
 2. Los plugins integrados están en **Integrados**. Haz clic en **Desactivar** o **Activar**.
 3. Si un plugin tiene opciones, ábrelas con **Ajustes** en su tarjeta.
 
-Para añadir plugins de otras personas, usa **Instalar plugin…**, desde un archivo `.mantaplugin` o una carpeta. **Explorar plugins**, arriba a la derecha, abre el directorio de plugins en el navegador. Más información: [Tus propios plugins](15-eigene-plugins.md#installieren).
+Para añadir plugins de otras personas, abre **Descubrir** en la parte superior de la página Plugins, haz doble clic en un archivo `.mantaplugin`, suéltalo en la página Plugins o usa **Instalar plugin…**, desde un archivo `.mantaplugin` o una carpeta. Los plugins de otras personas se ejecutan en un entorno aislado (sandbox) de macOS y solo pueden hacer lo que permiten sus permisos; los plugins integrados forman parte de Manta y no están aislados. Más información: [Tus propios plugins](15-eigene-plugins.md#installieren) y [Seguridad](15-eigene-plugins.md#sicherheit).
 
 Muchos plugins muestran su contenido en una **barra lateral a la derecha** o en un **panel bajo el panel de archivos**. Ábrelos con atajos, con las etiquetas de la barra de ruta o con la paleta de comandos (*Mostrar el panel “…”*).
 

@@ -92,4 +92,4 @@ Oui, avec les **Actions rapides** : une entrée avec une commande shell dans `a
 
 ### Les plug-ins sont-ils sûrs ? {#plugins-sicher}
 
-Les plug-ins intégrés font partie de Manta. Les plug-ins externes s’exécutent avec les autorisations de votre utilisateur et sans bac à sable – n’installez que ce en quoi vous avez confiance. Voir [Vos propres plug-ins](15-eigene-plugins.md#sicherheit).
+Les plug-ins intégrés font partie de Manta. Les plug-ins externes s’exécutent dans un bac à sable macOS et ne peuvent faire que ce que leurs autorisations permettent – n’installez tout de même que ce en quoi vous avez confiance. Voir [Vos propres plug-ins](15-eigene-plugins.md#sicherheit).

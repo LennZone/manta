@@ -213,7 +213,8 @@ Self-tests in a real run: `MANTA_MENU_SELFTEST=1` checks the generated menu bar;
 
 ## Known limitations
 
-- External plugins aren't sandboxed (see the security note in [plugins.md](plugins.md)).
+- External plugins are sandboxed with `sandbox-exec`, which Apple has deprecated; where it
+  stops working they run unsandboxed with a warning (see Security in [plugins.md](plugins.md)).
 - Project Info works on local folders only and doesn't evaluate `Makefile` includes or
   variables in target names.
 - Markdown preview: no raw HTML beyond `<img>` and line breaks, no SVG images, no math

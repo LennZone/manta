@@ -92,4 +92,4 @@ Yes, with **Quick Actions**: an entry with a shell command in `actions.json` is 
 
 ### Are plugins safe? {#plugins-sicher}
 
-Built-in plugins are part of Manta. External plugins run with your user's permissions and without a sandbox – only install what you trust. See [Your Own Plugins](15-eigene-plugins.md#sicherheit).
+Built-in plugins are part of Manta. External plugins run in a macOS sandbox and can only do what their permissions allow – still, only install what you trust. See [Your Own Plugins](15-eigene-plugins.md#sicherheit).

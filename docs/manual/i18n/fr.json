@@ -264,15 +264,7 @@
     },
     "eigene-plugins": {
       "title": "Vos propres plug-ins",
-      "keywords": [
-        "installer un plug-in",
-        "plugin.toml",
-        "développer",
-        "sécurité",
-        "journal",
-        "hello python",
-        "plug-in externe"
-      ]
+      "keywords": ["installer un plug-in", "plugin.toml", "développer", "sécurité", "journal", "hello python", "plug-in externe", "bac à sable", "sandbox", "découvrir"]
     },
     "einstellungen": {
       "title": "Réglages",

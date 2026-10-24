@@ -1842,7 +1842,10 @@
           "entwickeln",
           "sicherheit",
           "protokoll",
-          "hello python"
+          "hello python",
+          "sandbox",
+          "entdecken",
+          "plugin-verzeichnis"
         ],
         "en": [
           "install plugin",
@@ -1850,7 +1853,10 @@
           "develop",
           "security",
           "log",
-          "hello python"
+          "hello python",
+          "sandbox",
+          "discover",
+          "plugin directory"
         ],
         "zh-Hans": [
           "安装插件",
@@ -1860,7 +1866,10 @@
           "安全",
           "日志",
           "Python",
-          "扩展"
+          "扩展",
+          "沙盒",
+          "发现",
+          "插件目录"
         ],
         "es": [
           "instalar plugin",
@@ -1870,7 +1879,10 @@
           "seguridad",
           "registro",
           "hello python",
-          "plugin externo"
+          "plugin externo",
+          "sandbox",
+          "entorno aislado",
+          "descubrir"
         ],
         "fr": [
           "installer un plug-in",
@@ -1879,7 +1891,10 @@
           "sécurité",
           "journal",
           "hello python",
-          "plug-in externe"
+          "plug-in externe",
+          "bac à sable",
+          "sandbox",
+          "découvrir"
         ],
         "it": [
           "plug-in personali",
@@ -1891,7 +1906,10 @@
           "log",
           "disinstallare",
           "estensioni",
-          "hello python"
+          "hello python",
+          "sandbox",
+          "scopri",
+          "directory dei plug-in"
         ],
         "ru": [
           "установить плагин",
@@ -1901,7 +1919,10 @@
           "безопасность",
           "журнал",
           "hello python",
-          "python"
+          "python",
+          "песочница",
+          "sandbox",
+          "обзор плагинов"
         ]
       }
     },

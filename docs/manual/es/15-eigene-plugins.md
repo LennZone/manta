@@ -16,14 +16,14 @@ Un plugin es una carpeta con un archivo `plugin.toml` y un programa (un script d
 ## Instalar un plugin {#installieren}
 
 1. Abre **Ajustes** (**⌘,**) → **Plugins**.
-2. Haz clic en **Instalar plugin…** y elige **Desde un archivo (.mantaplugin, .zip)…** o **Desde una carpeta…** (la que contiene `plugin.toml`).
-3. Antes de instalar nada, Manta muestra un resumen: nombre, versión, autor, descripción, **Lo que declara que hace** (por ejemplo “Lee tus archivos”, “Modifica o elimina archivos”, “Usa la red”, “Ejecuta otros programas”, “Ejecuta comandos en el Terminal”), el **Comando** que ejecuta, el **Origen**, un enlace al **Código fuente**, la **Licencia** y el tamaño. Debajo, un aviso de que Manta no revisa los plugins.
+2. Haz clic en **Instalar plugin…** y elige **Desde un archivo (.mantaplugin, .zip)…** o **Desde una carpeta…** (la que contiene `plugin.toml`). Más rápido: haz **doble clic** en un archivo `.mantaplugin` en el Finder o **arrástralo** a la página Plugins. Los plugins del directorio de la comunidad se instalan desde [Descubrir](#entdecken).
+3. Antes de instalar nada, Manta muestra un resumen: nombre, versión, autor, descripción, **Lo que puede hacer** (por ejemplo “Lee tus archivos”, “Modifica o elimina archivos”, “Usa la red”, “Ejecuta otros programas”, “Ejecuta comandos en el Terminal”), el **Comando** que ejecuta, el **Origen**, un enlace al **Código fuente**, la **Licencia** y el tamaño. Debajo, un aviso de que Manta no revisa los plugins.
 4. Haz clic en **Instalar**. El plugin aparece entonces en **Instalados**, todavía desactivado.
 
 ![Resumen antes de instalar un plugin](images/plugin-install.png)
 
 > [!NOTE]
-> Lo que un plugin declara que hace lo indica su autor. Manta no puede comprobarlo ni imponerlo.
+> Los permisos los declara el autor del plugin, y Manta los **impone**: el plugin se ejecuta en un entorno aislado de macOS y no puede hacer nada más (consulta [Seguridad](#sicherheit)).
 
 ### Activarlo {#einschalten}
 
@@ -37,17 +37,40 @@ Más botones en la tarjeta de un plugin: **Recargar**, **Mostrar registro**, **M
 
 ## Actualizar y desinstalar {#aktualisieren}
 
-- **Actualizar**: instala la nueva versión del mismo modo, desde un archivo o una carpeta. Si tiene el mismo id que un plugin instalado, el resumen indica que es una actualización y muestra en **Instalado** la versión que se reemplazará. Tras confirmar, Manta reemplaza el plugin y conserva si estaba activado o desactivado.
+- **Actualizar**: cuando el directorio de plugins tiene una versión más reciente, la tarjeta del plugin muestra “La versión … está disponible en el directorio de plugins” con un botón **Actualizar**. También puedes instalar la nueva versión del mismo modo, desde un archivo o una carpeta. Si tiene el mismo id que un plugin instalado, el resumen indica que es una actualización y muestra en **Instalado** la versión que se reemplazará. Tras confirmar, Manta reemplaza el plugin y conserva si estaba activado o desactivado.
 - **Desinstalar**: haz clic en **Desinstalar** en la tarjeta del plugin. Manta elimina la carpeta del plugin; su carpeta de datos se conserva.
 
 ## Encontrar plugins {#entdecken}
 
-En **Ajustes** → **Plugins**, haz clic en **Explorar plugins** arriba a la derecha (o elige **Explorar plugins…** en la paleta de comandos). Se abre el directorio de plugins en [manta-filemanager.com/plugins](https://manta-filemanager.com/plugins/), con los plugins integrados y plugins de la comunidad. Cada entrada tiene un enlace a su código fuente y una suma de comprobación SHA-256 de la descarga. Descarga el archivo `.mantaplugin` e instálalo como se describe [arriba](#installieren).
+En **Ajustes** → **Plugins**, haz clic en **Descubrir** (o elige **Explorar plugins…** en la paleta de comandos). Manta muestra los plugins del directorio de la comunidad: nombre y descripción en tu idioma, autor, licencia, la versión de Manta que necesita, sus permisos y un enlace a su código fuente.
+
+1. Haz clic en **Instalar** (o en **Actualizar** si hay una versión más reciente de un plugin instalado).
+2. Manta descarga el plugin y compara su suma de comprobación SHA-256 con la del directorio. Si no coinciden, no se instala nada.
+3. Aparece el resumen habitual (“El SHA-256 coincide con el directorio de plugins”); continúa como se describe [arriba](#installieren).
+
+Los plugins que necesitan una versión más reciente de Manta o que no funcionan en tu Mac se muestran, pero no se pueden instalar. **En la web** abre el directorio en [manta-filemanager.com/plugins](https://manta-filemanager.com/plugins/).
+
+> [!NOTE]
+> **Privacidad:** Manta carga la lista desde GitHub solo cuando abres **Descubrir** (una vez por sesión) o haces clic en **Actualizar**, nunca en segundo plano. Guarda la última lista, así que Descubrir también funciona sin conexión y los plugins instalados pueden ofrecer actualizaciones sin conectarse a internet.
 
 ## Seguridad {#sicherheit}
 
+Los plugins externos se ejecutan en un **entorno aislado (sandbox) de macOS**: solo pueden hacer lo que permiten sus permisos. Sin permisos, un plugin solo puede leer su propia carpeta y el sistema, y escribir en su propia carpeta de datos.
+
+| Permiso | Permite al plugin |
+|---|---|
+| Lee tus archivos | leer cualquier archivo |
+| Modifica o elimina archivos | escribir, crear y eliminar archivos en cualquier lugar |
+| Usa la red | conectarse a internet y a tu red |
+| Ejecuta otros programas | iniciar otros programas (que siguen en el entorno aislado) |
+| Ejecuta comandos en el Terminal | escribir comandos en el Terminal de Manta |
+
+Las mismas reglas se aplican a lo que un plugin pide a Manta que haga por él (leer un archivo, listar una carpeta, renombrar archivos). La tarjeta del plugin muestra **Aislado**; su descripción emergente enumera los permisos. Los plugins integrados forman parte de Manta y no están aislados.
+
+Si el entorno aislado no funciona en tu Mac, la tarjeta muestra **Sin aislar** y el motivo, y el resumen indica que los permisos no se pueden imponer. En ese caso, el plugin se ejecuta con los permisos de tu usuario.
+
 > [!WARNING]
-> Los plugins externos se ejecutan como programas con **los permisos de tu usuario**: pueden leer, modificar y eliminar tus archivos, iniciar otros programas y enviar datos por la red. Manta no revisa los plugins ni los aísla en un entorno restringido (sandbox), tampoco los del directorio de plugins. Instala solo plugins de confianza y lee el código de los plugins de internet antes de activarlos.
+> El entorno aislado no hace inofensivo a un plugin: un plugin que puede leer tus archivos y usar la red puede enviar tus archivos a otro lugar. Manta no revisa los plugins, tampoco los del directorio de plugins. Instala solo plugins de confianza y lee el código de los plugins de internet antes de activarlos.
 
 Por eso Manta muestra un resumen antes de instalar, los plugins nuevos empiezan desactivados y Manta pregunta la primera vez que activas uno.
 
@@ -65,6 +88,8 @@ Por eso Manta muestra un resumen antes de instalar, los plugins nuevos empiezan 
 | Plugins instalados | `~/Library/Application Support/Manta/plugins/<id>/` |
 | Datos y registro de un plugin | `~/Library/Application Support/Manta/plugin-data/<id>/` (registro: `plugin.log`) |
 | Estado activado/desactivado | `~/Library/Application Support/Manta/plugins.json` |
+| Última lista del directorio de plugins | `~/Library/Application Support/Manta/plugin-registry.json` |
+| Reglas del entorno aislado de un plugin | `~/Library/Application Support/Manta/plugin-data/<id>/sandbox.sb` |
 
 Al desinstalar se elimina la carpeta del plugin; su carpeta de datos se conserva.
 
@@ -83,10 +108,12 @@ Los plugins pueden hablar todos los idiomas de Manta: Manta les comunica el idio
   `/Applications/Manta.app/Contents/MacOS/manta --plugin-dev ~/code/my-plugin`
   (se puede repetir, o usa la variable de entorno `MANTA_PLUGIN_DEV=dir1:dir2`). Durante esta sesión el plugin se ejecuta directamente desde esa carpeta: de confianza, activado y con la etiqueta **Desarrollo**. Mientras tanto, una copia instalada con el mismo id se aparta; no se guarda nada.
 - **Probar sin Manta**: `python3 scripts/plugin-test.py ruta/al/plugin`.
+- **Empaquetar**: `python3 scripts/plugin-pack.py ruta/al/plugin` crea el archivo `.mantaplugin` y muestra su suma de comprobación SHA-256 para el directorio.
+- **Entorno aislado**: declara los permisos que necesita tu plugin; sin ellos no puede hacerlo. Si algo se rechaza, el registro lo indica (`refused …`).
 - **Registro**: **Mostrar registro** en la tarjeta, o el archivo `~/Library/Application Support/Manta/plugin-data/<id>/plugin.log`.
 
 Más información: [Develop and debug (docs/plugins.md)](../../plugins.md#develop-and-debug) (en inglés).
 
 ## Publicar un plugin {#veroeffentlichen}
 
-Pon el plugin en un repositorio público con una licencia aprobada por la OSI, adjunta un archivo `.mantaplugin` a una release y abre un pull request que lo añada a `plugins/registry.json`. Después aparecerá en **Explorar plugins**. Detalles: [Publishing a plugin (docs/plugins.md)](../../plugins.md#publishing-a-plugin) (en inglés).
+Pon el plugin en un repositorio público con una licencia aprobada por la OSI, adjunta un archivo `.mantaplugin` a una release y abre un pull request que lo añada a `plugins/registry.json`. Después aparecerá en **Descubrir**. Detalles: [Publishing a plugin (docs/plugins.md)](../../plugins.md#publishing-a-plugin) (en inglés).

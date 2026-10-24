@@ -8,7 +8,7 @@ Molte funzioni di Manta si trovano nei plug-in integrati. Sono attivi fin dall�
 2. I plug-in integrati si trovano sotto **Integrati**. Fai clic su **Disattiva** o **Attiva**.
 3. Se un plug-in ha delle opzioni, aprile con **Impostazioni** sulla sua scheda.
 
-Per aggiungere plug-in di altri, usa **Installa plug-in…**, da un file `.mantaplugin` o da una cartella. **Sfoglia i plug-in**, in alto a destra, apre l’elenco dei plug-in nel browser. Per saperne di più: [Plug-in personali](15-eigene-plugins.md#installieren).
+Per aggiungere plug-in di altri, apri **Scopri** in alto nella pagina Plug-in, fai doppio clic su un file `.mantaplugin`, trascinalo sulla pagina Plug-in oppure usa **Installa plug-in…**, da un file `.mantaplugin` o da una cartella. I plug-in di altri vengono eseguiti in una sandbox di macOS e possono fare solo ciò che i loro permessi consentono; i plug-in integrati fanno parte di Manta e non sono in sandbox. Per saperne di più: [Plug-in personali](15-eigene-plugins.md#installieren) e [Sicurezza](15-eigene-plugins.md#sicherheit).
 
 Molti plug-in mostrano il loro contenuto in una **barra laterale a destra** o in un **pannello sotto il pannello dei file**. Aprili con le scorciatoie, con gli indicatori nella barra del percorso o con la palette dei comandi (“Mostra il pannello “…””).
 

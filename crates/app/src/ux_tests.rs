@@ -1377,6 +1377,7 @@ pub(crate) fn sample_review(
         files: 14,
         bytes: 182_400,
         folder: (!archive).then_some(folder),
+        verified_download: None,
     }
 }
 
@@ -3299,3 +3300,6 @@ mod modal_ux_tests;
 
 #[path = "a11y_ux_tests.rs"]
 mod a11y_ux_tests;
+
+#[path = "discover_ux_tests.rs"]
+mod discover_ux_tests;

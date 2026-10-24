@@ -29,6 +29,8 @@ pub mod i18n;
 pub mod install;
 pub mod manifest;
 pub mod protocol;
+pub mod registry;
+pub mod sandbox;
 pub mod shortcut;
 
 /// A file pane. The window shows any number of panes (at least one) side by

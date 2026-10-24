@@ -8,7 +8,7 @@ Many of Manta's features live in built-in plugins. They're on from the start, an
 2. The built-in plugins are under **Built-in**. Click **Turn Off** or **Turn On**.
 3. If a plugin has options, open them with **Settings** on its card.
 
-To add plugins from others, use **Install Plugin…** – from a `.mantaplugin` file or a folder. **Browse Plugins** at the top right opens the plugin directory in your browser. More: [Your Own Plugins](15-eigene-plugins.md#installieren).
+To add plugins from others, open **Discover** at the top of the Plugins page, double-click a `.mantaplugin` file, drop it on the Plugins page, or use **Install Plugin…** – from a `.mantaplugin` file or a folder. Plugins from others run in a macOS sandbox and can only do what their permissions allow; built-in plugins are part of Manta and aren't sandboxed. More: [Your Own Plugins](15-eigene-plugins.md#installieren) and [Security](15-eigene-plugins.md#sicherheit).
 
 Many plugins show their content in a **sidebar on the right** or a **panel below the pane**. Open them with shortcuts, path-bar chips or the command palette ("Show “…” Panel").
 

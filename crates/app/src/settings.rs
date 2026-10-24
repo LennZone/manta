@@ -5,8 +5,10 @@ use std::path::PathBuf;
 use std::sync::mpsc::{self, Receiver};
 
 use eframe::egui::{self, CornerRadius, RichText, Sense, Stroke};
-use manta_plugin::host::{BundledRow, PluginHost, PluginKind, PluginRow};
+use manta_plugin::host::{BundledRow, PluginHost, PluginKind, PluginRow, RegistryRow};
 use manta_plugin::install::PluginReview;
+use manta_plugin::registry::Incompatible;
+use manta_plugin::sandbox::SandboxState;
 use manta_plugin::PluginStatus;
 
 use crate::aux_window::{AuxKind, AuxWindow, Spec};
@@ -50,10 +52,26 @@ pub enum Confirm {
     },
 }
 
+/// The two pages of Settings → Plugins.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum PluginsPage {
+    /// Built-in, installed and bundled plugins.
+    #[default]
+    Installed,
+    /// The community directory (loaded from GitHub while shown).
+    Discover,
+}
+
 #[derive(Default)]
 pub struct SettingsView {
     pub open: bool,
     pub tab: SettingsTab,
+    pub plugins_page: PluginsPage,
+    /// Files dropped on / dragged over the window while it is drawn inside
+    /// the main window (render tests); a native Settings window gets them
+    /// in its own input.
+    pub(crate) dropped: Vec<PathBuf>,
+    pub(crate) hovered: Vec<PathBuf>,
     pub confirm: Option<Confirm>,
     show_log: HashSet<String>,
     show_settings: HashSet<String>,
@@ -192,6 +210,12 @@ impl SettingsView {
         if let Some(t) = tab {
             self.tab = t;
         }
+    }
+
+    /// Settings → Plugins → Discover ("Browse Plugins…").
+    pub fn show_discover(&mut self) {
+        self.plugins_page = PluginsPage::Discover;
+        self.show(Some(SettingsTab::Plugins));
     }
 
     /// Bring the open window to the front (and make it key) next frame.
@@ -486,15 +510,75 @@ impl SettingsView {
             if widgets::tooltip(r, t!("plugins.reload.tip"), "").clicked() {
                 host.rescan();
             }
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                let r = link_button(ui, icons::GLOBE, t!("plugins.browse"), p.accent_text);
-                if widgets::tooltip(r, t!("plugins.browse.tip"), "").clicked() {
-                    out.open_link = Some(directory_url());
-                }
-            });
         });
         ui.add_space(space::MD);
+        let pages = [
+            (PluginsPage::Installed, t!("plugins.page.installed")),
+            (PluginsPage::Discover, t!("plugins.page.discover")),
+        ];
+        widgets::segmented(ui, "plugins-page", &mut self.plugins_page, &pages);
+        ui.add_space(space::MD);
+        self.plugin_drops(ui, host);
+        match self.plugins_page {
+            PluginsPage::Installed => self.installed_ui(ui, host),
+            PluginsPage::Discover => discover_ui(ui, host, out),
+        }
+    }
 
+    /// `.mantaplugin` files dragged onto the Plugins tab: a hint while they
+    /// hover, the review sheet when dropped (one at a time).
+    fn plugin_drops(&mut self, ui: &mut egui::Ui, host: &mut PluginHost) {
+        let (mut hovered, mut dropped) = ui.ctx().input(|i| {
+            (
+                i.raw
+                    .hovered_files
+                    .iter()
+                    .filter_map(|f| f.path.clone())
+                    .collect::<Vec<_>>(),
+                i.raw
+                    .dropped_files
+                    .iter()
+                    .map(|f| f.path().to_path_buf())
+                    .collect::<Vec<_>>(),
+            )
+        });
+        hovered.append(&mut self.hovered);
+        dropped.append(&mut self.dropped);
+        if self.confirm.is_some() {
+            return;
+        }
+        if let Some(path) = dropped.into_iter().find(|p| is_plugin_drop(p)) {
+            log::info!("plugin dropped on Settings: {}", path.display());
+            host.review_install(path);
+            return;
+        }
+        if hovered.iter().any(|p| is_plugin_drop(p)) {
+            let p = pal(ui);
+            ui.ctx().request_repaint();
+            egui::Frame::new()
+                .fill(p.accent_soft)
+                .stroke(Stroke::new(1.5, p.accent))
+                .corner_radius(CornerRadius::same(radius::PANEL))
+                .inner_margin(egui::Margin::symmetric(space::LG as i8, space::MD as i8))
+                .show(ui, |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.horizontal(|ui| {
+                        widgets::icon(ui, icons::DOWNLOAD_SIMPLE, 16.0, p.accent_text);
+                        ui.label(
+                            RichText::new(t!("plugins.drop"))
+                                .font(theme::medium(text::BODY))
+                                .color(p.accent_text),
+                        );
+                    });
+                });
+            ui.add_space(space::MD);
+        }
+    }
+
+    /// Settings → Plugins → Installed: built-in, installed and bundled
+    /// plugins.
+    fn installed_ui(&mut self, ui: &mut egui::Ui, host: &mut PluginHost) {
+        let p = pal(ui);
         let rows = host.rows();
         let bundled = host.bundled_rows();
         let (builtin, installed): (Vec<&PluginRow>, Vec<&PluginRow>) =
@@ -651,6 +735,9 @@ impl SettingsView {
                                     }
                                 };
                                 widgets::chip(ui, None, tag, tfg, tbg);
+                                if let Some(sb) = &row.sandbox {
+                                    sandbox_chip(ui, p, sb, &row.permissions);
+                                }
                             });
                             if !row.info.description.is_empty() {
                                 ui.add(
@@ -717,6 +804,12 @@ impl SettingsView {
                     if let Some(u) = update {
                         ui.add_space(space::SM);
                         update_banner(ui, host, p, &row.info.version, u);
+                    } else if row.kind == PluginKind::External && !row.dev {
+                        // A newer version in the community directory.
+                        if let Some(u) = host.registry_update(&id) {
+                            ui.add_space(space::SM);
+                            directory_update_banner(ui, host, p, &row.info.version, &u);
+                        }
                     }
 
                     // Disclosures and actions.
@@ -1108,6 +1201,357 @@ fn available_card(ui: &mut egui::Ui, host: &mut PluginHost, b: &BundledRow) {
     ui.add_space(space::XS);
 }
 
+/// "Version x is available in the plugin directory" on an installed card.
+fn directory_update_banner(
+    ui: &mut egui::Ui,
+    host: &mut PluginHost,
+    p: &Palette,
+    installed: &str,
+    u: &RegistryRow,
+) {
+    egui::Frame::new()
+        .fill(p.accent_soft)
+        .corner_radius(CornerRadius::same(radius::PANEL))
+        .inner_margin(egui::Margin::symmetric(
+            space::MD as i8 + 2,
+            space::SM as i8,
+        ))
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                widgets::icon(ui, icons::DOWNLOAD_SIMPLE, 15.0, p.accent_text);
+                ui.label(
+                    RichText::new(t!(
+                        "plugins.discover.update_available",
+                        version = u.entry.latest.version
+                    ))
+                    .font(theme::medium(text::SMALL + 0.5))
+                    .color(p.accent_text),
+                );
+                ui.label(
+                    RichText::new(t!("plugins.update.installed", version = installed))
+                        .font(theme::regular(text::SMALL))
+                        .color(p.text_secondary),
+                );
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let label = if u.downloading {
+                        t!("plugins.discover.downloading")
+                    } else {
+                        t!("plugins.update")
+                    };
+                    let r = widgets::button(ui, label, ButtonKind::Primary, !u.downloading);
+                    if widgets::tooltip(r, t!("plugins.discover.install.tip"), "").clicked() {
+                        host.install_from_registry(&u.entry.id);
+                    }
+                });
+            });
+        });
+}
+
+/// "Sandboxed" (the permissions are enforced) or "Not sandboxed" next to
+/// an external plugin's name.
+fn sandbox_chip(ui: &mut egui::Ui, p: &Palette, state: &SandboxState, perms: &[String]) {
+    let (glyph, label, fg, bg, tip) = match state {
+        SandboxState::Enforced => {
+            let tip = if perms.is_empty() {
+                t!("plugins.sandboxed.tip_none").to_string()
+            } else {
+                let list = perms
+                    .iter()
+                    .map(|x| permission_label(x).1)
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                t!("plugins.sandboxed.tip", permissions = list)
+            };
+            (
+                icons::LOCK_SIMPLE,
+                t!("plugins.sandboxed"),
+                p.success,
+                p.success_soft,
+                tip,
+            )
+        }
+        SandboxState::Unavailable(why) => (
+            icons::SHIELD_WARNING,
+            t!("plugins.not_sandboxed"),
+            p.warning,
+            p.warning_soft,
+            t!("plugins.not_sandboxed.tip", reason = why),
+        ),
+    };
+    let r = widgets::chip(ui, Some(glyph), label, fg, bg);
+    widgets::tooltip(r, &tip, "");
+}
+
+/// A file or folder that can be dropped on the Plugins tab to install it.
+fn is_plugin_drop(path: &std::path::Path) -> bool {
+    manta_plugin::install::is_archive(path)
+        || (path.is_dir() && path.join(manta_plugin::manifest::MANIFEST_FILE).is_file())
+}
+
+/// Settings → Plugins → Discover: the community directory. Opening it is
+/// what loads the list from GitHub ([`PluginHost::open_discover`]).
+fn discover_ui(ui: &mut egui::Ui, host: &mut PluginHost, out: &mut SettingsOutcome) {
+    host.open_discover();
+    let p = pal(ui);
+    let d = host.discover().clone();
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = space::SM;
+        let r = widgets::button(
+            ui,
+            t!("plugins.discover.refresh"),
+            ButtonKind::Secondary,
+            !d.loading,
+        );
+        if widgets::tooltip(r, t!("plugins.discover.refresh.tip"), "").clicked() {
+            host.refresh_registry();
+        }
+        if d.loading {
+            ui.add(egui::Spinner::new().size(14.0).color(p.text_secondary));
+        }
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            let r = link_button(ui, icons::GLOBE, t!("plugins.discover.web"), p.accent_text);
+            if widgets::tooltip(r, t!("plugins.discover.web.tip"), "").clicked() {
+                out.open_link = Some(directory_url());
+            }
+        });
+    });
+    ui.add_space(space::XS);
+    ui.horizontal_top(|ui| {
+        widgets::icon(ui, icons::INFO, 14.0, p.text_tertiary);
+        ui.add(
+            egui::Label::new(
+                RichText::new(t!("plugins.discover.privacy"))
+                    .font(theme::regular(text::SMALL))
+                    .color(p.text_secondary),
+            )
+            .wrap(),
+        );
+    });
+    ui.add_space(space::MD);
+    let date = d.fetched_at.map(|t| {
+        crate::util::format_time_relative(
+            Some(chrono::DateTime::<chrono::Utc>::from(t)),
+            chrono::Local::now(),
+        )
+    });
+    if d.plugins.is_empty() {
+        let (glyph, title, note) = if d.loading {
+            (
+                icons::CLOUD_ARROW_DOWN,
+                t!("plugins.discover.loading").to_string(),
+                String::new(),
+            )
+        } else if let Some(e) = &d.error {
+            (
+                icons::CLOUD_SLASH,
+                t!("plugins.discover.failed").to_string(),
+                e.clone(),
+            )
+        } else {
+            (
+                icons::PUZZLE_PIECE,
+                t!("plugins.discover.empty").to_string(),
+                t!("plugins.discover.empty.note").to_string(),
+            )
+        };
+        egui::Frame::new()
+            .fill(p.stripe)
+            .corner_radius(CornerRadius::same(radius::PANEL))
+            .inner_margin(egui::Margin::symmetric(space::LG as i8, space::LG as i8))
+            .show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.vertical_centered(|ui| {
+                    widgets::icon(ui, glyph, 22.0, p.text_tertiary);
+                    ui.label(RichText::new(title).color(p.text));
+                    if !note.is_empty() {
+                        ui.add(
+                            egui::Label::new(
+                                RichText::new(note)
+                                    .font(theme::regular(text::SMALL))
+                                    .color(p.text_secondary),
+                            )
+                            .wrap(),
+                        );
+                    }
+                });
+            });
+        return;
+    }
+    if let (Some(e), true) = (&d.error, d.from_cache) {
+        let when = date.clone().unwrap_or_default();
+        note(
+            ui,
+            icons::CLOUD_SLASH,
+            p.warning,
+            p.warning_soft,
+            p.text,
+            &t!("plugins.discover.offline", date = when, error = e),
+        );
+        ui.add_space(space::MD);
+    }
+    for row in host.registry_rows() {
+        registry_card(ui, host, &row);
+    }
+}
+
+/// One directory entry: name, description, author, licence, Manta version,
+/// permissions, source link and Install / Update.
+fn registry_card(ui: &mut egui::Ui, host: &mut PluginHost, row: &RegistryRow) {
+    let p = pal(ui);
+    let e = &row.entry;
+    egui::Frame::new()
+        .fill(p.content)
+        .stroke(Stroke::new(1.0, p.separator))
+        .corner_radius(CornerRadius::same(radius::PANEL + 2))
+        .inner_margin(egui::Margin::symmetric(
+            space::LG as i8,
+            space::LG as i8 - 2,
+        ))
+        .show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.push_id(("registry", &e.id), |ui| {
+                ui.horizontal_top(|ui| {
+                    let (ir, _) = ui.allocate_exact_size(egui::vec2(36.0, 36.0), Sense::hover());
+                    ui.painter().rect_filled(
+                        ir,
+                        CornerRadius::same(radius::PANEL + 1),
+                        p.purple_soft,
+                    );
+                    widgets::paint_icon(
+                        ui,
+                        ir,
+                        plugin_ui::plugin_glyph(&e.id, false),
+                        20.0,
+                        p.purple,
+                        false,
+                    );
+                    ui.add_space(space::XS);
+                    let button_w = 116.0;
+                    ui.vertical(|ui| {
+                        ui.set_width(ui.available_width() - button_w);
+                        ui.spacing_mut().item_spacing.y = space::XXS;
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = space::SM;
+                            ui.label(
+                                RichText::new(&row.name)
+                                    .font(theme::semibold(text::BODY + 1.0))
+                                    .color(p.text),
+                            );
+                            ui.label(
+                                RichText::new(&e.latest.version)
+                                    .font(theme::regular(text::SMALL))
+                                    .color(p.text_secondary),
+                            );
+                        });
+                        if !row.description.is_empty() {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new(&row.description).color(p.text_secondary),
+                                )
+                                .wrap(),
+                            );
+                        }
+                        let facts = [
+                            t!("plugins.by", author = e.author),
+                            e.license.clone(),
+                            t!(
+                                "plugins.discover.min_version",
+                                version = e.min_manta_version
+                            ),
+                        ]
+                        .join(" · ");
+                        ui.add(
+                            egui::Label::new(
+                                RichText::new(facts)
+                                    .font(theme::regular(text::SMALL))
+                                    .color(p.text_secondary),
+                            )
+                            .wrap(),
+                        );
+                        if !e.permissions.is_empty() {
+                            ui.horizontal_wrapped(|ui| {
+                                ui.spacing_mut().item_spacing.x = space::XS;
+                                for perm in &e.permissions {
+                                    let (glyph, label) = permission_label(perm);
+                                    widgets::chip(
+                                        ui,
+                                        Some(glyph),
+                                        &label,
+                                        p.text_secondary,
+                                        p.neutral_soft,
+                                    );
+                                }
+                            });
+                        }
+                        let r = link_button(
+                            ui,
+                            icons::CODE,
+                            e.repository.trim_start_matches("https://"),
+                            p.accent_text,
+                        );
+                        if widgets::tooltip(r, t!("plugins.review.source_code"), "").clicked() {
+                            let _ = open::that_detached(&e.repository);
+                        }
+                        if let Some(why) = &row.incompatible {
+                            let msg = match why {
+                                Incompatible::NeedsManta(v) => {
+                                    t!("plugins.discover.needs_manta", version = v)
+                                }
+                                Incompatible::Platform(_) => {
+                                    t!("plugins.discover.wrong_platform").to_string()
+                                }
+                            };
+                            ui.label(
+                                RichText::new(msg)
+                                    .font(theme::regular(text::SMALL))
+                                    .color(p.warning),
+                            );
+                        } else if let Some(v) = &row.installed_version {
+                            ui.label(
+                                RichText::new(t!(
+                                    "plugins.discover.installed_version",
+                                    version = v
+                                ))
+                                .font(theme::regular(text::SMALL))
+                                .color(p.success),
+                            );
+                        }
+                    });
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Min), |ui| {
+                        let installed = row.installed_version.is_some();
+                        let (label, kind, enabled) = if row.downloading {
+                            (
+                                t!("plugins.discover.downloading"),
+                                ButtonKind::Secondary,
+                                false,
+                            )
+                        } else if row.update_available {
+                            (
+                                t!("plugins.update"),
+                                ButtonKind::Primary,
+                                row.incompatible.is_none(),
+                            )
+                        } else if installed {
+                            (t!("plugins.review.installed"), ButtonKind::Secondary, false)
+                        } else {
+                            (
+                                t!("plugins.install"),
+                                ButtonKind::Secondary,
+                                row.incompatible.is_none(),
+                            )
+                        };
+                        let r = widgets::button(ui, label, kind, enabled);
+                        if widgets::tooltip(r, t!("plugins.discover.install.tip"), "").clicked() {
+                            host.install_from_registry(&e.id);
+                        }
+                    });
+                });
+            });
+        });
+    ui.add_space(space::XS);
+}
+
 fn toggle(set: &mut HashSet<String>, id: &str) {
     if !set.remove(id) {
         set.insert(id.to_string());
@@ -1198,10 +1642,17 @@ fn review_details(ui: &mut egui::Ui, p: &Palette, r: &PluginReview, installing: 
             });
         }
     });
-    ui.label(
-        RichText::new(t!("plugins.review.declared"))
-            .font(theme::regular(text::SMALL))
-            .color(p.text_tertiary),
+    let (enforced_color, enforced) = match manta_plugin::sandbox::available() {
+        Ok(()) => (p.text_tertiary, t!("plugins.review.enforced").to_string()),
+        Err(_) => (p.warning, t!("plugins.review.not_enforced").to_string()),
+    };
+    ui.add(
+        egui::Label::new(
+            RichText::new(enforced)
+                .font(theme::regular(text::SMALL))
+                .color(enforced_color),
+        )
+        .wrap(),
     );
     ui.add_space(space::MD);
     egui::Frame::new()
@@ -1246,6 +1697,15 @@ fn review_details(ui: &mut egui::Ui, p: &Palette, r: &PluginReview, installing: 
                 size = manta_plugin::i18n::format_size(r.bytes)
             );
             kv_line(ui, p, t!("plugins.review.contents"), &size, false);
+            if r.verified_download.is_some() {
+                kv_line(
+                    ui,
+                    p,
+                    t!("plugins.review.checksum"),
+                    t!("plugins.review.checksum_ok"),
+                    false,
+                );
+            }
             if let Some(v) = &r.installed_version {
                 kv_line(
                     ui,

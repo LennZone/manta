@@ -14,9 +14,10 @@ license = "MIT"
 repository = "https://github.com/web-workers-com/manta/tree/main/examples/plugins/hello-python"
 min_manta_version = "0.3.0"
 
-# What the plugin does, shown in the install/trust dialog. Declarative
-# only (Manta doesn't enforce it), so be honest. Vocabulary: read_files,
-# write_files, network, run_programs, terminal.
+# What the plugin may do, shown in the install/trust dialog and enforced
+# by the macOS sandbox Manta runs it in: without a permission the plugin
+# can't do it. Vocabulary: read_files, write_files, network, run_programs,
+# terminal (see docs/plugins.md, Security).
 # This one lists local folders and reads file sizes and dates.
 permissions = ["read_files"]
 

@@ -64,6 +64,9 @@ pub struct PluginReview {
     pub bytes: u64,
     /// Where the plugin lives once installed (trust sheet).
     pub folder: Option<PathBuf>,
+    /// Downloaded from the plugin directory: the URL, whose SHA-256 matched
+    /// the directory's entry.
+    pub verified_download: Option<String>,
 }
 
 impl PluginReview {
@@ -90,6 +93,7 @@ impl PluginReview {
             files,
             bytes,
             folder: Some(dir.to_path_buf()),
+            verified_download: None,
         }
     }
 }

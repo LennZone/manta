@@ -8,7 +8,7 @@ De nombreuses fonctions de Manta sont fournies par des plug-ins intégrés. Ils 
 2. Les plug-ins intégrés se trouvent sous **Intégrés**. Cliquez sur **Désactiver** ou **Activer**.
 3. Si un plug-in a des options, ouvrez-les avec **Réglages** sur sa carte.
 
-Pour ajouter des plug-ins d’autres personnes, utilisez **Installer un plug-in…** – à partir d’un fichier `.mantaplugin` ou d’un dossier. **Parcourir les plug-ins**, en haut à droite, ouvre le répertoire des plug-ins dans votre navigateur. Pour en savoir plus : [Vos propres plug-ins](15-eigene-plugins.md#installieren).
+Pour ajouter des plug-ins d’autres personnes, ouvrez **Découvrir** en haut de la page Plug-ins, double-cliquez sur un fichier `.mantaplugin`, déposez-le sur la page Plug-ins ou utilisez **Installer un plug-in…** – à partir d’un fichier `.mantaplugin` ou d’un dossier. Les plug-ins d’autres personnes s’exécutent dans un bac à sable macOS et ne peuvent faire que ce que leurs autorisations permettent ; les plug-ins intégrés font partie de Manta et ne sont pas isolés. Pour en savoir plus : [Vos propres plug-ins](15-eigene-plugins.md#installieren) et [Sécurité](15-eigene-plugins.md#sicherheit).
 
 De nombreux plug-ins affichent leur contenu dans un **panneau latéral à droite** ou dans un **panneau sous la sous-fenêtre**. Ouvrez-les avec des raccourcis, des pastilles de la barre du chemin d’accès ou la palette de commandes (« Afficher le panneau « … » »).
 

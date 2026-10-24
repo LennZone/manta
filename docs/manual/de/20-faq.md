@@ -92,4 +92,4 @@ Ja, mit **Schnellaktionen**: Ein Eintrag in `actions.json` mit einem Shell-Befeh
 
 ### Sind Plugins sicher? {#plugins-sicher}
 
-Eingebaute Plugins sind Teil von Manta. Externe Plugins laufen mit deinen Benutzerrechten und ohne Sandbox – installiere nur, was du vertraust. Siehe [Eigene Plugins](15-eigene-plugins.md#sicherheit).
+Eingebaute Plugins sind Teil von Manta. Externe Plugins laufen in einer macOS-Sandbox und können nur, was ihre Berechtigungen erlauben – installiere trotzdem nur, was du vertraust. Siehe [Eigene Plugins](15-eigene-plugins.md#sicherheit).

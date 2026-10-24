@@ -102,7 +102,7 @@ still loads.
 | `api_version` | yes | `1`. See [compatibility](#versioning-and-compatibility). |
 | `command` | yes | Program and arguments (see below). |
 | `description`, `author` | no | Shown in Settings and the install sheet. |
-| `permissions` | no | What the plugin does with the user's Mac: `read_files`, `write_files`, `network`, `run_programs`, `terminal` (uses `run_in_terminal`). **Declarative only**: Manta shows them before install and when the plugin is switched on but can't enforce them. Be honest; the directory review checks them. |
+| `permissions` | no | What the plugin may do on the user's Mac: `read_files`, `write_files`, `network`, `run_programs`, `terminal` (uses `run_in_terminal`). Shown before install and when the plugin is switched on, and **enforced**: the plugin runs in a macOS sandbox that allows only these (see [Security](#security)). Declare what the plugin really needs; without a permission it simply can't do that. |
 | `license`, `repository`, `homepage` | no | Shown in the install sheet; `repository` and `homepage` must be `https://` URLs. |
 | `min_manta_version` | no | The oldest Manta the plugin works with. |
 | `capabilities` | no | Informational list (`decorations`, `chips`, `commands`, `panels`, …). |
@@ -114,7 +114,10 @@ still loads.
 containing a `/`, such as `./run.sh` or `bin/plugin`, is resolved relative to
 the plugin folder. The process gets these environment variables:
 `MANTA_PLUGIN_ID`, `MANTA_PLUGIN_DATA_DIR`, `MANTA_API_VERSION` and
-`PYTHONUNBUFFERED=1`.
+`PYTHONUNBUFFERED=1`; in the sandbox also `TMPDIR` (a `tmp` folder inside
+the data folder) and `PYTHONDONTWRITEBYTECODE=1` (the plugin folder is
+read-only for the plugin). Write files only to `MANTA_PLUGIN_DATA_DIR` unless
+you declare `write_files`.
 
 ### The main loop
 
@@ -148,7 +151,9 @@ Rules:
 1. Open **Settings** (⌘, or "Settings…" in the command palette ⇧⌘P) and go
    to **Plugins**.
 2. Click **Install Plugin…** and choose **From a File (.mantaplugin, .zip)…**
-   or **From a Folder…**.
+   or **From a Folder…**. Or **double-click a `.mantaplugin` file** in the
+   Finder (Manta registers the file type), **drop it on Settings → Plugins**,
+   or pick a plugin under **Discover** (see below).
    - A `.mantaplugin` file is a zip archive whose root holds `plugin.toml`,
      or one folder that does (what the Finder's Compress makes). Manta
      unpacks it into a hidden staging folder inside the plugins folder,
@@ -190,9 +195,36 @@ without that confirmation. Scripts started through an interpreter
 binaries are. Users who prefer to do it themselves can run
 `xattr -dr com.apple.quarantine <plugin folder>` after reading the code.
 
-**Browse Plugins** (top right in Settings › Plugins, and "Browse Plugins…"
-in the command palette) opens the [plugin directory](https://manta-filemanager.com/plugins/)
-in the browser. Manta doesn't download from the directory itself (yet).
+**Discover** (Settings → Plugins → Discover, and "Browse Plugins…" in the
+command palette) lists the [community directory](#the-community-directory)
+with name and description in the UI language, author, licence, the Manta
+version it needs, its permissions and a link to its source code.
+
+- **When the list is loaded (privacy).** Only when you open the Discover
+  page (once per session) or click **Refresh**: one HTTPS GET of
+  `https://raw.githubusercontent.com/web-workers-com/manta/main/plugins/registry.json`
+  from GitHub, without cookies or identifiers (GitHub sees your IP address
+  and the `Manta/<version>` user agent). Manta never loads it in the
+  background. The answer is saved as `plugin-registry.json` next to
+  `plugins.json`; offline, Discover shows that saved list (with the date
+  and the reason) or an empty state. Installed cards offer updates from the
+  saved list without a network call. `MANTA_PLUGIN_REGISTRY_URL` points
+  Manta at another directory (tests, mirrors); only `https://` (and
+  `http://` to the local machine) is accepted.
+- **Install / Update** downloads the entry's `latest.url` over HTTPS (at
+  most 256 MB), computes its SHA-256 while downloading and **refuses it if
+  it differs from `latest.sha256`** (nothing is unpacked or kept). The file
+  is marked as downloaded (quarantine), unpacked like any archive, and its
+  `plugin.toml` must have the entry's `id` and `version`. Then the usual
+  review sheet (which says "SHA-256 matches the plugin directory"), install
+  and trust sheet follow.
+- An entry whose `min_manta_version` is newer than this Manta, or whose
+  `platforms` don't include this Mac, is shown but can't be installed.
+- When the directory lists a newer `version` of an installed plugin, the
+  plugin's card and its Discover entry offer **Update**.
+
+"On the Web" opens the [plugin directory](https://manta-filemanager.com/plugins/)
+on the website.
 
 | What | Where (macOS) |
 |---|---|
@@ -980,29 +1012,74 @@ templates do the same.
 
 ## Security
 
-**External plugins run as normal programs with your user's permissions.**
-Manta doesn't sandbox them. A plugin process can do anything a program you
-start in Terminal can: read, change and delete your files (also outside the
-folders Manta shows), start other programs, use the network and read the
-environment. Through the protocol it additionally sees what you do in Manta
-(folders, selections, file actions including server names and user names
-of remote panes, but never passwords or keys) and can ask Manta to read
-files through a pane's connection (`read_file`, `list_dir`), rename
-entries, navigate, select files and type commands into the built-in
-Terminal (`run_in_terminal`, visible to you). The declared `permissions`
-in `plugin.toml` describe what the author says the plugin does; Manta shows
-them but can't enforce them.
+**External plugins run in a macOS sandbox that enforces their declared
+`permissions`.** Manta starts the plugin's program through
+`/usr/bin/sandbox-exec` with a profile generated from `plugin.toml`. The
+profile denies everything by default and allows:
 
-What Manta does to keep you in control:
+| Always | |
+|---|---|
+| Run | the declared program (as found on `PATH` or in the plugin folder, and its real path after symlinks), a script's `#!` interpreter (also through `/usr/bin/env`), the shells behind `/bin/sh`, and programs inside the interpreter's own install folder (e.g. `~/.nvm/versions/node/v22`, a Homebrew or python.org framework Python) |
+| Read | the plugin's own folder; its data folder; the system (`/System`, `/usr`, `/bin`, `/sbin`, `/Library/Apple`, `/Library/Preferences`, `/Library/Frameworks`, `/private/etc`, `/dev`, time zones) and installed tools (`/opt/homebrew`, `/usr/local`, `/opt/local`, the Command Line Tools or the selected Xcode, needed by `/usr/bin/python3` and other tool shims); the interpreter's install folder; file metadata everywhere (names, sizes and dates, needed to resolve paths; not contents) |
+| Write | its data folder (`MANTA_PLUGIN_DATA_DIR`, also `TMPDIR`), `/dev/null`, here-document temp files of the system bash in `/tmp` |
+| System services | user and group lookups, logging, notifications, preferences, temporary folders |
+
+| Permission | Adds |
+|---|---|
+| `read_files` | reading every file (`file-read*`) |
+| `write_files` | writing, creating and deleting files anywhere (`file-write*`) |
+| `network` | network connections, including to this Mac (`network*`), DNS, network configuration and certificate checks |
+| `run_programs` | starting any other program (`process-exec*`); the programs inherit the sandbox |
+| `terminal` | nothing in the profile; it allows `run_in_terminal` (below) |
+
+The same permissions are checked for requests a plugin sends to Manta, so a
+plugin can't get through Manta what its sandbox denies: `read_file` and
+`list_dir` need `read_files`, `rename_many` needs `write_files`,
+`run_in_terminal` needs `terminal`. A refused request is logged
+(`[manta] refused list_dir: …`) and answered with an error (`dir_listing` /
+`file_content` with `error`, `rename_result` with every pair in `failed`).
+Decorations, chips, panels, toasts, navigation and the pane states Manta
+sends need no permission.
+
+Things to know:
+
+- The generated profile is written to `<data folder>/sandbox.sb` and the log
+  says `[manta] sandboxed: permissions enforced (…)`. Settings shows a
+  **Sandboxed** badge on each external plugin (its tooltip lists the
+  permissions) and the install and trust sheets say the permissions are
+  enforced.
+- Without `run_programs` a plugin can only run its declared command; a
+  shell script that calls `jq`, `git` or `curl` must declare it.
+- Without `read_files` an interpreter installed in your home folder outside
+  its own folder tree (`~/bin/python3` as a single file) can't be read; use
+  an installed interpreter (`/usr/bin`, Homebrew, nvm, pyenv) or declare
+  `read_files`.
+- `sandbox-exec` is deprecated by Apple but works on current macOS
+  (checked on macOS 26). Manta checks it once per launch by running
+  `sandbox-exec` with an allow-all profile. Where that fails, plugins run
+  **without** the sandbox: the plugin log says `[manta] WARNING: not
+  sandboxed (…)`, the card shows **Not sandboxed** with the reason and the
+  sheets say the permissions can't be enforced. The protocol checks above
+  still apply.
+- **Built-in plugins** are part of Manta and trusted; they aren't sandboxed.
+  Development plugins (`--plugin-dev`) are sandboxed like installed ones.
+- The sandbox limits what the process does on your Mac. It doesn't make a
+  plugin harmless: with `read_files` and `network` it can send your files
+  somewhere, and through the protocol it sees what you do in Manta
+  (folders, selections, file actions including server names and user names
+  of remote panes, but never passwords or keys).
+
+What else Manta does to keep you in control:
 
 - nothing is installed before you have seen the review sheet (author,
-  version, declared permissions, command, source, licence) and confirmed;
-  archives are unpacked safely (no paths outside the staging folder, no
-  symbolic links, size limits);
+  version, permissions, command, source, licence) and confirmed; archives
+  are unpacked safely (no paths outside the staging folder, no symbolic
+  links, size limits); downloads from the directory must match the
+  directory's SHA-256;
 - new plugins start **switched off**;
-- the first time you switch one on, the trust sheet shows what it will run
-  and where, and asks you to confirm; only then does a downloaded plugin
-  lose macOS's quarantine flag;
+- the first time you switch one on, the trust sheet shows what it will run,
+  where and with which permissions, and asks you to confirm; only then does
+  a downloaded plugin lose macOS's quarantine flag;
 - what plugins send is validated and size-limited (bad messages are skipped
   and logged; image blocks only show absolute local paths; status item
   links need a scheme; `navigate` to a server only works while the pane
@@ -1027,17 +1104,26 @@ below), which lowers the risk but is no guarantee.
    `repository`, `permissions` and `min_manta_version` to `plugin.toml`.
 2. Run `python3 scripts/plugin-test.py <folder> --strict` (from a clone of
    the Manta repository) until it passes.
-3. Zip the folder: `zip -r my-plugin-1.2.0.mantaplugin my-plugin -x '*/.git/*' '*/target/*' '*/__pycache__/*'`
-   (or Compress in the Finder and rename `.zip` to `.mantaplugin`). Keep
-   the executable bit of scripts and binaries; a plain zip does.
+3. Package it: `python3 scripts/plugin-pack.py my-plugin -o dist/` checks
+   `plugin.toml`, writes `dist/my-plugin-1.2.0.mantaplugin` (one top-level
+   folder named after the id; without `.git`, `target`, `__pycache__`,
+   `*.pyc`, `.DS_Store`; executable bits kept; fixed file times, so the same
+   files always give the same SHA-256; symbolic links refused) and prints
+   its SHA-256 and the `"latest"` block for the registry (add
+   `--url <release download URL>` to fill in the URL). By hand:
+   `zip -r my-plugin-1.2.0.mantaplugin my-plugin -x '*/.git/*' '*/target/*' '*/__pycache__/*'`
+   (or Compress in the Finder and rename `.zip` to `.mantaplugin`).
 4. Native programs: build for Apple silicon (arm64). Sign and notarize them
    if you can; otherwise users get them quarantined and Manta removes the
    flag only after they confirm the trust sheet.
 5. Attach the file to a **GitHub release** (or any stable https URL) and
-   note its SHA-256: `shasum -a 256 my-plugin-1.2.0.mantaplugin`.
+   note its SHA-256 (printed by `plugin-pack.py`, or
+   `shasum -a 256 my-plugin-1.2.0.mantaplugin`).
 
-Users install the file with **Install Plugin… → From a File**. A newer
-release with the same `id` and a higher `version` installs as an update.
+Users install the file by double-clicking it, dropping it on Settings →
+Plugins or with **Install Plugin… → From a File**; once it is in the
+community directory, from **Discover**. A newer release with the same `id`
+and a higher `version` installs as an update.
 
 ### The community directory
 
@@ -1109,6 +1195,11 @@ remove entries that break the rules or stop working; security problems in a
 listed plugin can be reported to the maintainers without a public issue
 (contact on [manta-filemanager.com](https://manta-filemanager.com/)).
 
-Manta itself doesn't download from the directory yet: users download the
-file and install it from Settings, where the review and trust sheets apply
-as for any other plugin.
+Manta shows the directory in Settings → Plugins → **Discover** and installs
+from it (see [Install and switch it on](#2-install-and-switch-it-on)): it
+downloads `latest.url`, refuses it unless its SHA-256 equals
+`latest.sha256`, and checks that its `plugin.toml` has the entry's `id` and
+`version`; then the review and trust sheets apply as for any other plugin.
+Changing `latest` in the registry is therefore what offers an update to
+users. Entries Manta can't use (bad id, non-https URL, malformed checksum)
+are skipped.

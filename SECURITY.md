@@ -38,9 +38,13 @@ Updates…), and the latest version is always available from
 In scope are Manta itself (the app and its built-in plugins), the update mechanism and the
 release artefacts. Some behaviour is by design and documented:
 
-- **External plugins are not sandboxed.** They run as separate processes with your user's
-  permissions. Manta starts them switched off and asks before the first start; only install
-  plugins you trust. See [docs/plugins.md](docs/plugins.md).
+- **External plugins run in a macOS sandbox** (`sandbox-exec`) that enforces their declared
+  permissions (`read_files`, `write_files`, `network`, `run_programs`, `terminal`); a way out
+  of that sandbox, or a request to Manta that bypasses a missing permission, is a
+  vulnerability. With the permissions they declare they can do what those allow. Where
+  `sandbox-exec` doesn't work they run unsandboxed with a visible warning. Manta starts them
+  switched off and asks before the first start; only install plugins you trust. See
+  [docs/plugins.md](docs/plugins.md#security).
 - **Quick Actions** run the shell commands you configure yourself.
 - **Server credentials** (passwords, key passphrases, S3 secret keys) are stored in the macOS
   Keychain, not in Manta's settings files. SFTP host keys are checked against

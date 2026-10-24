@@ -223,6 +223,8 @@ pub enum Action {
     ShowHelp(String),
     /// Settings → General (the default-file-manager switch is there).
     ShowSettingsGeneral,
+    /// Settings → Plugins → Discover (the community directory).
+    BrowsePlugins,
     /// Manta as default file manager on (asks first, like at launch) or
     /// off (gives the role back) — palette and menu bar.
     ToggleDefaultViewer,
@@ -745,7 +747,8 @@ impl MantaApp {
             manta_vfs::container::block_cli_for_tests();
             manta_plugin_terminal::remote::block_cli_for_tests();
         }
-        let plugins = match init.plugins {
+        #[allow(unused_mut)]
+        let mut plugins = match init.plugins {
             Some(make) => make(&ctx),
             None => {
                 let mut host =
@@ -754,6 +757,10 @@ impl MantaApp {
                 host
             }
         };
+        // Tests never contact the plugin directory on GitHub: a closed
+        // local port (each test that needs a directory sets its own).
+        #[cfg(test)]
+        plugins.set_registry_url(TEST_REGISTRY_URL);
         let layout = plugins.layout();
         let ctx_for_viewer = ctx.clone();
 
@@ -2767,6 +2774,7 @@ impl MantaApp {
             Action::ShowSettingsGeneral => self
                 .settings
                 .show(Some(crate::settings::SettingsTab::General)),
+            Action::BrowsePlugins => self.settings.show_discover(),
             Action::CheckForUpdates => {
                 if !self.updates.check_now() {
                     // Not set up in this build: Settings → General → Updates says why.
@@ -3204,7 +3212,7 @@ impl MantaApp {
                 Action::ShowHelp(crate::help::THIRD_PARTY_LICENSES.to_string())
             }
             Cmd::ReloadPlugins => Action::ReloadPlugins,
-            Cmd::BrowsePlugins => Action::OpenWebLink(crate::settings::directory_url()),
+            Cmd::BrowsePlugins => Action::BrowsePlugins,
             Cmd::AppearanceLight => Action::SetAppearance(crate::theme::Appearance::Light),
             Cmd::AppearanceDark => Action::SetAppearance(crate::theme::Appearance::Dark),
             Cmd::AppearanceSystem => Action::SetAppearance(crate::theme::Appearance::System),
@@ -4584,7 +4592,23 @@ impl MantaApp {
     /// pane, except the very first request of a cold start, which replaces
     /// the start folder of the untouched first tab.
     pub(crate) fn apply_open_requests(&mut self, reqs: Vec<crate::default_viewer::OpenRequest>) {
-        for req in reqs {
+        for mut req in reqs {
+            // A double-clicked .mantaplugin file: the install review sheet
+            // (Settings › Plugins opens with it).
+            if req.kind == crate::default_viewer::RequestKind::Open {
+                let (plugins, rest): (Vec<_>, Vec<_>) = req
+                    .paths
+                    .into_iter()
+                    .partition(|p| crate::default_viewer::is_plugin_file(p));
+                req.paths = rest;
+                if let Some(first) = plugins.into_iter().next() {
+                    log::info!("open: plugin file {}", first.display());
+                    self.plugins.review_install(first);
+                }
+                if req.paths.is_empty() {
+                    continue;
+                }
+            }
             let plans = crate::default_viewer::plan(&req, &|p: &std::path::Path| p.is_dir());
             log::info!("default viewer: {:?} request → {plans:?}", req.kind);
             for plan in plans {
@@ -6362,6 +6386,25 @@ impl eframe::App for MantaApp {
         }
         // No file drops onto panes or the sidebar behind a modal.
         if self.modal_open() {
+            // Settings drawn inside this window (embedded viewports): plugin
+            // files dropped on it go to its Plugins tab. A native Settings
+            // window gets its drops in its own input.
+            if ctx.embed_viewports()
+                && self.settings.open
+                && self.settings.tab == crate::settings::SettingsTab::Plugins
+            {
+                self.settings.hovered = raw_input
+                    .hovered_files
+                    .iter()
+                    .filter_map(|f| f.path.clone())
+                    .collect();
+                self.settings.dropped.extend(
+                    raw_input
+                        .dropped_files
+                        .iter()
+                        .map(|f| f.path().to_path_buf()),
+                );
+            }
             raw_input.hovered_files.clear();
             raw_input.dropped_files.clear();
         }
@@ -6796,6 +6839,10 @@ impl MantaApp {
         self.menu_selftest(&ctx);
     }
 }
+
+/// Where tests "download" the plugin directory from: nothing listens there.
+#[cfg(test)]
+pub(crate) const TEST_REGISTRY_URL: &str = "http://127.0.0.1:9/registry.json";
 
 #[cfg(test)]
 #[path = "ux_tests.rs"]

@@ -35,6 +35,32 @@
             <key>LSItemContentTypes</key>
             <array><string>public.folder</string></array>
         </dict>
+        <!-- Manta plugins: double-clicking a .mantaplugin file opens the
+             install review (Settings > Plugins). -->
+        <dict>
+            <key>CFBundleTypeName</key><string>Manta Plugin</string>
+            <key>CFBundleTypeRole</key><string>Viewer</string>
+            <key>LSHandlerRank</key><string>Owner</string>
+            <key>CFBundleTypeIconSystemGenerated</key><true/>
+            <key>LSItemContentTypes</key>
+            <array><string>com.manta-filemanager.mantaplugin</string></array>
+        </dict>
+    </array>
+
+    <!-- The .mantaplugin file type: a zip archive with a plugin.toml. -->
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>com.manta-filemanager.mantaplugin</string>
+            <key>UTTypeDescription</key><string>Manta Plugin</string>
+            <key>UTTypeConformsTo</key>
+            <array><string>public.zip-archive</string><string>public.data</string></array>
+            <key>UTTypeTagSpecification</key>
+            <dict>
+                <key>public.filename-extension</key><array><string>mantaplugin</string></array>
+                <key>public.mime-type</key><array><string>application/x-mantaplugin</string></array>
+            </dict>
+        </dict>
     </array>
 
     <!-- Privacy prompts. Shown by macOS the first time the matching resource is used. -->

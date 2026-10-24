@@ -156,6 +156,53 @@ fn hello_python_example() {
     assert!(log.contains("hello-python started"), "{log}");
 }
 
+/// The Node and shell examples work in the sandbox with the permissions
+/// they declare (each skipped when its runtime isn't installed).
+#[test]
+fn examples_run_in_the_sandbox() {
+    for (example, needs) in [("hello-node", "node"), ("hello-shell", "jq")] {
+        let found = std::process::Command::new(needs)
+            .arg("--version")
+            .output()
+            .is_ok_and(|o| o.status.success());
+        if !found {
+            eprintln!("{needs} not found, skipping {example}");
+            continue;
+        }
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = HostPaths::under(&tmp.path().join("config"));
+        let src = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../examples/plugins")
+            .join(example);
+        copy_dir(&src, &paths.plugins_dir.join(example));
+        let folder = tmp.path().join("files");
+        std::fs::create_dir_all(&folder).unwrap();
+        std::fs::write(folder.join("a.txt"), "a").unwrap();
+        std::fs::write(folder.join("b.txt"), "b").unwrap();
+        let mut host = PluginHost::new(egui::Context::default(), Vec::new(), Some(paths));
+        host.set_pane(state(PaneId::Left, &folder, &[], true), 1);
+        host.set_enabled(example, true);
+        until(&mut host, &format!("{example} chip"), |h, _| {
+            h.chips(PaneId::Left)
+                .iter()
+                .any(|(_, c)| c.text == "2 items")
+        });
+        let row = &host.rows()[0];
+        if cfg!(target_os = "macos") {
+            assert_eq!(
+                row.sandbox,
+                Some(manta_plugin::sandbox::SandboxState::Enforced)
+            );
+            assert!(
+                row.log.iter().any(|l| l.contains("sandboxed")),
+                "{:?}",
+                row.log
+            );
+        }
+        host.shutdown(Duration::from_secs(2));
+    }
+}
+
 #[test]
 fn crashing_plugin_is_restarted_then_given_up() {
     let tmp = tempfile::tempdir().unwrap();

@@ -6,3 +6,4 @@
 "NSRemovableVolumesUsageDescription" = "Manta zeigt und verwaltet Dateien auf Wechseldatenträgern.";
 "NSNetworkVolumesUsageDescription" = "Manta zeigt und verwaltet Dateien auf Netzwerkvolumes.";
 "NSLocalNetworkUsageDescription" = "Manta verbindet sich mit SFTP-, FTP- und S3-Servern in deinem lokalen Netzwerk.";
+"Manta Plugin" = "Manta-Plugin";

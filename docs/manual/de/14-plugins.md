@@ -8,7 +8,7 @@ Viele Funktionen von Manta stecken in eingebauten Plugins. Sie sind von Anfang a
 2. Unter **Integriert** stehen die eingebauten Plugins. Klicke auf **Ausschalten** bzw. **Einschalten**.
 3. Hat ein Plugin Optionen, öffnest du sie mit **Einstellungen** auf seiner Karte.
 
-Plugins von anderen installierst du mit **Plugin installieren …** – aus einer `.mantaplugin`-Datei oder einem Ordner. **Plugins entdecken** oben rechts öffnet das Plugin-Verzeichnis im Browser. Mehr dazu: [Eigene Plugins](15-eigene-plugins.md#installieren).
+Plugins von anderen installierst du über **Entdecken** oben auf der Plugins-Seite, per Doppelklick auf eine `.mantaplugin`-Datei, indem du sie auf die Plugins-Seite ziehst, oder mit **Plugin installieren …** – aus einer `.mantaplugin`-Datei oder einem Ordner. Plugins von anderen laufen in einer macOS-Sandbox und können nur, was ihre Berechtigungen erlauben; eingebaute Plugins sind Teil von Manta und laufen ohne Sandbox. Mehr dazu: [Eigene Plugins](15-eigene-plugins.md#installieren) und [Sicherheit](15-eigene-plugins.md#sicherheit).
 
 Viele Plugins zeigen ihre Inhalte in einem **Panel rechts** oder in einem **Panel unter dem Bereich**. Du öffnest sie über Tastenkürzel, Chips in der Pfadleiste oder die Befehlspalette („Panel „…“ einblenden“).
 

@@ -167,8 +167,10 @@ More detail: [docs/development.md](docs/development.md).
 Plugins add badges to file names, chips to the path bar, commands to the palette and context
 menu, items to the status bar and panels below a pane or in a right sidebar. External plugins
 are a folder with a `plugin.toml` and a program in any language that speaks JSON lines over
-stdin/stdout. They run with your user's permissions and are not sandboxed, so they start
-switched off and Manta asks before the first start.
+stdin/stdout. They run in a macOS sandbox that enforces the permissions they declare, start
+switched off and Manta asks before the first start. Settings › Plugins › Discover installs
+community plugins (download checked against the directory's SHA-256); double-clicking a
+`.mantaplugin` file installs it too.
 
 - Tutorial and protocol reference: [docs/plugins.md](docs/plugins.md)
 - Examples: [examples/plugins/](examples/plugins/)

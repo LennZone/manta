@@ -92,4 +92,4 @@ Sì, con le **Azioni rapide**: basta una voce con un comando shell in `actions.j
 
 ### I plug-in sono sicuri? {#plugins-sicher}
 
-I plug-in integrati fanno parte di Manta. I plug-in esterni vengono eseguiti con i permessi del tuo utente e senza sandbox: installa solo ciò di cui ti fidi. Vedi [Plug-in personali](15-eigene-plugins.md#sicherheit).
+I plug-in integrati fanno parte di Manta. I plug-in esterni vengono eseguiti in una sandbox di macOS e possono fare solo ciò che i loro permessi consentono; installa comunque solo ciò di cui ti fidi. Vedi [Plug-in personali](15-eigene-plugins.md#sicherheit).

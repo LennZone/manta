@@ -92,4 +92,4 @@ Manta 可直接连接 SFTP、FTP、FTPS、S3 和容器。请在访达中装载 S
 
 ### 插件安全吗？ {#plugins-sicher}
 
-内建插件是 Manta 的一部分。外部插件以你的用户权限运行，且没有沙盒保护，因此只安装你信任的插件。请参阅[自定插件](15-eigene-plugins.md#sicherheit)。
+内建插件是 Manta 的一部分。外部插件在 macOS 沙盒中运行，只能执行其权限允许的操作——不过仍请只安装你信任的插件。请参阅[自定插件](15-eigene-plugins.md#sicherheit)。

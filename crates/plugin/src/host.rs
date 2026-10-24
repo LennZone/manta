@@ -28,11 +28,13 @@ use crate::external::ExternalPlugin;
 use crate::install::{self, PluginReview};
 use crate::manifest::{Manifest, MANIFEST_FILE};
 use crate::protocol::Block;
+use crate::registry::{self, Entry, Fetched, Incompatible};
+use crate::sandbox::SandboxState;
 use crate::shortcut::{self, Shortcut};
 use crate::{
-    Badge, Chip, CommandContext, CommandSpec, Decoration, FileAction, HostRequest, PaneId,
-    PaneState, PanelPlacement, PanelSpec, Plugin, PluginEvent, PluginHandle, PluginInfo,
-    PluginStatus, SizeInfo, StatusItem, ToastLevel, Tone,
+    Badge, Chip, CommandContext, CommandSpec, Decoration, DirListing, FileAction, FileContent,
+    HostRequest, PaneId, PaneState, PanelPlacement, PanelSpec, Plugin, PluginEvent, PluginHandle,
+    PluginInfo, PluginStatus, RenameResult, SizeInfo, StatusItem, ToastLevel, Tone,
 };
 
 /// Where the host keeps its files.
@@ -172,6 +174,10 @@ pub struct PluginRow {
     /// Loaded from a development folder (`manta --plugin-dev <dir>`): runs
     /// from that folder, trusted and switched on for this session only.
     pub dev: bool,
+    /// External plugins: whether the macOS sandbox enforces `permissions`.
+    pub sandbox: Option<SandboxState>,
+    /// External plugins: the declared permissions.
+    pub permissions: Vec<String>,
 }
 
 /// A plugin that ships with Manta, as shown in Settings → Plugins.
@@ -185,6 +191,40 @@ pub struct BundledRow {
     pub update_available: bool,
     /// An install or update is running.
     pub installing: bool,
+}
+
+/// Settings → Plugins → Discover: the community directory.
+#[derive(Debug, Clone, Default)]
+pub struct Discover {
+    /// A download of the directory is running.
+    pub loading: bool,
+    /// The directory was asked for in this session ([`PluginHost::open_discover`]).
+    pub requested: bool,
+    /// The entries (from the last download or the saved copy).
+    pub plugins: Vec<Entry>,
+    /// `plugins` is the saved copy (offline, or not refreshed this session).
+    pub from_cache: bool,
+    /// When `plugins` was downloaded.
+    pub fetched_at: Option<std::time::SystemTime>,
+    /// Why the last download failed.
+    pub error: Option<String>,
+}
+
+/// A directory entry as shown in Discover.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RegistryRow {
+    pub entry: Entry,
+    /// In the app's language.
+    pub name: String,
+    pub description: String,
+    /// Version of the installed copy.
+    pub installed_version: Option<String>,
+    /// The directory has a newer version than the installed one.
+    pub update_available: bool,
+    /// Why it can't be installed here.
+    pub incompatible: Option<Incompatible>,
+    /// Downloading and checking the release.
+    pub downloading: bool,
 }
 
 /// Decorations of all plugins for one entry, merged.
@@ -355,6 +395,12 @@ fn select_event(pane: PaneId, paths: &[VfsPath]) -> Option<HostEvent> {
 
 enum Job {
     Review(Box<PluginReview>),
+    Registry(Result<Fetched, String>),
+    /// A directory download for `id` finished (review or error).
+    Downloaded {
+        id: String,
+        result: Result<Box<PluginReview>, String>,
+    },
     Installed {
         id: String,
         name: String,
@@ -440,6 +486,12 @@ pub struct PluginHost {
     dev_off: BTreeSet<String>,
     /// Counter for staging folder names.
     review_seq: u64,
+    /// The community directory (Discover).
+    discover: Discover,
+    /// Where the directory is downloaded from ([`registry::registry_url`]).
+    registry_url: String,
+    /// Directory entries being downloaded (ids).
+    downloading: BTreeSet<String>,
 }
 
 impl PluginHost {
@@ -487,7 +539,17 @@ impl PluginHost {
             dev_dirs: Vec::new(),
             dev_off: BTreeSet::new(),
             review_seq: 0,
+            discover: Discover::default(),
+            registry_url: registry::registry_url(),
+            downloading: BTreeSet::new(),
         };
+        // The saved directory (no network): updates of installed plugins
+        // are offered without opening Discover.
+        if let Some(f) = host.registry_cache().and_then(|c| registry::load_cache(&c)) {
+            host.discover.plugins = f.registry.plugins;
+            host.discover.from_cache = true;
+            host.discover.fetched_at = f.fetched_at;
+        }
         // Staging folders of reviews that were never confirmed.
         if let Some(dir) = host.plugins_dir() {
             if let Ok(rd) = std::fs::read_dir(dir) {
@@ -496,7 +558,9 @@ impl PluginHost {
                         .to_string_lossy()
                         .starts_with(install::STAGING_PREFIX)
                     {
-                        let _ = std::fs::remove_dir_all(e.path());
+                        // Folders, and downloads from the directory.
+                        let _ = std::fs::remove_dir_all(e.path())
+                            .or_else(|_| std::fs::remove_file(e.path()));
                     }
                 }
             }
@@ -1070,6 +1134,20 @@ impl PluginHost {
         if !slot.running {
             return;
         }
+        // External plugins only get what their declared permissions allow
+        // (the same rules the sandbox enforces on their process).
+        if let SlotKind::External(e) = &slot.kind {
+            if let Some(perm) = required_permission(&req) {
+                if !e.manifest().permissions.iter().any(|p| p == perm) {
+                    e.note(&format!(
+                        "refused {}: the plugin doesn't declare the \"{perm}\" permission",
+                        request_name(&req)
+                    ));
+                    self.refuse(id, req, perm);
+                    return;
+                }
+            }
+        }
         match req {
             HostRequest::SetDecorations { pane, dir, entries } => {
                 if self.panes.get(&pane).is_none_or(|p| p.path != dir) {
@@ -1228,6 +1306,42 @@ impl PluginHost {
                 }
             }
         }
+    }
+
+    /// Answer a request an external plugin isn't allowed to make with an
+    /// error, so it doesn't wait for an answer that never comes.
+    fn refuse(&mut self, id: &str, req: HostRequest, perm: &str) {
+        let error = format!("not allowed: the plugin doesn't declare the \"{perm}\" permission");
+        let answer = match req {
+            HostRequest::ReadFile { pane, path, .. } => PluginEvent::FileContent(FileContent {
+                pane,
+                path,
+                bytes: Vec::new(),
+                size: None,
+                truncated: false,
+                modified: None,
+                error: Some(error),
+            }),
+            HostRequest::ListDir { pane, dir } => PluginEvent::DirListing(DirListing {
+                pane,
+                dir,
+                entries: Vec::new(),
+                error: Some(error),
+            }),
+            HostRequest::RenameMany { pane, dir, renames } => {
+                PluginEvent::RenameResult(RenameResult {
+                    pane,
+                    dir,
+                    ok: Vec::new(),
+                    failed: renames
+                        .into_iter()
+                        .map(|(old, _)| (old, error.clone()))
+                        .collect(),
+                })
+            }
+            _ => return,
+        };
+        self.deliver(id, answer);
     }
 
     /// Status bar items of the running plugins, with the plugin id each
@@ -1656,6 +1770,14 @@ impl PluginHost {
                     capabilities: s.capabilities.clone(),
                     replaced_by: self.replaced_by(&s.info.id).map(str::to_string),
                     dev: s.dev,
+                    sandbox: match &s.kind {
+                        SlotKind::External(e) => Some(e.sandbox()),
+                        _ => None,
+                    },
+                    permissions: match &s.kind {
+                        SlotKind::External(e) => e.manifest().permissions.clone(),
+                        _ => Vec::new(),
+                    },
                 }
             })
             .collect()
@@ -2088,6 +2210,141 @@ impl PluginHost {
         });
     }
 
+    // ------------------------------------------------------------ directory
+
+    /// `plugin-registry.json` next to `plugins.json`.
+    fn registry_cache(&self) -> Option<PathBuf> {
+        self.paths
+            .as_ref()
+            .map(|p| p.state_file.with_file_name(registry::CACHE_FILE))
+    }
+
+    /// Use another directory URL (tests).
+    pub fn set_registry_url(&mut self, url: impl Into<String>) {
+        self.registry_url = url.into();
+    }
+
+    /// Test seam: show these entries without downloading anything.
+    #[doc(hidden)]
+    pub fn set_discover_for_test(&mut self, discover: Discover) {
+        self.discover = discover;
+    }
+
+    /// The Discover tab was opened: download the directory once per session
+    /// (the only time Manta contacts the directory on its own; see
+    /// [`registry`]).
+    pub fn open_discover(&mut self) {
+        if !self.discover.requested {
+            self.refresh_registry();
+        }
+    }
+
+    /// Download the directory again (Refresh in Discover).
+    pub fn refresh_registry(&mut self) {
+        self.discover.requested = true;
+        if self.discover.loading {
+            return;
+        }
+        self.discover.loading = true;
+        let url = self.registry_url.clone();
+        let cache = self.registry_cache();
+        let tx = self.jobs_tx.clone();
+        let ctx = self.ctx.clone();
+        std::thread::spawn(move || {
+            let result = registry::fetch(&url, cache.as_deref());
+            let _ = tx.send(Job::Registry(result));
+            ctx.request_repaint();
+        });
+    }
+
+    pub fn discover(&self) -> &Discover {
+        &self.discover
+    }
+
+    fn registry_row(&self, e: &Entry) -> RegistryRow {
+        let installed_version = self
+            .slots
+            .iter()
+            .find(|s| s.info.id == e.id && s.kind() == PluginKind::External && !s.dev)
+            .map(|s| s.info.version.clone());
+        let update_available = installed_version.as_deref().is_some_and(|v| {
+            bundled::compare_versions(&e.latest.version, v) == std::cmp::Ordering::Greater
+        });
+        RegistryRow {
+            name: e.name(),
+            description: e.description(),
+            installed_version,
+            update_available,
+            incompatible: e.incompatibility(),
+            downloading: self.downloading.contains(&e.id),
+            entry: e.clone(),
+        }
+    }
+
+    /// The directory's entries with their install state (name order).
+    pub fn registry_rows(&self) -> Vec<RegistryRow> {
+        self.discover
+            .plugins
+            .iter()
+            .map(|e| self.registry_row(e))
+            .collect()
+    }
+
+    /// The directory entry of an installed plugin when it offers a newer,
+    /// compatible version.
+    pub fn registry_update(&self, id: &str) -> Option<RegistryRow> {
+        let e = self.discover.plugins.iter().find(|e| e.id == id)?;
+        let row = self.registry_row(e);
+        (row.update_available && row.incompatible.is_none()).then_some(row)
+    }
+
+    /// Install (or update) a directory entry: download the release over
+    /// HTTPS, check its SHA-256 against the entry (a mismatch stops here),
+    /// unpack it into a staging folder and check that its `plugin.toml`
+    /// matches the entry. Then [`HostEvent::InstallReview`] comes back and
+    /// the usual review → install → trust flow follows.
+    pub fn install_from_registry(&mut self, id: &str) {
+        let Some(entry) = self.discover.plugins.iter().find(|e| e.id == id).cloned() else {
+            return;
+        };
+        if let Some(why) = entry.incompatibility() {
+            let error = match why {
+                Incompatible::NeedsManta(v) => {
+                    format!("{} needs Manta {v} or newer", entry.id)
+                }
+                Incompatible::Platform(p) => {
+                    format!("{} doesn't run on this Mac ({})", entry.id, p.join(", "))
+                }
+            };
+            self.out.push(HostEvent::InstallFailed { error });
+            return;
+        }
+        let Some(plugins_dir) = self.plugins_dir().map(Path::to_path_buf) else {
+            self.out.push(HostEvent::InstallFailed {
+                error: "no configuration folder".into(),
+            });
+            return;
+        };
+        if !self.downloading.insert(entry.id.clone()) {
+            return;
+        }
+        self.review_seq += 1;
+        let tag = format!("{}-{}", std::process::id(), self.review_seq);
+        let staging = plugins_dir.join(format!("{}{tag}", install::STAGING_PREFIX));
+        let file = plugins_dir.join(format!("{}{tag}.mantaplugin", install::STAGING_PREFIX));
+        let tx = self.jobs_tx.clone();
+        let ctx = self.ctx.clone();
+        std::thread::spawn(move || {
+            let result = download_and_prepare(&entry, &plugins_dir, &file, &staging);
+            let _ = std::fs::remove_file(&file);
+            let _ = tx.send(Job::Downloaded {
+                id: entry.id,
+                result: result.map(Box::new),
+            });
+            ctx.request_repaint();
+        });
+    }
+
     /// Stop and delete an external plugin (files removed in the background).
     pub fn uninstall(&mut self, id: &str) {
         let Some(i) = self.slots.iter().position(|s| s.info.id == id) else {
@@ -2128,6 +2385,25 @@ impl PluginHost {
                     self.start(&id);
                 }
                 self.out.push(HostEvent::Installed { id, name, replaced });
+            }
+            Job::Registry(result) => {
+                self.discover.loading = false;
+                match result {
+                    Ok(f) => {
+                        self.discover.plugins = f.registry.plugins;
+                        self.discover.from_cache = f.from_cache;
+                        self.discover.fetched_at = f.fetched_at;
+                        self.discover.error = f.error;
+                    }
+                    Err(e) => self.discover.error = Some(e),
+                }
+            }
+            Job::Downloaded { id, result } => {
+                self.downloading.remove(&id);
+                match result {
+                    Ok(r) => self.handle_job(Job::Review(r)),
+                    Err(e) => self.handle_job(Job::InstallFailed(e)),
+                }
             }
             Job::Review(mut r) => {
                 r.installed_version = self
@@ -2207,6 +2483,70 @@ impl Drop for PluginHost {
                 }
             }
         }
+    }
+}
+
+/// Background part of [`PluginHost::install_from_registry`].
+fn download_and_prepare(
+    entry: &Entry,
+    plugins_dir: &Path,
+    file: &Path,
+    staging: &Path,
+) -> Result<PluginReview, String> {
+    std::fs::create_dir_all(plugins_dir).map_err(|e| e.to_string())?;
+    registry::download(&entry.latest.url, &entry.latest.sha256, file)?;
+    // Downloaded from the internet: quarantined like a browser download,
+    // removed only after the user confirms the trust sheet.
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    install::set_quarantine(file, format!("0083;{now:08x};Manta;").as_bytes());
+    let mut r = install::prepare(file, staging)?;
+    if r.id != entry.id || r.version != entry.latest.version {
+        if let Some(s) = &r.staging {
+            let _ = std::fs::remove_dir_all(s);
+        }
+        return Err(format!(
+            "the download doesn't match the plugin directory: its plugin.toml says {} {}, \
+             the directory says {} {}",
+            r.id, r.version, entry.id, entry.latest.version
+        ));
+    }
+    r.source = PathBuf::from(
+        entry
+            .latest
+            .url
+            .rsplit('/')
+            .next()
+            .filter(|n| !n.is_empty())
+            .unwrap_or("plugin.mantaplugin"),
+    );
+    r.verified_download = Some(entry.latest.url.clone());
+    Ok(r)
+}
+
+/// The permission an external plugin must declare to make `req`: reading
+/// files and listing folders through a pane's connection (`read_files`),
+/// renaming (`write_files`), typing into the built-in Terminal
+/// (`terminal`).
+pub fn required_permission(req: &HostRequest) -> Option<&'static str> {
+    match req {
+        HostRequest::ReadFile { .. } | HostRequest::ListDir { .. } => Some("read_files"),
+        HostRequest::RenameMany { .. } => Some("write_files"),
+        HostRequest::RunInTerminal { .. } => Some("terminal"),
+        _ => None,
+    }
+}
+
+/// The protocol name of a request [`required_permission`] checks.
+fn request_name(req: &HostRequest) -> &'static str {
+    match req {
+        HostRequest::ReadFile { .. } => "read_file",
+        HostRequest::ListDir { .. } => "list_dir",
+        HostRequest::RenameMany { .. } => "rename_many",
+        HostRequest::RunInTerminal { .. } => "run_in_terminal",
+        _ => "a request",
     }
 }
 
@@ -3331,6 +3671,247 @@ mod tests {
             matches!(&ev[0], HostEvent::InstallFailed { error } if error.contains(".mantaplugin")),
             "{ev:?}"
         );
+    }
+
+    /// A `.mantaplugin` with `ext/plugin.toml` (+ run.sh) of `version`.
+    fn ext_archive(version: &str) -> Vec<u8> {
+        use std::io::Write;
+        let mut z = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+        let opts = zip::write::SimpleFileOptions::default().unix_permissions(0o755);
+        z.start_file("ext/plugin.toml", opts).unwrap();
+        let manifest = MANIFEST
+            .replace("1.0", version)
+            .replace("[\"/bin/cat\"]", "[\"./run.sh\"]")
+            + "permissions = [\"read_files\"]\nauthor = \"Anna\"\n";
+        z.write_all(manifest.as_bytes()).unwrap();
+        z.start_file("ext/run.sh", opts).unwrap();
+        z.write_all(b"#!/bin/sh\ncat\n").unwrap();
+        z.finish().unwrap().into_inner()
+    }
+
+    fn sha(bytes: &[u8]) -> String {
+        use sha2::Digest;
+        sha2::Sha256::digest(bytes)
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect()
+    }
+
+    fn wait_registry(host: &mut PluginHost) {
+        for _ in 0..500 {
+            host.poll();
+            if !host.discover().loading {
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        panic!("the directory never arrived");
+    }
+
+    /// Discover: nothing is fetched until the tab is opened; installing
+    /// downloads, verifies the SHA-256 and goes through the usual review;
+    /// a newer version in the directory is offered as an update; the saved
+    /// copy is shown offline.
+    #[test]
+    fn installs_from_the_directory() {
+        use crate::registry::tests::{entry_json, registry_json, TestServer};
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = HostPaths::under(tmp.path());
+        let v1 = ext_archive("1.0.0");
+        let server = TestServer::start(vec![("/ext-1.0.0.mantaplugin", v1.clone())]);
+        let reg = |version: &str, sha: &str| {
+            registry_json(vec![entry_json(
+                "ext",
+                version,
+                &server.url(&format!("/ext-{version}.mantaplugin")),
+                sha,
+            )])
+        };
+        server.set("/registry.json", reg("1.0.0", &sha(&v1)));
+
+        let mut host = host_with(Vec::new(), tmp.path());
+        host.set_registry_url(server.url("/registry.json"));
+        host.poll();
+        std::thread::sleep(Duration::from_millis(50));
+        assert_eq!(
+            server.hits.load(std::sync::atomic::Ordering::SeqCst),
+            0,
+            "no network before Discover"
+        );
+        assert!(host.registry_rows().is_empty());
+
+        host.open_discover();
+        assert!(host.discover().loading && host.discover().requested);
+        wait_registry(&mut host);
+        host.open_discover(); // once per session
+        assert!(!host.discover().loading);
+        let rows = host.registry_rows();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(
+            (rows[0].name.as_str(), rows[0].installed_version.clone()),
+            ("Plugin ext", None)
+        );
+        assert!(!host.discover().from_cache && host.discover().error.is_none());
+
+        host.install_from_registry("ext");
+        assert!(host.registry_rows()[0].downloading);
+        let ev = wait_events(&mut host);
+        let HostEvent::InstallReview(r) = &ev[0] else {
+            panic!("{ev:?}")
+        };
+        assert_eq!((r.id.as_str(), r.version.as_str()), ("ext", "1.0.0"));
+        assert_eq!(r.source, PathBuf::from("ext-1.0.0.mantaplugin"));
+        assert!(r.verified_download.is_some());
+        if cfg!(target_os = "macos") {
+            assert!(r.quarantined, "downloads are quarantined until trusted");
+        }
+        assert!(!host.registry_rows()[0].downloading);
+        assert!(!paths.plugins_dir.join("ext").exists(), "review first");
+        let review = r.clone();
+        host.confirm_install(&review);
+        let ev = wait_events(&mut host);
+        assert!(
+            matches!(&ev[0], HostEvent::Installed { id, .. } if id == "ext"),
+            "{ev:?}"
+        );
+        assert_eq!(
+            host.registry_rows()[0].installed_version.as_deref(),
+            Some("1.0.0")
+        );
+        assert!(host.registry_update("ext").is_none());
+        let leftovers: Vec<_> = std::fs::read_dir(&paths.plugins_dir)
+            .unwrap()
+            .flatten()
+            .map(|e| e.file_name())
+            .collect();
+        assert_eq!(leftovers, ["ext"], "no downloads or staging left");
+
+        // A newer version in the directory.
+        let v2 = ext_archive("2.0.0");
+        server.set("/ext-2.0.0.mantaplugin", v2.clone());
+        server.set("/registry.json", reg("2.0.0", &sha(&v2)));
+        host.refresh_registry();
+        wait_registry(&mut host);
+        let up = host.registry_update("ext").expect("update offered");
+        assert_eq!(up.entry.latest.version, "2.0.0");
+        host.install_from_registry("ext");
+        let ev = wait_events(&mut host);
+        let HostEvent::InstallReview(r) = &ev[0] else {
+            panic!("{ev:?}")
+        };
+        assert_eq!(r.installed_version.as_deref(), Some("1.0.0"));
+        host.cancel_install(r);
+
+        // Offline next launch: the saved copy, no network needed.
+        drop(server);
+        let mut host = host_with(Vec::new(), tmp.path());
+        assert!(host.discover().from_cache);
+        assert!(
+            host.registry_update("ext").is_some(),
+            "updates from the saved copy"
+        );
+        host.set_registry_url("http://127.0.0.1:9/registry.json");
+        host.open_discover();
+        wait_registry(&mut host);
+        assert!(host.discover().from_cache && host.discover().error.is_some());
+        assert_eq!(host.registry_rows().len(), 1);
+    }
+
+    #[test]
+    fn directory_downloads_that_dont_match_are_refused() {
+        use crate::registry::tests::{entry_json, registry_json, TestServer};
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = HostPaths::under(tmp.path());
+        let v1 = ext_archive("1.0.0");
+        let server = TestServer::start(vec![("/ext.mantaplugin", v1.clone())]);
+        let url = server.url("/ext.mantaplugin");
+        let mut host = host_with(Vec::new(), tmp.path());
+        host.set_registry_url(server.url("/registry.json"));
+
+        // Wrong checksum: refused before anything is unpacked.
+        server.set(
+            "/registry.json",
+            registry_json(vec![entry_json("ext", "1.0.0", &url, &"ab".repeat(32))]),
+        );
+        host.refresh_registry();
+        wait_registry(&mut host);
+        host.install_from_registry("ext");
+        let ev = wait_events(&mut host);
+        assert!(
+            matches!(&ev[0], HostEvent::InstallFailed { error } if error.contains("SHA-256 mismatch")),
+            "{ev:?}"
+        );
+        // The archive is fine but isn't the version the directory names.
+        server.set(
+            "/registry.json",
+            registry_json(vec![entry_json("ext", "3.0.0", &url, &sha(&v1))]),
+        );
+        host.refresh_registry();
+        wait_registry(&mut host);
+        host.install_from_registry("ext");
+        let ev = wait_events(&mut host);
+        assert!(
+            matches!(&ev[0], HostEvent::InstallFailed { error } if error.contains("doesn't match")),
+            "{ev:?}"
+        );
+        let left = std::fs::read_dir(&paths.plugins_dir)
+            .map(|rd| rd.count())
+            .unwrap_or(0);
+        assert_eq!(left, 0, "nothing installed, nothing left behind");
+        assert!(!host.registry_rows()[0].downloading);
+    }
+
+    /// External plugins can't ask Manta for what their permissions don't
+    /// cover: the request is refused, logged and answered with an error.
+    #[test]
+    fn host_requests_need_the_declared_permission() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = HostPaths::under(tmp.path());
+        let dir = paths.plugins_dir.join("asker");
+        std::fs::create_dir_all(&dir).unwrap();
+        let script = r#"echo '{"type":"list_dir","pane":"left","dir":"/"}'
+echo '{"type":"run_in_terminal","command":"ls"}'
+while read -r line; do
+  case "$line" in *dir_listing*) echo "answer: $line" >&2 ;; esac
+done"#;
+        std::fs::write(
+            dir.join("plugin.toml"),
+            format!(
+                "id = \"asker\"\nname = \"Asker\"\nversion = \"1\"\napi_version = 1\n\
+                 command = [\"/bin/sh\", \"-c\", {}]\n",
+                toml::Value::String(script.into())
+            ),
+        )
+        .unwrap();
+        let mut host = host_with(Vec::new(), tmp.path());
+        host.set_enabled("asker", true);
+        let mut events = Vec::new();
+        for _ in 0..500 {
+            events.extend(host.poll());
+            let log = host.rows()[0].log.join("\n");
+            if log.contains("answer:") && log.contains("refused run_in_terminal") {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        let row = &host.rows()[0];
+        let log = row.log.join("\n");
+        assert!(
+            log.contains(
+                "refused list_dir: the plugin doesn't declare the \"read_files\" permission"
+            ),
+            "{log}"
+        );
+        assert!(log.contains("not allowed"), "answered with an error: {log}");
+        assert!(log.contains("refused run_in_terminal"), "{log}");
+        assert!(
+            !events
+                .iter()
+                .any(|e| matches!(e, HostEvent::ListDir { .. })),
+            "{events:?}"
+        );
+        assert!(row.sandbox.is_some());
+        host.shutdown(Duration::from_secs(2));
     }
 
     /// `--plugin-dev`: runs from its folder, trusted and on for the

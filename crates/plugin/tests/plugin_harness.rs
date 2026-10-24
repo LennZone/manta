@@ -127,3 +127,74 @@ fn community_registry_is_valid() {
         String::from_utf8_lossy(&out.stdout)
     );
 }
+
+/// scripts/plugin-pack.py packs a plugin folder into a .mantaplugin that
+/// Manta's installer accepts, always with the same SHA-256, and refuses a
+/// broken plugin.toml.
+#[test]
+fn plugin_pack_makes_an_installable_archive() {
+    if !has("python3", "--version") {
+        eprintln!("python3 not found, skipping");
+        return;
+    }
+    let tmp = tempfile::tempdir().unwrap();
+    let pack = |src: &Path, out: &Path| {
+        let o = Command::new("python3")
+            .arg("-B")
+            .arg(repo().join("scripts/plugin-pack.py"))
+            .arg(src)
+            .arg("-o")
+            .arg(out)
+            .env("NO_COLOR", "1")
+            .output()
+            .unwrap();
+        (
+            o.status.success(),
+            String::from_utf8_lossy(&o.stdout).to_string(),
+        )
+    };
+    let src = repo().join("examples/plugins/hello-shell");
+    let (ok, text) = pack(&src, &tmp.path().join("a"));
+    assert!(ok, "{text}");
+    let file = tmp.path().join("a/hello-shell-0.1.0.mantaplugin");
+    assert!(file.is_file(), "{text}");
+    let sha = manta_plugin::registry::sha256_file(&file).unwrap();
+    assert!(text.contains(&format!("sha256       {sha}")), "{text}");
+    assert!(text.contains("\"latest\""), "{text}");
+    // Reproducible.
+    let (ok, _) = pack(&src, &tmp.path().join("b"));
+    assert!(ok);
+    let again =
+        manta_plugin::registry::sha256_file(&tmp.path().join("b/hello-shell-0.1.0.mantaplugin"))
+            .unwrap();
+    assert_eq!(sha, again);
+    // Manta installs it (review step), executable bit kept.
+    let staging = tmp.path().join(".review-x");
+    let r = manta_plugin::install::prepare(&file, &staging).unwrap();
+    assert_eq!(
+        (r.id.as_str(), r.version.as_str()),
+        ("hello-shell", "0.1.0")
+    );
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mode = std::fs::metadata(r.root.join("main.sh"))
+            .unwrap()
+            .permissions()
+            .mode();
+        assert_ne!(mode & 0o100, 0);
+    }
+    // A broken manifest: nothing written.
+    let bad = tmp.path().join("bad");
+    std::fs::create_dir_all(&bad).unwrap();
+    std::fs::write(bad.join("plugin.toml"), "id = \"Bad Id\"\n").unwrap();
+    let (ok, text) = pack(&bad, &tmp.path().join("c"));
+    assert!(!ok, "{text}");
+    assert!(
+        !tmp.path().join("c").exists()
+            || std::fs::read_dir(tmp.path().join("c"))
+                .unwrap()
+                .next()
+                .is_none()
+    );
+}

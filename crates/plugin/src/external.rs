@@ -11,6 +11,11 @@
 //! - a **reader** that parses stdout lines and forwards them to the host;
 //! - a **stderr reader** that appends to `<data_dir>/plugin.log` and keeps
 //!   the last [`LOG_TAIL`] lines for Settings.
+//!
+//! The process runs in the macOS sandbox ([`crate::sandbox`]) that enforces
+//! the manifest's `permissions`; the generated profile is written to
+//! `<data_dir>/sandbox.sb`. Where the sandbox is unavailable the plugin
+//! runs without it and its log and Settings say so.
 
 use std::collections::{HashMap, VecDeque};
 use std::fs::File;
@@ -24,6 +29,7 @@ use std::time::{Duration, Instant};
 
 use crate::manifest::Manifest;
 use crate::protocol::{self, Block, HostMessage, LogLevel, Parsed, PluginMessage};
+use crate::sandbox::{self, SandboxState};
 use crate::{
     CommandSpec, HostRequest, PaneId, PaneState, PanelSpec, Plugin, PluginEvent, PluginHandle,
     PluginInfo, PluginStatus, ToastLevel,
@@ -68,6 +74,8 @@ struct Shared {
     pending: VecDeque<String>,
     /// Processes (of any run) that haven't exited yet.
     live: usize,
+    /// How the last process was started (`None`: not started yet).
+    sandbox: Option<SandboxState>,
 }
 
 impl Shared {
@@ -129,6 +137,7 @@ impl ExternalPlugin {
                 tx: None,
                 pending: VecDeque::new(),
                 live: 0,
+                sandbox: None,
             })),
             stop: None,
         }
@@ -144,6 +153,23 @@ impl ExternalPlugin {
 
     pub fn status(&self) -> PluginStatus {
         lock(&self.shared).status.clone()
+    }
+
+    /// Whether the plugin runs in the sandbox: as last started, or (before
+    /// its first start) as it would be.
+    pub fn sandbox(&self) -> SandboxState {
+        lock(&self.shared)
+            .sandbox
+            .clone()
+            .unwrap_or_else(|| match sandbox::available() {
+                Ok(()) => SandboxState::Enforced,
+                Err(e) => SandboxState::Unavailable(e),
+            })
+    }
+
+    /// Add a line to the plugin's log (`[manta] …` notes from the host).
+    pub fn note(&self, line: &str) {
+        lock(&self.shared).log(format!("[manta] {line}"));
     }
 
     /// The last lines of stderr and `log` messages.
@@ -399,19 +425,27 @@ fn child_path_var() -> std::ffi::OsString {
     std::env::join_paths(dirs).unwrap_or_default()
 }
 
-fn spawn(l: &Launch) -> std::io::Result<Child> {
-    let argv = &l.manifest.command;
-    let program = &argv[0];
-    // "./run.sh" or "bin/plugin": relative to the plugin folder.
-    let program: PathBuf = if program.contains('/') && !Path::new(program).is_absolute() {
-        l.dir.join(program)
-    } else {
-        PathBuf::from(program)
-    };
-    Command::new(program)
-        .args(&argv[1..])
+/// Start the plugin's process, in the sandbox when it is available.
+fn spawn(l: &Launch) -> std::io::Result<(Child, sandbox::Launch)> {
+    let path_var = child_path_var();
+    // "./run.sh" or "bin/plugin": relative to the plugin folder; a bare
+    // name is looked up on the child's PATH.
+    let mut launch = sandbox::command(
+        &l.manifest.command,
+        &l.dir,
+        &l.data_dir,
+        &l.manifest.permissions,
+        &path_var,
+        Path::new(sandbox::SANDBOX_EXEC),
+        sandbox::available(),
+    )?;
+    let cmd: &mut Command = &mut launch.command;
+    if launch.state == SandboxState::Enforced {
+        cmd.envs(sandbox::env(&l.data_dir));
+    }
+    let child = cmd
         .current_dir(&l.dir)
-        .env("PATH", child_path_var())
+        .env("PATH", &path_var)
         .env("MANTA_PLUGIN_ID", &l.manifest.id)
         .env("MANTA_PLUGIN_DATA_DIR", &l.data_dir)
         .env("MANTA_API_VERSION", protocol::PROTOCOL_VERSION.to_string())
@@ -421,7 +455,31 @@ fn spawn(l: &Launch) -> std::io::Result<Child> {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()
+        .spawn()?;
+    Ok((child, launch))
+}
+
+/// Log how the process was started and keep the profile next to the log.
+fn note_sandbox(s: &mut Shared, l: &Launch, launch: &sandbox::Launch) {
+    match &launch.state {
+        SandboxState::Enforced => {
+            let perms = if l.manifest.permissions.is_empty() {
+                "none".to_string()
+            } else {
+                l.manifest.permissions.join(", ")
+            };
+            s.log(format!(
+                "[manta] sandboxed: permissions enforced ({perms}); profile in sandbox.sb"
+            ));
+            if let Some(text) = &launch.profile {
+                let _ = std::fs::write(l.data_dir.join("sandbox.sb"), text);
+            }
+        }
+        SandboxState::Unavailable(why) => s.log(format!(
+            "[manta] WARNING: not sandboxed ({why}): the plugin runs with your user's rights"
+        )),
+    }
+    s.sandbox = Some(launch.state.clone());
 }
 
 fn open_log(data_dir: &Path) -> Option<File> {
@@ -495,7 +553,10 @@ fn supervise(
         }
         with(&mut |s| s.status = PluginStatus::Starting);
         let mut child = match spawn(&l) {
-            Ok(c) => c,
+            Ok((c, launch)) => {
+                with(&mut |s| note_sandbox(s, &l, &launch));
+                c
+            }
             Err(e) => {
                 let msg = if e.kind() == std::io::ErrorKind::NotFound {
                     format!("couldn't start “{program}”: program not found")

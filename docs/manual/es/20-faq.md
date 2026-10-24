@@ -92,4 +92,4 @@ Sí, con las **Acciones rápidas**: basta una entrada con un comando de shell en
 
 ### ¿Son seguros los plugins? {#plugins-sicher}
 
-Los plugins integrados forman parte de Manta. Los plugins externos se ejecutan con los permisos de tu usuario y sin sandbox: instala solo lo que sea de confianza. Consulta [Tus propios plugins](15-eigene-plugins.md#sicherheit).
+Los plugins integrados forman parte de Manta. Los plugins externos se ejecutan en un entorno aislado (sandbox) de macOS y solo pueden hacer lo que permiten sus permisos; aun así, instala solo lo que sea de confianza. Consulta [Tus propios plugins](15-eigene-plugins.md#sicherheit).

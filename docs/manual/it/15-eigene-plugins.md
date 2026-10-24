@@ -16,14 +16,14 @@ Un plug-in è una cartella con un file `plugin.toml` e un programma (ad esempio 
 ## Installare un plug-in {#installieren}
 
 1. Apri **Impostazioni** (**⌘,**) → **Plug-in**.
-2. Fai clic su **Installa plug-in…** e scegli **Da un file (.mantaplugin, .zip)…** o **Da una cartella…** (quella con `plugin.toml`).
-3. Prima di installare qualsiasi cosa, Manta mostra un riepilogo: nome, versione, autore, descrizione, **Cosa dichiara di fare** (ad esempio “Legge i tuoi file”, “Modifica o elimina file”, “Usa la rete”, “Esegue altri programmi”, “Esegue comandi nel Terminale”), il **Comando** eseguito, l’**Origine**, un link al **Codice sorgente**, la **Licenza** e la dimensione. Sotto, un avviso ricorda che Manta non controlla i plug-in.
+2. Fai clic su **Installa plug-in…** e scegli **Da un file (.mantaplugin, .zip)…** o **Da una cartella…** (quella con `plugin.toml`). Più rapido: fai **doppio clic** su un file `.mantaplugin` nel Finder oppure **trascinalo** sulla pagina Plug-in. I plug-in della directory della community si installano da [Scopri](#entdecken).
+3. Prima di installare qualsiasi cosa, Manta mostra un riepilogo: nome, versione, autore, descrizione, **Cosa può fare** (ad esempio “Legge i tuoi file”, “Modifica o elimina file”, “Usa la rete”, “Esegue altri programmi”, “Esegue comandi nel Terminale”), il **Comando** eseguito, l’**Origine**, un link al **Codice sorgente**, la **Licenza** e la dimensione. Sotto, un avviso ricorda che Manta non controlla i plug-in.
 4. Fai clic su **Installa**. Il plug-in viene quindi elencato sotto **Installati**, ancora disattivato.
 
 ![Riepilogo prima di installare un plug-in](images/plugin-install.png)
 
 > [!NOTE]
-> Ciò che un plug-in dichiara di fare è indicato dal suo autore. Manta non può verificarlo né imporlo.
+> I permessi sono dichiarati dall’autore del plug-in e Manta li **impone**: il plug-in viene eseguito in una sandbox di macOS e non può fare nient’altro (vedi [Sicurezza](#sicherheit)).
 
 ### Attivarlo {#einschalten}
 
@@ -37,17 +37,40 @@ Altri pulsanti sulla scheda di un plug-in: **Ricarica**, **Mostra log**, **Mostr
 
 ## Aggiornare e disinstallare {#aktualisieren}
 
-- **Aggiornare**: installa la nuova versione nello stesso modo, da un file o da una cartella. Se ha lo stesso id di un plug-in installato, il riepilogo indica un aggiornamento e mostra sotto **Installato** la versione che verrà sostituita. Dopo la conferma Manta sostituisce il plug-in e mantiene il suo stato attivo o disattivato.
+- **Aggiornare**: quando la directory dei plug-in ha una versione più recente, la scheda del plug-in mostra “La versione … è disponibile nella directory dei plug-in” con un pulsante **Aggiorna**. Oppure installa la nuova versione nello stesso modo, da un file o da una cartella. Se ha lo stesso id di un plug-in installato, il riepilogo indica un aggiornamento e mostra sotto **Installato** la versione che verrà sostituita. Dopo la conferma Manta sostituisce il plug-in e mantiene il suo stato attivo o disattivato.
 - **Disinstallare**: fai clic su **Disinstalla** sulla scheda del plug-in. Manta elimina la cartella del plug-in; la sua cartella dei dati viene mantenuta.
 
 ## Trovare plug-in {#entdecken}
 
-In **Impostazioni** → **Plug-in**, fai clic su **Sfoglia i plug-in** in alto a destra (o scegli **Sfoglia i plug-in…** nella palette dei comandi). Si apre l’elenco dei plug-in su [manta-filemanager.com/plugins](https://manta-filemanager.com/plugins/), con i plug-in integrati e quelli della community. Ogni voce ha un link al codice sorgente e un checksum SHA-256 del download. Scarica il file `.mantaplugin` e installalo come descritto [sopra](#installieren).
+In **Impostazioni** → **Plug-in**, fai clic su **Scopri** (o scegli **Sfoglia i plug-in…** nella palette dei comandi). Manta mostra i plug-in della directory della community: nome e descrizione nella tua lingua, autore, licenza, la versione di Manta richiesta, i permessi e un link al codice sorgente.
+
+1. Fai clic su **Installa** (o su **Aggiorna** per una versione più recente di un plug-in installato).
+2. Manta scarica il plug-in e confronta il suo checksum SHA-256 con quello della directory. Se non corrispondono, non viene installato nulla.
+3. Compare il consueto riepilogo (“Lo SHA-256 corrisponde alla directory dei plug-in”); prosegui come descritto [sopra](#installieren).
+
+I plug-in che richiedono una versione più recente di Manta o che non funzionano sul tuo Mac vengono mostrati, ma non si possono installare. **Sul web** apre la directory su [manta-filemanager.com/plugins](https://manta-filemanager.com/plugins/).
+
+> [!NOTE]
+> **Privacy:** Manta carica l’elenco da GitHub solo quando apri **Scopri** (una volta per sessione) o fai clic su **Aggiorna**, mai in background. Conserva l’ultimo elenco, così Scopri funziona anche offline e i plug-in installati possono proporre aggiornamenti senza collegarsi a Internet.
 
 ## Sicurezza {#sicherheit}
 
+I plug-in esterni vengono eseguiti in una **sandbox di macOS**: possono fare solo ciò che i loro permessi consentono. Senza permessi un plug-in può solo leggere la propria cartella e il sistema e scrivere nella propria cartella dei dati.
+
+| Permesso | Consente al plug-in di |
+|---|---|
+| Legge i tuoi file | leggere qualsiasi file |
+| Modifica o elimina file | scrivere, creare ed eliminare file ovunque |
+| Usa la rete | connettersi a Internet e alla tua rete |
+| Esegue altri programmi | avviare altri programmi (che restano nella sandbox) |
+| Esegue comandi nel Terminale | digitare comandi nel Terminale di Manta |
+
+Le stesse regole valgono per ciò che un plug-in chiede a Manta di fare per lui (leggere un file, elencare il contenuto di una cartella, rinominare file). La scheda del plug-in mostra **In sandbox**; il suo suggerimento elenca i permessi. I plug-in integrati fanno parte di Manta e non sono in sandbox.
+
+Se la sandbox non funziona sul tuo Mac, la scheda mostra **Senza sandbox** e il motivo, e il riepilogo avvisa che i permessi non possono essere imposti. In questo caso il plug-in viene eseguito con i permessi del tuo utente.
+
 > [!WARNING]
-> I plug-in esterni vengono eseguiti come programmi con **i permessi del tuo utente**: possono leggere, modificare ed eliminare i tuoi file, avviare altri programmi e inviare dati in rete. Manta non controlla i plug-in e non li isola in una sandbox, nemmeno quelli dell’elenco dei plug-in. Installa solo plug-in di cui ti fidi e leggi il codice dei plug-in presi da Internet prima di attivarli.
+> La sandbox non rende innocuo un plug-in: un plug-in che può leggere i tuoi file e usare la rete può inviare i tuoi file altrove. Manta non controlla i plug-in, nemmeno quelli della directory dei plug-in. Installa solo plug-in di cui ti fidi e leggi il codice dei plug-in presi da Internet prima di attivarli.
 
 Per questo Manta mostra un riepilogo prima dell’installazione, i nuovi plug-in partono disattivati e Manta chiede conferma la prima volta che ne attivi uno.
 
@@ -65,6 +88,8 @@ Per questo Manta mostra un riepilogo prima dell’installazione, i nuovi plug-in
 | Plug-in installati | `~/Library/Application Support/Manta/plugins/<id>/` |
 | Dati e log di un plug-in | `~/Library/Application Support/Manta/plugin-data/<id>/` (log: `plugin.log`) |
 | Stato attivo/disattivato | `~/Library/Application Support/Manta/plugins.json` |
+| Ultimo elenco della directory dei plug-in | `~/Library/Application Support/Manta/plugin-registry.json` |
+| Regole della sandbox di un plug-in | `~/Library/Application Support/Manta/plugin-data/<id>/sandbox.sb` |
 
 La disinstallazione elimina la cartella del plug-in; la sua cartella dei dati viene mantenuta.
 
@@ -83,10 +108,12 @@ I plug-in possono parlare tutte le lingue di Manta: Manta comunica loro la lingu
   `/Applications/Manta.app/Contents/MacOS/manta --plugin-dev ~/code/my-plugin`
   (ripetibile, oppure con la variabile d’ambiente `MANTA_PLUGIN_DEV=dir1:dir2`). Per questa sessione il plug-in viene eseguito direttamente da quella cartella: considerato affidabile, attivato e contrassegnato con **Sviluppo**. Nel frattempo una copia installata con lo stesso id si fa da parte; non viene salvato nulla.
 - **Provare senza Manta**: `python3 scripts/plugin-test.py percorso/del/plugin`.
+- **Creare il pacchetto**: `python3 scripts/plugin-pack.py percorso/del/plugin` crea il file `.mantaplugin` e mostra il suo checksum SHA-256 per la directory.
+- **Sandbox**: dichiara i permessi di cui il tuo plug-in ha bisogno; senza di essi non può farlo. Se qualcosa viene rifiutato, il log lo indica (`refused …`).
 - **Log**: **Mostra log** sulla scheda, oppure il file `~/Library/Application Support/Manta/plugin-data/<id>/plugin.log`.
 
 Per saperne di più: [Develop and debug (docs/plugins.md, in inglese)](../../plugins.md#develop-and-debug).
 
 ## Pubblicare un plug-in {#veroeffentlichen}
 
-Metti il plug-in in un repository pubblico con una licenza approvata dall’OSI, allega un file `.mantaplugin` a una release e apri una pull request che lo aggiunga a `plugins/registry.json`. Comparirà poi in **Sfoglia i plug-in**. Dettagli: [Publishing a plugin (docs/plugins.md, in inglese)](../../plugins.md#publishing-a-plugin).
+Metti il plug-in in un repository pubblico con una licenza approvata dall’OSI, allega un file `.mantaplugin` a una release e apri una pull request che lo aggiunga a `plugins/registry.json`. Comparirà poi in **Scopri**. Dettagli: [Publishing a plugin (docs/plugins.md, in inglese)](../../plugins.md#publishing-a-plugin).

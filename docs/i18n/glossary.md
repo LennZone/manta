@@ -494,10 +494,9 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `plugins.file_filter` | Manta plugins | Manta-Plugins | Manta 插件 | Plugins de Manta | Plug-ins Manta | Plug-in di Manta | Плагины Manta |
 | `plugins.install_from_file` | From a File (.mantaplugin, .zip)… | Aus einer Datei (.mantaplugin, .zip) … | 从文件安装（.mantaplugin、.zip）… | Desde un archivo (.mantaplugin, .zip)… | À partir d’un fichier (.mantaplugin, .zip)… | Da un file (.mantaplugin, .zip)… | Из файла (.mantaplugin, .zip)… |
 | `plugins.install_from_folder` | From a Folder… | Aus einem Ordner … | 从文件夹安装… | Desde una carpeta… | À partir d’un dossier… | Da una cartella… | Из папки… |
-| `plugins.browse` | Browse Plugins | Plugins entdecken | 浏览插件 | Explorar plugins | Parcourir les plug-ins | Sfoglia i plug-in | Каталог плагинов |
 | `plugins.kind.dev` | Development | Entwicklung | 开发 | Desarrollo | Développement | Sviluppo | Разработка |
-| `plugins.review.permissions` | What it says it does | Was es laut Entwickler tut | 插件声明的权限 | Lo que declara que hace | Ce qu’il déclare faire | Cosa dichiara di fare | Что плагин заявляет о себе |
-| `plugins.review.no_permissions` | No permissions declared | Keine Berechtigungen angegeben | 未声明任何权限 | No declara permisos | Aucune autorisation déclarée | Nessun permesso dichiarato | Разрешения не указаны |
+| `plugins.review.permissions` | What it may do | Was es darf | 允许的操作 | Lo que puede hacer | Ce qu’il peut faire | Cosa può fare | Что ему разрешено |
+| `plugins.review.no_permissions` | Nothing beyond its own folder and data | Nichts außer dem eigenen Ordner und den eigenen Daten | 仅限其自身的文件夹和数据 | Nada más allá de su propia carpeta y sus datos | Rien au-delà de son propre dossier et de ses données | Nient’altro che la propria cartella e i propri dati | Ничего, кроме собственной папки и данных |
 | `plugins.perm.read_files` | Reads your files | Liest deine Dateien | 读取你的文件 | Lee tus archivos | Lit vos fichiers | Legge i tuoi file | Читает ваши файлы |
 | `plugins.perm.write_files` | Changes or deletes files | Ändert oder löscht Dateien | 更改或删除文件 | Modifica o elimina archivos | Modifie ou supprime des fichiers | Modifica o elimina file | Изменяет или удаляет файлы |
 | `plugins.perm.network` | Uses the network | Greift auf das Netzwerk zu | 使用网络 | Usa la red | Utilise le réseau | Usa la rete | Использует сеть |
@@ -513,6 +512,22 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `plugins.review.size.other` | {count} files, {size} | {count} Dateien, {size} | {count} 个文件，{size} | {count} archivos, {size} | {count} fichiers, {size} | {size} in {count} file | {count} файла, {size} |
 | `plugins.review.installed` | Installed | Installiert | 已安装 | Instalado | Installé | Installato | Установлено |
 | `plugins.review.replaces` | Version {version} (will be replaced) | Version {version} (wird ersetzt) | 版本 {version}（将被替换） | Versión {version} (se reemplazará) | Version {version} (sera remplacée) | Versione {version} (verrà sostituita) | Версия {version} (будет заменена) |
+| `plugins.page.installed` | Installed | Installiert | 已安装 | Instalados | Installés | Installati | Установленные |
+| `plugins.page.discover` | Discover | Entdecken | 发现 | Descubrir | Découvrir | Scopri | Обзор |
+| `plugins.discover.refresh` | Refresh | Aktualisieren | 刷新 | Actualizar | Actualiser | Aggiorna | Обновить |
+| `plugins.discover.web` | On the Web | Im Web | 在网页上查看 | En la web | Sur le web | Sul web | В интернете |
+| `plugins.discover.loading` | Loading the plugin directory… | Plugin-Verzeichnis wird geladen … | 正在载入插件目录… | Cargando el directorio de plugins… | Chargement de l’annuaire des plug-ins… | Caricamento della directory dei plug-in… | Загрузка каталога плагинов… |
+| `plugins.discover.failed` | Couldn't load the plugin directory | Das Plugin-Verzeichnis konnte nicht geladen werden | 无法载入插件目录 | No se pudo cargar el directorio de plugins | Impossible de charger l’annuaire des plug-ins | Impossibile caricare la directory dei plug-in | Не удалось загрузить каталог плагинов |
+| `plugins.discover.empty` | No community plugins yet | Noch keine Community-Plugins | 暂无社区插件 | Aún no hay plugins de la comunidad | Aucun plug-in de la communauté pour l’instant | Ancora nessun plug-in della community | Плагинов сообщества пока нет |
+| `plugins.discover.min_version` | Manta {version} or newer | ab Manta {version} | Manta {version} 及以上 | Manta {version} o posterior | Manta {version} ou ultérieur | Manta {version} o successiva | Manta {version} и новее |
+| `plugins.discover.installed_version` | Installed: version {version} | Installiert: Version {version} | 已安装：版本 {version} | Instalado: versión {version} | Installé : version {version} | Installato: versione {version} | Установлено: версия {version} |
+| `plugins.discover.needs_manta` | Needs Manta {version} or newer | Benötigt Manta {version} oder neuer | 需要 Manta {version} 或更高版本 | Requiere Manta {version} o posterior | Nécessite Manta {version} ou ultérieur | Richiede Manta {version} o successiva | Требуется Manta {version} или новее |
+| `plugins.discover.wrong_platform` | Doesn't run on this Mac | Läuft nicht auf diesem Mac | 无法在此 Mac 上运行 | No funciona en este Mac | Ne fonctionne pas sur ce Mac | Non funziona su questo Mac | Не работает на этом Mac |
+| `plugins.discover.downloading` | Downloading… | Wird geladen … | 正在下载… | Descargando… | Téléchargement… | Download in corso… | Загрузка… |
+| `plugins.review.checksum` | Checksum | Prüfsumme | 校验和 | Suma de control | Somme de contrôle | Somma di controllo | Контрольная сумма |
+| `plugins.review.checksum_ok` | SHA-256 matches the plugin directory | SHA-256 stimmt mit dem Plugin-Verzeichnis überein | SHA-256 与插件目录一致 | El SHA-256 coincide con el directorio de plugins | Le SHA-256 correspond à l’annuaire des plug-ins | Lo SHA-256 corrisponde alla directory dei plug-in | SHA-256 совпадает с каталогом плагинов |
+| `plugins.sandboxed` | Sandboxed | Sandbox | 沙盒 | Aislado | Isolé | In sandbox | В песочнице |
+| `plugins.not_sandboxed` | Not sandboxed | Ohne Sandbox | 未使用沙盒 | Sin aislar | Non isolé | Senza sandbox | Без песочницы |
 | `plugin_ui.close_panel` | Close {title} | {title} schließen | 关闭“{title}” | Cerrar {title} | Fermer {title} | Chiudi {title} | Закрыть «{title}» |
 | `plugin_ui.drag_resize` | Drag to resize | Zum Ändern der Größe ziehen | 拖移以调整大小 | Arrastra para cambiar el tamaño | Faites glisser pour redimensionner | Trascina per ridimensionare | Перетащите, чтобы изменить размер |
 | `plugin_ui.image.too_large` | too large to preview ({size} MB) | zu groß für die Vorschau ({size} MB) | 太大，无法预览（{size} MB） | demasiado grande para previsualizar ({size} MB) | trop volumineux pour l’aperçu ({size} Mo) | troppo grande per l’anteprima ({size} MB) | слишком большой для просмотра ({size} МБ) |

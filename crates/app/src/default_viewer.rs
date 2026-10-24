@@ -386,6 +386,15 @@ pub struct OpenRequest {
     pub paths: Vec<PathBuf>,
 }
 
+/// A Manta plugin file (`.mantaplugin`): opening it installs it instead of
+/// showing its folder.
+pub fn is_plugin_file(p: &Path) -> bool {
+    p.extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| e.eq_ignore_ascii_case("mantaplugin"))
+        && !p.is_dir()
+}
+
 /// One tab to show: `dir` with `select` (names in it) selected.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OpenPlan {

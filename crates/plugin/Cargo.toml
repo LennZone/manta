@@ -17,6 +17,9 @@ base64 = "0.22"
 zip.workspace = true
 # macOS quarantine attribute (install.rs).
 libc = "0.2"
+# The community directory (registry.rs): same HTTP stack and hash as the updater.
+ureq = { version = "3.4", default-features = false, features = ["rustls"] }
+sha2 = "0.10"
 
 [dev-dependencies]
 tempfile.workspace = true
