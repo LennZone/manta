@@ -79,6 +79,7 @@ const ENTRIES: Entries = &[
     ("term.verb.trash", "move to Trash", "in den Papierkorb legen"),
     ("term.verb.rename", "rename", "umbenennen"),
     ("term.verb.mkdir", "mkdir", "neuer Ordner"),
+    ("term.verb.touch", "touch", "neue Datei"),
     ("term.verb.open", "open", "öffnen"),
     ("term.verb.connect", "connect", "verbinden"),
     ("term.verb.disconnect", "disconnect", "trennen"),

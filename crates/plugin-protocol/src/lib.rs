@@ -349,6 +349,7 @@ pub enum FileActionKind {
     Trash,
     Rename,
     NewFolder,
+    NewFile,
     Open,
     Connect,
     Disconnect,

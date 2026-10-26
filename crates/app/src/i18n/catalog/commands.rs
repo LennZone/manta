@@ -27,6 +27,7 @@ pub const ENTRIES: Entries = &[
     ),
     ("cmd.rename", "Rename…", "Umbenennen …"),
     ("cmd.new_folder", "New Folder…", "Neuer Ordner …"),
+    ("cmd.new_file", "New File…", "Neue Datei …"),
     (
         "cmd.move_to_trash",
         "Move to Trash",
@@ -174,6 +175,11 @@ pub const ENTRIES: Entries = &[
         "cmd.kw.new_folder",
         "create directory mkdir",
         "create directory mkdir erstellen verzeichnis anlegen",
+    ),
+    (
+        "cmd.kw.new_file",
+        "create empty file touch text",
+        "create empty file touch text erstellen leere datei anlegen textdatei",
     ),
     (
         "cmd.kw.move_to_trash",

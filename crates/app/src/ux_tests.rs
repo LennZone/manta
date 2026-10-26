@@ -2087,6 +2087,37 @@ fn names_in(dir: &Path) -> Vec<String> {
     v
 }
 
+/// ⌥⌘N (File menu and both context menus) asks for a name, creates an
+/// empty file and selects it; a taken name is refused in the dialog.
+#[test]
+fn new_file_creates_an_empty_file_and_selects_it() {
+    let fx = fixture();
+    let mut h = harness(&fx, WIDE, Theme::Light);
+    h.key_press_modifiers(
+        egui::Modifiers::COMMAND | egui::Modifiers::ALT,
+        egui::Key::N,
+    );
+    h.run_steps(2);
+    let Some(Dialog::Name(f)) = &mut app(&mut h).dialog else {
+        panic!("⌥⌘N opens the name dialog");
+    };
+    assert!(f.new_file && f.original.is_none());
+    assert_eq!(f.name, "untitled.txt");
+    f.name = "README.md".into();
+    assert!(f.validated().is_err(), "an existing name is refused");
+    f.name = "todo.md".into();
+    h.key_press(egui::Key::Enter);
+    wait_until(&mut h, "the new file selected", |h| {
+        app(h)
+            .pane(Side::Left)
+            .tab()
+            .cursor_entry()
+            .is_some_and(|e| e.name == "todo.md")
+    });
+    assert!(app(&mut h).dialog.is_none());
+    assert_eq!(std::fs::metadata(fx.root.join("todo.md")).unwrap().len(), 0);
+}
+
 #[test]
 fn batch_rename_renames_and_undoes_on_local_fs() {
     use manta_plugin::{FileActionKind, FileActionPhase};

@@ -451,8 +451,8 @@ failed or cancelled); jobs resumed after a restart send no events.
 |---|---|
 | `id` | unique per app run; the same for start and finish |
 | `pane` | the pane the action started in (drag & drop: the pane dragged from) |
-| `kind` | `copy`, `move`, `delete` (permanent), `trash` (local items moved to the macOS Trash, ⌘⌫), `rename`, `new_folder`, `open`, `connect`, `disconnect`, `sync`, `compress`, `extract` |
-| `sources` | absolute paths in the source backend (`rename`: the old path; `new_folder`: the new folder; `connect`: the folder opened; `sync`: the source folder) |
+| `kind` | `copy`, `move`, `delete` (permanent), `trash` (local items moved to the macOS Trash, ⌘⌫), `rename`, `new_folder`, `new_file`, `open`, `connect`, `disconnect`, `sync`, `compress`, `extract` |
+| `sources` | absolute paths in the source backend (`rename`: the old path; `new_folder`: the new folder; `new_file`: the new empty file; `connect`: the folder opened; `sync`: the source folder) |
 | `destination` | `copy`/`move`: the target folder; `rename`: the new path; `sync`: the target folder; else `null` |
 | `src_local`, `dst_local` | the backend is the local file system (paths are OS paths) |
 | `src_label`, `dst_label` | e.g. `"Local"` or `"deploy@web-01 (SFTP)"` |

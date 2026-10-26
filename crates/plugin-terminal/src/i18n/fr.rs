@@ -57,6 +57,7 @@ pub const ENTRIES: Translations = &[
     ("term.verb.trash", "placer dans la corbeille"),
     ("term.verb.rename", "renommer"),
     ("term.verb.mkdir", "nouveau dossier"),
+    ("term.verb.touch", "nouveau fichier"),
     ("term.verb.open", "ouvrir"),
     ("term.verb.connect", "se connecter"),
     ("term.verb.disconnect", "se déconnecter"),

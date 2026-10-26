@@ -164,11 +164,15 @@ fn open_archive_breadcrumb_up_history_and_read_only() {
     settle(&mut h);
     assert!(app(&mut h).pane(Side::Left).tab().loc.archive.is_some());
 
-    // Read-only: no new folder, rename or delete dialogs.
+    // Read-only: no new folder, new file, rename or delete dialogs.
     app(&mut h).toasts.clear();
     select(&mut h, Side::Left, &["robots.txt"]);
     h.key_press_modifiers(
         egui::Modifiers::COMMAND | egui::Modifiers::SHIFT,
+        egui::Key::N,
+    );
+    h.key_press_modifiers(
+        egui::Modifiers::COMMAND | egui::Modifiers::ALT,
         egui::Key::N,
     );
     h.key_press(egui::Key::F2);
@@ -177,6 +181,7 @@ fn open_archive_breadcrumb_up_history_and_read_only() {
     assert!(app(&mut h).dialog.is_none());
     let t = toast_titles(&mut h);
     assert!(t.iter().any(|t| t.contains("create folders")), "{t:?}");
+    assert!(t.iter().any(|t| t.contains("create files")), "{t:?}");
     assert!(t.iter().any(|t| t.contains("rename")), "{t:?}");
     assert!(t.iter().any(|t| t.contains("delete")), "{t:?}");
 

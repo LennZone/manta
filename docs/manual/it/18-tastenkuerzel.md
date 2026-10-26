@@ -82,6 +82,7 @@ Le scorciatoie agiscono sul pannello attivo. Vedi [Viste](03-ansichten.md).
 | F2 | Rinomina… (più elementi: rinomina in blocco) |
 | ⇧⌘R | Rinomina in blocco… |
 | ⇧⌘N | Nuova cartella… |
+| ⌥⌘N | Nuovo file… |
 | ⌘⌫ o ⌦ | Sposta nel Cestino (sui server: elimina definitivamente dopo una conferma, vedi [Eliminare](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Elimina immediatamente… (definitivo, dopo una conferma) |
 | ⇧⌘⌫ | Svuota il Cestino… (dopo una conferma, vedi [Cestino](07-favoriten-seitenleiste.md#papierkorb)) |

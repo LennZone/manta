@@ -3577,6 +3577,13 @@ pub(crate) fn context_menu(
         actions,
         Action::NewFolder(side),
     );
+    menu_item_ro(
+        ui,
+        Cmd::NewFile,
+        m.read_only,
+        actions,
+        Action::NewFile(side),
+    );
     if m.container_shell {
         menu_item(
             ui,
@@ -3651,6 +3658,7 @@ pub(crate) fn background_menu(
         actions,
         Action::NewFolder(side),
     );
+    menu_item_ro(ui, Cmd::NewFile, read_only, actions, Action::NewFile(side));
     menu_item(ui, Cmd::Refresh, true, actions, Action::Refresh(side));
     if m.archive {
         menu_item(

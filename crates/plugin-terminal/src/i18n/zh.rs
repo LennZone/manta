@@ -57,6 +57,7 @@ pub const ENTRIES: Translations = &[
     ("term.verb.trash", "移到废纸篓"),
     ("term.verb.rename", "重新命名"),
     ("term.verb.mkdir", "新建文件夹"),
+    ("term.verb.touch", "新建文件"),
     ("term.verb.open", "打开"),
     ("term.verb.connect", "连接"),
     ("term.verb.disconnect", "断开连接"),

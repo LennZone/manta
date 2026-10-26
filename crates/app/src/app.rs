@@ -129,6 +129,8 @@ pub enum Action {
     CopyToOther(Side, bool),
     Rename(Side),
     NewFolder(Side),
+    /// An empty file in the pane's folder (asks for the name).
+    NewFile(Side),
     /// ⌘⌫: local items to the Trash; elsewhere a permanent delete (asks).
     Delete(Side),
     /// ⌥⌘⌫: delete permanently (asks).
@@ -565,6 +567,18 @@ pub(crate) fn can_trash(fs: &SharedVfs) -> bool {
     fs.protocol() == manta_core::Protocol::Local
         && !fs.is_read_only()
         && fs.local_path(&VfsPath::root()).is_some()
+}
+
+/// "New File": an empty file at `path`. `open_write` truncates, so a file
+/// that appeared since the folder was listed is left alone.
+fn create_empty_file(fs: &dyn manta_core::Vfs, path: &VfsPath) -> manta_core::VfsResult<()> {
+    if fs.stat(path).is_ok() {
+        return Err(manta_core::VfsError::AlreadyExists(path.to_string()));
+    }
+    let mut w = fs.open_write(path)?;
+    // Uploading backends (S3, Drive, WebDAV) commit on flush.
+    std::io::Write::flush(&mut w)?;
+    Ok(())
 }
 
 fn local_vfs_path(p: &std::path::Path) -> VfsPath {
@@ -2422,7 +2436,9 @@ impl MantaApp {
             Action::CancelArchiveOpen(side) => self.cancel_archive_open(side),
             Action::Up(side) if self.pane(side).tab().in_search() => self.reveal_result(side),
             Action::Back(side) if self.pane(side).tab().in_search() => self.end_search(side),
-            Action::NewFolder(side) if self.pane(side).tab().in_search() => {
+            Action::NewFolder(side) | Action::NewFile(side)
+                if self.pane(side).tab().in_search() =>
+            {
                 self.set_info(t!("search.not_here"));
             }
             Action::Up(side) if self.leave_archive(side) => {}
@@ -2545,6 +2561,7 @@ impl MantaApp {
             } => self.drop_external(to, dir, paths, mv, from_self),
             Action::Rename(side) if self.refuse_read_only(side, ReadOnlyOp::Rename) => {}
             Action::NewFolder(side) if self.refuse_read_only(side, ReadOnlyOp::NewFolder) => {}
+            Action::NewFile(side) if self.refuse_read_only(side, ReadOnlyOp::NewFile) => {}
             Action::Delete(side) | Action::DeletePermanently(side)
                 if self.refuse_read_only(side, ReadOnlyOp::Delete) => {}
             Action::Rename(side) => {
@@ -2608,6 +2625,13 @@ impl MantaApp {
                     None,
                     existing,
                 );
+                self.dialog = Some(Dialog::Name(form));
+            }
+            Action::NewFile(side) => {
+                let tab = self.pane(side).tab();
+                let existing = tab.entries.iter().map(|e| e.name.clone()).collect();
+                let form =
+                    NameForm::new_file(tab.id, tab.loc.fs.clone(), tab.loc.path.clone(), existing);
                 self.dialog = Some(Dialog::Name(form));
             }
             Action::Delete(side) | Action::DeletePermanently(side) => {
@@ -3304,6 +3328,7 @@ impl MantaApp {
             Cmd::MoveToOther => Action::CopyToOther(side, true),
             Cmd::Rename => Action::Rename(side),
             Cmd::NewFolder => Action::NewFolder(side),
+            Cmd::NewFile => Action::NewFile(side),
             Cmd::MoveToTrash => Action::Delete(side),
             Cmd::DeletePermanently => Action::DeletePermanently(side),
             Cmd::EmptyTrash => Action::EmptyTrash,
@@ -3398,7 +3423,7 @@ impl MantaApp {
             Cmd::Open | Cmd::CopyToOther | Cmd::OpenWithApp | Cmd::GetInfo => has_sel,
             Cmd::MoveToOther | Cmd::MoveToTrash | Cmd::DeletePermanently => has_sel && !ro,
             Cmd::EmptyTrash => self.trash.dir.is_some() && self.trash.status.full() != Some(false),
-            Cmd::NewFolder => !ro,
+            Cmd::NewFolder | Cmd::NewFile => !ro,
             Cmd::Compress => has_sel && !ro,
             // Asked for every menu item every frame: no copies of the
             // selection (it may be 300,000 items).
@@ -4314,6 +4339,28 @@ impl MantaApp {
                     let refresh = vec![(fs.clone(), dir.clone())];
                     let side = self.side_of_tab(f.tab_id);
                     match f.original {
+                        None if f.new_file => {
+                            let a = self.new_action(
+                                side,
+                                FileActionKind::NewFile,
+                                &fs,
+                                vec![target.clone()],
+                                None,
+                            );
+                            let action = Some(self.start_action(a));
+                            self.worker.spawn(
+                                "touch",
+                                move || create_empty_file(&*fs, &target).map_err(|e| e.to_string()),
+                                move |result| WorkResult::FileOp {
+                                    description: t!("status.created_file", name = name),
+                                    failure: t!("error.create_file", name = name),
+                                    refresh,
+                                    select,
+                                    action,
+                                    result,
+                                },
+                            );
+                        }
                         None => {
                             let a = self.new_action(
                                 side,
@@ -5600,6 +5647,9 @@ impl MantaApp {
         // Most specific modifier combinations first (see `consume_key` docs).
         if key(cmd_shift, Key::N) {
             actions.push(Action::NewFolder(side));
+        }
+        if key(Modifiers::COMMAND | Modifiers::ALT, Key::N) {
+            actions.push(Action::NewFile(side));
         }
         if key(cmd_shift, Key::S) {
             actions.push(Action::ShowSync);

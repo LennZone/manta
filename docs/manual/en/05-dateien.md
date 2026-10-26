@@ -212,6 +212,11 @@ Manta checks the name right away: it must not be empty, contain "/" or already e
 1. Press **⇧⌘N** (**New Folder…**).
 2. Type a name ("untitled folder" is suggested) and click **Create**.
 
+## New file {#neue-datei}
+
+1. Press **⌥⌘N** (**New File…**), or choose **New File…** in the **File** menu or in the context menu of a pane.
+2. Type a name ("untitled.txt" is suggested) and click **Create**. Manta creates an empty file and selects it.
+
 ## Delete {#loeschen}
 
 Manta deletes like Finder:

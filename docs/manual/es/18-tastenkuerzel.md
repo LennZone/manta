@@ -82,6 +82,7 @@ Los atajos actúan sobre el panel activo. Consulta [Visualizaciones](03-ansichte
 | F2 | Renombrar… (varios ítems: renombrar en lote) |
 | ⇧⌘R | Renombrar en lote… |
 | ⇧⌘N | Nueva carpeta… |
+| ⌥⌘N | Nuevo archivo… |
 | ⌘⌫ o ⌦ | Trasladar a la papelera (en servidores: eliminar definitivamente tras preguntar; consulta [Eliminar](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Eliminar inmediatamente… (definitivo, tras preguntar) |
 | ⇧⌘⌫ | Vaciar papelera… (tras preguntar; consulta [Papelera](07-favoriten-seitenleiste.md#papierkorb)) |

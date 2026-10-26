@@ -2668,13 +2668,15 @@ impl WhatsNewForm {
     }
 }
 
-/// Used for both "New Folder" and "Rename".
+/// Used for "New Folder", "New File" and "Rename".
 pub struct NameForm {
     pub tab_id: u64,
     pub fs: SharedVfs,
     pub dir: VfsPath,
-    /// `Some(old name)` for rename, `None` for new folder.
+    /// `Some(old name)` for rename, `None` for new folder / new file.
     pub original: Option<String>,
+    /// With `original: None`: create an empty file instead of a folder.
+    pub new_file: bool,
     pub name: String,
     /// Names already present in `dir` (for collision checks).
     pub existing: Vec<String>,
@@ -2701,8 +2703,19 @@ impl NameForm {
             original,
             name,
             existing,
+            new_file: false,
             error: None,
             focus_requested: false,
+        }
+    }
+
+    /// The "New File" dialog: an empty file named in `dir`.
+    pub fn new_file(tab_id: u64, fs: SharedVfs, dir: VfsPath, existing: Vec<String>) -> Self {
+        let name = util::unique_name(&existing, t!("dialog.new_file.default_name"));
+        NameForm {
+            name,
+            new_file: true,
+            ..NameForm::new(tab_id, fs, dir, None, existing)
         }
     }
 
@@ -2724,6 +2737,11 @@ impl NameForm {
                 t!("dialog.rename.title", name = o),
                 t!("dialog.rename.button"),
                 icons::PENCIL_SIMPLE,
+            ),
+            None if self.new_file => (
+                t!("dialog.new_file.title").to_string(),
+                t!("dialog.new_file.button"),
+                icons::FILE_PLUS,
             ),
             None => (
                 t!("dialog.new_folder.title").to_string(),
@@ -2750,6 +2768,8 @@ impl NameForm {
             )
             .accessible_name(if self.original.is_some() {
                 t!("dialog.rename.field")
+            } else if self.new_file {
+                t!("dialog.new_file.field")
             } else {
                 t!("dialog.new_folder.field")
             });
@@ -2757,7 +2777,9 @@ impl NameForm {
                 resp.request_focus();
                 // Select the stem (without extension) like Finder does.
                 let stem_len = match self.name.rfind('.') {
-                    Some(i) if i > 0 && self.original.is_some() => self.name[..i].chars().count(),
+                    Some(i) if i > 0 && (self.original.is_some() || self.new_file) => {
+                        self.name[..i].chars().count()
+                    }
                     _ => self.name.chars().count(),
                 };
                 if let Some(mut state) = egui::TextEdit::load_state(ui.ctx(), resp.id) {

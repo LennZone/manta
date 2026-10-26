@@ -82,6 +82,7 @@ The shortcuts act on the active pane. See [Views](03-ansichten.md).
 | F2 | Rename… (several items: batch rename) |
 | ⇧⌘R | Batch Rename… |
 | ⇧⌘N | New Folder… |
+| ⌥⌘N | New File… |
 | ⌘⌫ or ⌦ | Move to Trash (on servers: delete permanently after asking, see [Delete](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Delete Immediately… (permanent, after asking) |
 | ⇧⌘⌫ | Empty Trash… (after asking, see [Trash](07-favoriten-seitenleiste.md#papierkorb)) |

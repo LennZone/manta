@@ -41,6 +41,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `cmd.move_to_other` | Move to Other Pane… | In anderen Bereich bewegen … | 移到另一个面板… | Mover al otro panel… | Déplacer dans l’autre sous-fenêtre… | Sposta nell’altro pannello… | Переместить в другую панель… |
 | `cmd.rename` | Rename… | Umbenennen … | 重新命名… | Renombrar… | Renommer… | Rinomina… | Переименовать… |
 | `cmd.new_folder` | New Folder… | Neuer Ordner … | 新建文件夹… | Nueva carpeta… | Nouveau dossier… | Nuova cartella… | Новая папка… |
+| `cmd.new_file` | New File… | Neue Datei … | 新建文件… | Nuevo archivo… | Nouveau fichier… | Nuovo file… | Новый файл… |
 | `cmd.move_to_trash` | Move to Trash | In den Papierkorb legen | 移到废纸篓 | Trasladar a la papelera | Placer dans la corbeille | Sposta nel Cestino | Переместить в Корзину |
 | `cmd.delete_permanently` | Delete Immediately… | Sofort löschen … | 立即删除… | Eliminar inmediatamente… | Supprimer immédiatement… | Elimina immediatamente… | Удалить немедленно… |
 | `cmd.empty_trash` | Empty Trash… | Papierkorb entleeren … | 清倒废纸篓… | Vaciar papelera… | Vider la corbeille… | Svuota il Cestino… | Очистить Корзину… |
@@ -138,6 +139,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `palette.cat.help` | Help | Hilfe | 帮助 | Ayuda | Aide | Aiuto | Справка |
 | `archive.cant_rename` | Can't rename items in “{name}” | In „{name}“ können keine Objekte umbenannt werden | 无法重新命名“{name}”中的项目 | No se pueden renombrar ítems en “{name}” | Impossible de renommer des éléments dans « {name} » | Impossibile rinominare elementi in “{name}” | Нельзя переименовывать объекты в «{name}» |
 | `archive.cant_new_folder` | Can't create folders in “{name}” | In „{name}“ können keine Ordner erstellt werden | 无法在“{name}”中创建文件夹 | No se pueden crear carpetas en “{name}” | Impossible de créer des dossiers dans « {name} » | Impossibile creare cartelle in “{name}” | Нельзя создавать папки в «{name}» |
+| `archive.cant_new_file` | Can't create files in “{name}” | In „{name}“ können keine Dateien erstellt werden | 无法在“{name}”中创建文件 | No se pueden crear archivos en “{name}” | Impossible de créer des fichiers dans « {name} » | Impossibile creare file in “{name}” | Нельзя создавать файлы в «{name}» |
 | `archive.cant_delete` | Can't delete items in “{name}” | In „{name}“ können keine Objekte gelöscht werden | 无法删除“{name}”中的项目 | No se pueden eliminar ítems en “{name}” | Impossible de supprimer des éléments dans « {name} » | Impossibile eliminare elementi in “{name}” | Нельзя удалять объекты в «{name}» |
 | `archive.cant_paste` | Can't paste or copy items in “{name}” | In „{name}“ können keine Objekte eingesetzt oder kopiert werden | 无法在“{name}”中粘贴或拷贝项目 | No se pueden pegar ni copiar ítems en “{name}” | Impossible de coller ou de copier des éléments dans « {name} » | Impossibile incollare o copiare elementi in “{name}” | Нельзя вставлять или копировать объекты в «{name}» |
 | `archive.cant_compress` | Can't create an archive in “{name}” | In „{name}“ kann kein Archiv erstellt werden | 无法在“{name}”中创建归档 | No se puede crear un archivo comprimido en “{name}” | Impossible de créer une archive dans « {name} » | Impossibile creare un archivio in “{name}” | Нельзя создать архив в «{name}» |
@@ -452,6 +454,10 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `dialog.new_folder.button` | Create | Erstellen | 创建 | Crear | Créer | Crea | Создать |
 | `dialog.new_folder.field` | Folder name | Ordnername | 文件夹名称 | Nombre de la carpeta | Nom du dossier | Nome cartella | Имя папки |
 | `dialog.new_folder.default_name` | untitled folder | Neuer Ordner | 未命名文件夹 | carpeta sin título | dossier sans titre | cartella senza titolo | новая папка |
+| `dialog.new_file.title` | New File | Neue Datei | 新建文件 | Nuevo archivo | Nouveau fichier | Nuovo file | Новый файл |
+| `dialog.new_file.button` | Create | Erstellen | 创建 | Crear | Créer | Crea | Создать |
+| `dialog.new_file.field` | File name | Dateiname | 文件名称 | Nombre del archivo | Nom du fichier | Nome del file | Имя файла |
+| `dialog.new_file.default_name` | untitled.txt | Neue Datei.txt | 未命名文件.txt | archivo sin título.txt | fichier sans titre.txt | file senza titolo.txt | новый файл.txt |
 | `dialog.name.in_folder` | In “{folder}” | In „{folder}“ | 位于“{folder}” | En “{folder}” | Dans « {folder} » | In “{folder}” | В папке «{folder}» |
 | `dialog.name.exists` | “{name}” already exists in this folder | „{name}“ ist in diesem Ordner bereits vorhanden. | 此文件夹中已存在“{name}” | “{name}” ya existe en esta carpeta | « {name} » existe déjà dans ce dossier. | “{name}” esiste già in questa cartella | «{name}» уже есть в этой папке. |
 | `compress.title.single` | Compress “{name}” | „{name}“ komprimieren | 压缩“{name}” | Comprimir “{name}” | Compresser « {name} » | Comprimi “{name}” | Сжать «{name}» |
@@ -1496,6 +1502,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `term.verb.trash` | move to Trash | in den Papierkorb legen | 移到废纸篓 | trasladar a la papelera | placer dans la corbeille | sposta nel Cestino | переместить в Корзину |
 | `term.verb.rename` | rename | umbenennen | 重新命名 | renombrar | renommer | rinomina | переименовать |
 | `term.verb.mkdir` | mkdir | neuer Ordner | 新建文件夹 | nueva carpeta | nouveau dossier | nuova cartella | новая папка |
+| `term.verb.touch` | touch | neue Datei | 新建文件 | nuevo archivo | nouveau fichier | nuovo file | новый файл |
 | `term.verb.open` | open | öffnen | 打开 | abrir | ouvrir | apri | открыть |
 | `term.verb.connect` | connect | verbinden | 连接 | conectar | se connecter | connetti | подключить |
 | `term.verb.disconnect` | disconnect | trennen | 断开连接 | desconectar | se déconnecter | disconnetti | отключить |

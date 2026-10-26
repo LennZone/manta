@@ -189,6 +189,7 @@ pub fn command_menus() -> Vec<MenuDef> {
             &[
                 c(NewTab),
                 c(NewFolder),
+                c(NewFile),
                 c(Open),
                 c(OpenWithApp),
                 c(QuickLook),
@@ -1021,6 +1022,7 @@ mod tests {
         use mods::*;
         let k = |c| key_equivalent(c).unwrap();
         assert_eq!(k(Cmd::NewFolder), ("n".into(), SHIFT | COMMAND));
+        assert_eq!(k(Cmd::NewFile), ("n".into(), OPTION | COMMAND));
         assert_eq!(k(Cmd::MoveToTrash), ("\u{8}".into(), COMMAND));
         assert_eq!(
             k(Cmd::DeletePermanently),

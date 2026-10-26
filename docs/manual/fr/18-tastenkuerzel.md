@@ -82,6 +82,7 @@ Les raccourcis agissent sur la sous-fenêtre active. Voir [Présentations](03-an
 | F2 | Renommer… (plusieurs éléments : renommage par lot) |
 | ⇧⌘R | Renommer par lot… |
 | ⇧⌘N | Nouveau dossier… |
+| ⌥⌘N | Nouveau fichier… |
 | ⌘⌫ ou ⌦ | Placer dans la corbeille (sur les serveurs : suppression définitive après confirmation, voir [Supprimer](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Supprimer immédiatement… (définitivement, après confirmation) |
 | ⇧⌘⌫ | Vider la corbeille… (après confirmation, voir [Corbeille](07-favoriten-seitenleiste.md#papierkorb)) |

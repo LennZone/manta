@@ -18,6 +18,8 @@ pub enum Cmd {
     MoveToOther,
     Rename,
     NewFolder,
+    /// ⌥⌘N: an empty file in the pane's folder, named in a dialog.
+    NewFile,
     /// ⌘⌫: local items go to the Trash; on servers (no Trash) this deletes
     /// permanently after asking.
     MoveToTrash,
@@ -90,6 +92,7 @@ pub const ALL: &[Cmd] = &[
     Cmd::MoveToOther,
     Cmd::Rename,
     Cmd::NewFolder,
+    Cmd::NewFile,
     Cmd::MoveToTrash,
     Cmd::DeletePermanently,
     Cmd::EmptyTrash,
@@ -159,6 +162,7 @@ impl Cmd {
             Cmd::MoveToOther => t!("cmd.move_to_other"),
             Cmd::Rename => t!("cmd.rename"),
             Cmd::NewFolder => t!("cmd.new_folder"),
+            Cmd::NewFile => t!("cmd.new_file"),
             Cmd::MoveToTrash => t!("cmd.move_to_trash"),
             Cmd::DeletePermanently => t!("cmd.delete_permanently"),
             Cmd::EmptyTrash => t!("cmd.empty_trash"),
@@ -216,6 +220,7 @@ impl Cmd {
             Cmd::MoveToOther => "F6",
             Cmd::Rename => "F2",
             Cmd::NewFolder => "⇧⌘N",
+            Cmd::NewFile => "⌥⌘N",
             Cmd::MoveToTrash => "⌘⌫",
             Cmd::DeletePermanently => "⌥⌘⌫",
             Cmd::EmptyTrash => "⇧⌘⌫",
@@ -270,6 +275,7 @@ impl Cmd {
             Cmd::MoveToOther => i::ARROW_LINE_RIGHT,
             Cmd::Rename => i::PENCIL_SIMPLE,
             Cmd::NewFolder => i::FOLDER_PLUS,
+            Cmd::NewFile => i::FILE_PLUS,
             Cmd::MoveToTrash => i::TRASH,
             Cmd::DeletePermanently => i::TRASH,
             Cmd::EmptyTrash => i::TRASH,
@@ -328,6 +334,7 @@ impl Cmd {
             | Cmd::MoveToOther
             | Cmd::Rename
             | Cmd::NewFolder
+            | Cmd::NewFile
             | Cmd::MoveToTrash
             | Cmd::DeletePermanently
             | Cmd::EmptyTrash
@@ -381,6 +388,7 @@ impl Cmd {
             Cmd::MoveToOther => t!("cmd.kw.move_to_other"),
             Cmd::Rename => t!("cmd.kw.rename"),
             Cmd::NewFolder => t!("cmd.kw.new_folder"),
+            Cmd::NewFile => t!("cmd.kw.new_file"),
             Cmd::MoveToTrash => t!("cmd.kw.move_to_trash"),
             Cmd::DeletePermanently => t!("cmd.kw.delete_permanently"),
             Cmd::EmptyTrash => t!("cmd.kw.empty_trash"),
@@ -501,6 +509,7 @@ mod tests {
         assert_eq!(Cmd::DeletePermanently.shortcut(), "⌥⌘⌫");
         assert_eq!(Cmd::Transfers.shortcut(), "⌥⌘L");
         assert_eq!(Cmd::NewFolder.shortcut(), "⇧⌘N");
+        assert_eq!(Cmd::NewFile.shortcut(), "⌥⌘N");
         assert_eq!(Cmd::GoToPath.shortcut(), "⇧⌘G");
         assert_eq!(Cmd::ToggleHidden.shortcut(), "⇧⌘.");
         assert_eq!(Cmd::AddToFavorites.shortcut(), "⌃⌘T");

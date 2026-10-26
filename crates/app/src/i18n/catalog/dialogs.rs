@@ -278,6 +278,10 @@ pub const ENTRIES: Entries = &[
     ("dialog.new_folder.button", "Create", "Erstellen"),
     ("dialog.new_folder.field", "Folder name", "Ordnername"),
     ("dialog.new_folder.default_name", "untitled folder", "Neuer Ordner"),
+    ("dialog.new_file.title", "New File", "Neue Datei"),
+    ("dialog.new_file.button", "Create", "Erstellen"),
+    ("dialog.new_file.field", "File name", "Dateiname"),
+    ("dialog.new_file.default_name", "untitled.txt", "Neue Datei.txt"),
     ("dialog.name.in_folder", "In “{folder}”", "In „{folder}“"),
     ("dialog.name.exists", "“{name}” already exists in this folder", "„{name}“ ist in diesem Ordner bereits vorhanden."),
     // ---------------------------------------------------------- compress

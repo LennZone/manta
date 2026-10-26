@@ -381,6 +381,22 @@ pub fn command(a: &FileAction, ctx: ShellCtx) -> String {
                 }
             }
         }
+        FileActionKind::NewFile => {
+            let Some(file) = a.sources.first() else {
+                return String::from("# (new file)");
+            };
+            match src.remote {
+                Some(ep) => ssh(
+                    ep,
+                    &format!("touch {}", remote_paths(std::slice::from_ref(file))),
+                    k,
+                ),
+                None => {
+                    let (r, s) = src.arg(file, false, ctx);
+                    join("touch", &[r], &[s])
+                }
+            }
+        }
         FileActionKind::Open => match src.remote {
             Some(ep) => {
                 let Some(f) = a.sources.first() else {
@@ -583,6 +599,18 @@ fn s3_command(a: &FileAction, src: &Side, dst: &Side, ctx: ShellCtx) -> Option<S
                 None => return None,
             }
         }
+        FileActionKind::NewFile => {
+            let comps = a.sources.first()?.components();
+            let (bucket, rest) = comps.split_first()?;
+            if rest.is_empty() {
+                return None;
+            }
+            format!(
+                "aws s3api put-object{flag} --bucket {} --key {}",
+                q_s3(bucket, ctx.kind),
+                quote(&rest.join("/"), ctx.kind)
+            )
+        }
         FileActionKind::Open => {
             let f = a.sources.first()?;
             format!(
@@ -741,6 +769,10 @@ fn container_command(a: &FileAction, src: &Side, dst: &Side, ctx: ShellCtx) -> O
         }
         FileActionKind::NewFolder => exec(&format!(
             "mkdir {}",
+            remote_paths(std::slice::from_ref(a.sources.first()?))
+        )),
+        FileActionKind::NewFile => exec(&format!(
+            "touch {}",
             remote_paths(std::slice::from_ref(a.sources.first()?))
         )),
         FileActionKind::Open => {
@@ -1086,6 +1118,7 @@ pub fn short_label(a: &FileAction) -> String {
         FileActionKind::Trash => tr!("term.verb.trash"),
         FileActionKind::Rename => tr!("term.verb.rename"),
         FileActionKind::NewFolder => tr!("term.verb.mkdir"),
+        FileActionKind::NewFile => tr!("term.verb.touch"),
         FileActionKind::Open => tr!("term.verb.open"),
         FileActionKind::Connect => tr!("term.verb.connect"),
         FileActionKind::Disconnect => tr!("term.verb.disconnect"),

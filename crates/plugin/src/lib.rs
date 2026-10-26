@@ -311,6 +311,8 @@ pub enum FileActionKind {
     Rename,
     /// `sources[0]` is the new folder.
     NewFolder,
+    /// `sources[0]` is the new (empty) file.
+    NewFile,
     /// `sources` are opened with their default app.
     Open,
     /// Connected to `src_remote`; `sources[0]` is the folder opened.

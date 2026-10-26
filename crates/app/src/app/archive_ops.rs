@@ -20,6 +20,7 @@ use super::{navigate_tab, MantaApp, Side};
 pub(super) enum ReadOnlyOp {
     Rename,
     NewFolder,
+    NewFile,
     Delete,
     Paste,
     Compress,
@@ -137,6 +138,7 @@ impl MantaApp {
             match op {
                 ReadOnlyOp::Rename => t!("archive.cant_rename", name = name),
                 ReadOnlyOp::NewFolder => t!("archive.cant_new_folder", name = name),
+                ReadOnlyOp::NewFile => t!("archive.cant_new_file", name = name),
                 ReadOnlyOp::Delete => t!("archive.cant_delete", name = name),
                 ReadOnlyOp::Paste => t!("archive.cant_paste", name = name),
                 ReadOnlyOp::Compress => t!("archive.cant_compress", name = name),

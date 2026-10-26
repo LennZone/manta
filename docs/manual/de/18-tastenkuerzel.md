@@ -82,6 +82,7 @@ Die Kürzel wirken auf den aktiven Bereich. Siehe [Ansichten](03-ansichten.md).
 | F2 | Umbenennen … (bei mehreren Objekten: stapelweise) |
 | ⇧⌘R | Stapelweise umbenennen … |
 | ⇧⌘N | Neuer Ordner … |
+| ⌥⌘N | Neue Datei … |
 | ⌘⌫ oder ⌦ | In den Papierkorb legen (auf Servern: nach Rückfrage endgültig löschen, siehe [Löschen](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Sofort löschen … (endgültig, nach Rückfrage) |
 | ⇧⌘⌫ | Papierkorb entleeren … (nach Rückfrage, siehe [Papierkorb](07-favoriten-seitenleiste.md#papierkorb)) |

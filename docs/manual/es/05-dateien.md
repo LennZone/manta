@@ -212,6 +212,11 @@ Manta comprueba el nombre al instante: no puede estar vacío, contener “/” n
 1. Pulsa **⇧⌘N** (**Nueva carpeta…**).
 2. Escribe un nombre (se sugiere “carpeta sin título”) y haz clic en **Crear**.
 
+## Nuevo archivo {#neue-datei}
+
+1. Pulsa **⌥⌘N** (**Nuevo archivo…**) o elige **Nuevo archivo…** en el menú **Archivo** o en el menú contextual de un panel.
+2. Escribe un nombre (se sugiere “archivo sin título.txt”) y haz clic en **Crear**. Manta crea un archivo vacío y lo selecciona.
+
 ## Eliminar {#loeschen}
 
 Manta elimina como Finder:

@@ -68,6 +68,7 @@ pub const FILE_CSV: &str = "\u{EB1C}";
 pub const FILE_DOC: &str = "\u{EB1E}";
 pub const FILE_IMAGE: &str = "\u{EA24}";
 pub const FILE_PDF: &str = "\u{E702}";
+pub const FILE_PLUS: &str = "\u{E234}";
 pub const FILE_TEXT: &str = "\u{E23A}";
 pub const FILE_VIDEO: &str = "\u{EA22}";
 pub const FILE_XLS: &str = "\u{EB22}";

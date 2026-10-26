@@ -84,6 +84,7 @@ pub const ENTRIES: Entries = &[
     ("status.sync_started.one", "Sync started: {count} transfer queued", "Synchronisierung gestartet: {count} Übertragung in der Warteschlange"),
     ("status.sync_started.other", "Sync started: {count} transfers queued", "Synchronisierung gestartet: {count} Übertragungen in der Warteschlange"),
     ("status.created_folder", "Created folder “{name}”", "Ordner „{name}“ erstellt"),
+    ("status.created_file", "Created file “{name}”", "Datei „{name}“ erstellt"),
     ("status.renamed", "Renamed “{old}” to “{name}”", "„{old}“ in „{name}“ umbenannt"),
     // Error toasts
     ("error.load_favorites", "Could not load favorites: {error}", "Die Favoriten konnten nicht geladen werden: {error}"),
@@ -97,6 +98,7 @@ pub const ENTRIES: Entries = &[
     ("error.show_log", "Couldn't show the log file", "Die Protokolldatei konnte nicht angezeigt werden"),
     ("error.couldnt_open", "Couldn't open “{name}”", "„{name}“ konnte nicht geöffnet werden"),
     ("error.create_folder", "Couldn't create folder “{name}”", "Der Ordner „{name}“ konnte nicht erstellt werden"),
+    ("error.create_file", "Couldn't create file “{name}”", "Die Datei „{name}“ konnte nicht erstellt werden"),
     ("error.rename", "Couldn't rename “{name}”", "„{name}“ konnte nicht umbenannt werden"),
     ("error.is_folder", "“{name}” is a folder", "„{name}“ ist ein Ordner"),
     ("error.internal", "internal error: {detail}", "Interner Fehler: {detail}"),
@@ -181,6 +183,7 @@ pub const ENTRIES: Entries = &[
     // Archives (app/archive_ops.rs)
     ("archive.cant_rename", "Can't rename items in “{name}”", "In „{name}“ können keine Objekte umbenannt werden"),
     ("archive.cant_new_folder", "Can't create folders in “{name}”", "In „{name}“ können keine Ordner erstellt werden"),
+    ("archive.cant_new_file", "Can't create files in “{name}”", "In „{name}“ können keine Dateien erstellt werden"),
     ("archive.cant_delete", "Can't delete items in “{name}”", "In „{name}“ können keine Objekte gelöscht werden"),
     ("archive.cant_paste", "Can't paste or copy items in “{name}”", "In „{name}“ können keine Objekte eingesetzt oder kopiert werden"),
     ("archive.cant_compress", "Can't create an archive in “{name}”", "In „{name}“ kann kein Archiv erstellt werden"),
