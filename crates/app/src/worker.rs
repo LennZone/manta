@@ -114,6 +114,13 @@ pub enum WorkResult {
         name: String,
         result: Result<(), String>,
     },
+    /// `docker start|restart|stop` finished (sidebar context menu).
+    DockerControlled {
+        id: String,
+        name: String,
+        op: manta_vfs::container::discover::DockerOp,
+        result: Result<(), String>,
+    },
     /// Local items were moved to the Trash (⌘⌫).
     Trashed {
         /// The `FileAction` to finish.

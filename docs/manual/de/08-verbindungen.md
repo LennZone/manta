@@ -163,7 +163,7 @@ Favoriten merken sich den Container **nach Namen**. So funktioniert ein Favorit 
 
 ### Gestoppte Container und Images ohne Shell
 
-- **Gestoppte Container** öffnen sich **schreibgeschützt** (Chip **Gestoppt**). Du kannst Dateien herauskopieren; zum Ändern starte den Container.
+- **Gestoppte Container** öffnen sich **schreibgeschützt** (Chip **Gestoppt**). Du kannst Dateien herauskopieren; zum Ändern starte den Container (Rechtsklick in der Seitenleiste → **Starten**).
 - Container **ohne Shell** (Distroless- oder Scratch-Images) sind ebenfalls schreibgeschützt.
 - Ordner eines gestoppten Containers liest Manta als Ganzes; ist das mehr als 512 MB, meldet Manta „zu groß“. Starte dann den Container.
 
@@ -172,7 +172,7 @@ Favoriten merken sich den Container **nach Namen**. So funktioniert ein Favorit 
 Rechtsklick → **Shell im Container öffnen** (auch in der Befehlspalette) öffnet im Terminal unter dem Bereich eine Shell im Container, direkt im angezeigten Ordner. Siehe [Terminal](11-terminal.md#container-ssh).
 
 > [!NOTE]
-> Manta ändert nur Dateien, mit denen du selbst etwas tust. Container startet, stoppt oder löscht Manta nie.
+> Manta ändert nur Dateien, mit denen du selbst etwas tust. Container startet, beendet oder startet Manta nur neu, wenn du das in der Seitenleiste wählst, und löscht sie nie.
 
 ## Verbindungen als Favoriten {#favoriten}
 

@@ -1,6 +1,7 @@
 //! The sidebar's "Containers" section: Docker containers and Kubernetes
 //! pods, discovered in the background (read-only `docker ps` / `kubectl
-//! get`) every few seconds while the sidebar is visible.
+//! get`) every few seconds while the sidebar is visible. A container's
+//! context menu starts, restarts or stops it.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -9,7 +10,7 @@ use std::time::{Duration, Instant};
 
 use eframe::egui::{self, RichText};
 use manta_core::{ConnectionConfig, Protocol};
-use manta_vfs::container::discover::{self, DockerContainer, KubePod};
+use manta_vfs::container::discover::{self, DockerContainer, DockerOp, KubePod};
 use manta_vfs::container::{docker_config, find_program, kube_config, Runner};
 
 use crate::app::Action;
@@ -58,6 +59,8 @@ pub struct Containers {
     pub expanded: HashSet<String>,
     /// The namespace the user picked (else the context's default).
     namespace: Option<String>,
+    /// Containers (by id) being started, restarted or stopped.
+    pending: HashMap<String, DockerOp>,
 }
 
 impl Default for Containers {
@@ -71,6 +74,7 @@ impl Default for Containers {
             group_open: HashMap::new(),
             expanded: HashSet::new(),
             namespace: None,
+            pending: HashMap::new(),
         }
     }
 }
@@ -127,6 +131,25 @@ impl Containers {
     }
 
     /// Refresh now (header button, namespace change).
+    /// `op` on the container `id` starts; `false` if one is still running.
+    pub fn begin(&mut self, id: &str, op: DockerOp) -> bool {
+        if self.pending.contains_key(id) {
+            return false;
+        }
+        self.pending.insert(id.to_string(), op);
+        true
+    }
+
+    /// The command on `id` is done: list again to show the new state.
+    pub fn finish(&mut self, id: &str) {
+        self.pending.remove(id);
+        self.refresh_now();
+    }
+
+    pub fn pending(&self, id: &str) -> Option<DockerOp> {
+        self.pending.get(id).copied()
+    }
+
     pub fn refresh_now(&mut self) {
         self.last = None;
     }
@@ -304,23 +327,47 @@ pub fn group_containers(list: &[DockerContainer]) -> (Vec<Group<'_>>, Vec<&Docke
     (groups, loose)
 }
 
-/// One container row (running: green dot; stopped: dimmed, opens read-only).
+fn op_label(op: DockerOp) -> &'static str {
+    match op {
+        DockerOp::Start => t!("containers.start"),
+        DockerOp::Restart => t!("containers.restart"),
+        DockerOp::Stop => t!("containers.stop"),
+    }
+}
+
+fn op_icon(op: DockerOp) -> &'static str {
+    match op {
+        DockerOp::Start => icons::PLAY,
+        DockerOp::Restart => icons::ARROW_CLOCKWISE,
+        DockerOp::Stop => icons::STOP,
+    }
+}
+
+/// One container row (running: green dot; stopped: dimmed, opens
+/// read-only). `pending`: a start / restart / stop in progress.
 fn container_row(
     ui: &mut egui::Ui,
     c: &DockerContainer,
     indent: f32,
     is_active: &dyn Fn(&ConnectionConfig) -> bool,
+    pending: Option<DockerOp>,
     actions: &mut Vec<Action>,
 ) {
     let p = pal(ui);
     let cfg = docker_config(&c.name);
     let running = c.running();
+    let detail = match pending {
+        Some(DockerOp::Start) => t!("containers.starting"),
+        Some(DockerOp::Restart) => t!("containers.restarting"),
+        Some(DockerOp::Stop) => t!("containers.stopping"),
+        None => short_image(&c.image),
+    };
     let (resp, _) = row(
         ui,
         Row {
             icon: icons::SHIPPING_CONTAINER,
             label: &c.name,
-            detail: Some(short_image(&c.image)),
+            detail: Some(detail),
             selected: is_active(&cfg),
             status_dot: true,
             dot: (!running).then_some(p.text_tertiary),
@@ -333,9 +380,31 @@ fn container_row(
     if !running {
         tip.push_str(&format!("\n{}", t!("containers.opens_read_only")));
     }
-    if resp.on_hover_text(tip).clicked() {
-        actions.push(Action::OpenContainer(Box::new(cfg)));
+    let resp = resp.on_hover_text(tip);
+    if resp.clicked() {
+        actions.push(Action::OpenContainer(Box::new(cfg.clone())));
     }
+    resp.context_menu(|ui| {
+        if ui
+            .button(format!("{}   {}", icons::FOLDER_OPEN, t!("sidebar.open")))
+            .clicked()
+        {
+            actions.push(Action::OpenContainer(Box::new(cfg)));
+            ui.close();
+        }
+        ui.separator();
+        for &op in c.ops() {
+            let btn = egui::Button::new(format!("{}   {}", op_icon(op), op_label(op)));
+            if ui.add_enabled(pending.is_none(), btn).clicked() {
+                actions.push(Action::DockerControl {
+                    id: c.id.clone(),
+                    name: c.name.clone(),
+                    op,
+                });
+                ui.close();
+            }
+        }
+    });
 }
 
 fn pod_dot(p: &theme::Palette, phase: &str) -> egui::Color32 {
@@ -405,7 +474,7 @@ pub fn section_ui(
                     }
                     if open {
                         for c in &g.containers {
-                            container_row(ui, c, 10.0, &is_active, actions);
+                            container_row(ui, c, 10.0, &is_active, st.pending(&c.id), actions);
                         }
                     }
                 }
@@ -413,7 +482,7 @@ pub fn section_ui(
                 let (running, stopped): (Vec<_>, Vec<_>) =
                     loose.into_iter().partition(|c| c.running());
                 for c in &running {
-                    container_row(ui, c, 0.0, &is_active, actions);
+                    container_row(ui, c, 0.0, &is_active, st.pending(&c.id), actions);
                 }
                 if !stopped.is_empty() {
                     let caret = if st.show_stopped {
@@ -436,7 +505,7 @@ pub fn section_ui(
                     }
                     if st.show_stopped {
                         for c in &stopped {
-                            container_row(ui, c, 10.0, &is_active, actions);
+                            container_row(ui, c, 10.0, &is_active, st.pending(&c.id), actions);
                         }
                     }
                 }
@@ -615,6 +684,7 @@ pub(crate) mod synthetic {
         fn answer(program: &str, args: &[String]) -> CmdOutput {
             let a: Vec<&str> = args.iter().map(String::as_str).collect();
             match (program, a.as_slice()) {
+                ("docker", ["start" | "restart" | "stop", id]) => CmdOutput::ok(format!("{id}\n")),
                 ("docker", ["ps", ..]) => CmdOutput::ok(
                     CONTAINERS
                         .iter()

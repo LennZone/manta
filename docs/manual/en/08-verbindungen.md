@@ -163,7 +163,7 @@ Favorites store the container **by name**, so a favorite keeps working after the
 
 ### Stopped containers and images without a shell
 
-- **Stopped containers** open **read-only** (**Stopped** chip). You can copy files out; start the container to make changes.
+- **Stopped containers** open **read-only** (**Stopped** chip). You can copy files out; start the container to make changes (right-click it in the sidebar → **Start**).
 - Containers **without a shell** (distroless or scratch images) are read-only too.
 - Manta reads a folder of a stopped container as a whole; if that's more than 512 MB it says "too large". Start the container then.
 
@@ -172,7 +172,7 @@ Favorites store the container **by name**, so a favorite keeps working after the
 Right-click → **Open Shell in Container** (also in the command palette) opens a shell inside the container in the terminal below the pane, right in the folder you're looking at. See [Terminal](11-terminal.md#container-ssh).
 
 > [!NOTE]
-> Manta only changes files you act on yourself. It never starts, stops or removes containers.
+> Manta only changes files you act on yourself. It starts, restarts or stops a container only when you choose that in the sidebar, and never removes containers.
 
 ## Connections as favorites {#favoriten}
 

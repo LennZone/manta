@@ -616,6 +616,12 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `compare.right_newer` | Right newer | Rechts neuer | 右侧较新 | Derecha más reciente | Droite plus récent | Destra più recente | Справа новее |
 | `compare.different` | Different | Verschieden | 不同 | Diferentes | Différent | Diversi | Различаются |
 | `containers.opens_read_only` | Opens read-only | Wird schreibgeschützt geöffnet | 以只读方式打开 | Se abre en modo de solo lectura | S’ouvre en lecture seule | Si apre in sola lettura | Открывается только для чтения |
+| `containers.start` | Start | Starten | 启动 | Iniciar | Démarrer | Avvia | Запустить |
+| `containers.restart` | Restart | Neu starten | 重新启动 | Reiniciar | Redémarrer | Riavvia | Перезапустить |
+| `containers.stop` | Stop | Beenden | 停止 | Detener | Arrêter | Arresta | Остановить |
+| `containers.starting` | Starting… | Wird gestartet … | 正在启动… | Iniciando… | Démarrage… | Avvio… | Запуск… |
+| `containers.restarting` | Restarting… | Wird neu gestartet … | 正在重新启动… | Reiniciando… | Redémarrage… | Riavvio… | Перезапуск… |
+| `containers.stopping` | Stopping… | Wird beendet … | 正在停止… | Deteniendo… | Arrêt… | Arresto… | Остановка… |
 | `containers.looking` | Looking for containers… | Suche nach Containern … | 正在查找容器… | Buscando contenedores… | Recherche de conteneurs… | Ricerca dei container… | Поиск контейнеров… |
 | `containers.group.stopped` | stopped | gestoppt | 已停止 | detenidos | arrêté | arrestati | остановлены |
 | `containers.group.running` | {n} running | {n} aktiv | {n} 个正在运行 | {n} en ejecución | {n} en cours | {n} in esecuzione | работает: {n} |

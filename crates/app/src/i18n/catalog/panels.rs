@@ -198,6 +198,12 @@ pub const ENTRIES: Entries = &[
     ("compare.different", "Different", "Verschieden"),
     // Containers (sidebar section)
     ("containers.opens_read_only", "Opens read-only", "Wird schreibgeschützt geöffnet"),
+    ("containers.start", "Start", "Starten"),
+    ("containers.restart", "Restart", "Neu starten"),
+    ("containers.stop", "Stop", "Beenden"),
+    ("containers.starting", "Starting…", "Wird gestartet …"),
+    ("containers.restarting", "Restarting…", "Wird neu gestartet …"),
+    ("containers.stopping", "Stopping…", "Wird beendet …"),
     ("containers.looking", "Looking for containers…", "Suche nach Containern …"),
     ("containers.docker_not_running", "Docker isn't running.", "Docker läuft nicht."),
     ("containers.none", "No Docker containers.", "Keine Docker-Container."),

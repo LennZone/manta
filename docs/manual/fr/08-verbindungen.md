@@ -163,7 +163,7 @@ Les favoris enregistrent le conteneur **par son nom** : un favori continue donc
 
 ### Conteneurs arrêtés et images sans shell
 
-- Les **conteneurs arrêtés** s’ouvrent en **lecture seule** (pastille **Arrêté**). Vous pouvez en copier des fichiers vers l’extérieur ; démarrez le conteneur pour apporter des modifications.
+- Les **conteneurs arrêtés** s’ouvrent en **lecture seule** (pastille **Arrêté**). Vous pouvez en copier des fichiers vers l’extérieur ; démarrez le conteneur pour apporter des modifications (clic droit dans la barre latérale → **Démarrer**).
 - Les conteneurs **sans shell** (images distroless ou scratch) sont également en lecture seule.
 - Manta lit un dossier d’un conteneur arrêté d’un seul bloc ; s’il dépasse 512 Mo, il indique « trop volumineux ». Démarrez alors le conteneur.
 
@@ -172,7 +172,7 @@ Les favoris enregistrent le conteneur **par son nom** : un favori continue donc
 Clic droit → **Ouvrir un shell dans le conteneur** (également dans la palette de commandes) ouvre un shell à l’intérieur du conteneur dans le terminal situé sous la sous-fenêtre, directement dans le dossier que vous consultez. Voir [Terminal](11-terminal.md#container-ssh).
 
 > [!NOTE]
-> Manta ne modifie que les fichiers sur lesquels vous agissez vous-même. Il ne démarre, n’arrête et ne supprime jamais de conteneurs.
+> Manta ne modifie que les fichiers sur lesquels vous agissez vous-même. Il ne démarre, ne redémarre ou n’arrête un conteneur que si vous le choisissez dans la barre latérale, et ne supprime jamais de conteneurs.
 
 ## Les connexions en favoris {#favoriten}
 

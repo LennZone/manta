@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use eframe::egui::Theme;
+use egui_kittest::kittest::Queryable;
 use manta_core::{Protocol, SharedVfs, VfsPath};
 use manta_vfs::container::discover::{DockerContainer, KubePod};
 use manta_vfs::container::listing::LIST_SCRIPT;
@@ -499,4 +500,118 @@ fn local_chip_returns_from_a_container() {
         "back on the Mac"
     );
     assert_eq!(t.loc.path, before, "the folder the tab was in before");
+}
+
+/// The context menu's Start / Restart / Stop: `docker start` etc. run in
+/// the background (synthetic runner), the row says "Starting…" meanwhile,
+/// and a second click on the same container is ignored until it is done.
+#[test]
+fn container_start_restart_stop() {
+    use manta_vfs::container::discover::DockerOp;
+    let fx = super::fixture();
+    let mut h = harness(&fx, TALL, Theme::Light);
+    with_containers(&mut h);
+    let ctx = egui_ctx(&h);
+    let control = |id: &str, name: &str, op| Action::DockerControl {
+        id: id.into(),
+        name: name.into(),
+        op,
+    };
+    for (id, name, op, done) in [
+        ("a6", "mailpit", DockerOp::Start, "Started “mailpit”"),
+        (
+            "a8",
+            "redis-scratch",
+            DockerOp::Restart,
+            "Restarted “redis-scratch”",
+        ),
+        (
+            "a8",
+            "redis-scratch",
+            DockerOp::Stop,
+            "Stopped “redis-scratch”",
+        ),
+    ] {
+        app(&mut h).handle_action(&ctx, control(id, name, op));
+        assert_eq!(app(&mut h).containers.pending(id), Some(op));
+        // Busy: a second command on the same container is not started.
+        app(&mut h).handle_action(&ctx, control(id, name, DockerOp::Stop));
+        assert_eq!(app(&mut h).containers.pending(id), Some(op));
+        let start = std::time::Instant::now();
+        while app(&mut h).containers.pending(id).is_some() {
+            assert!(
+                start.elapsed() < crate::test_support::wait(),
+                "{op:?} timed out"
+            );
+            h.step();
+            std::thread::sleep(Duration::from_millis(5));
+        }
+        let titles = h.state().toasts.titles();
+        assert!(titles.iter().any(|t| t == done), "{titles:?}");
+    }
+}
+
+/// Right-click a sidebar row by its label.
+fn right_click_label(h: &mut H, label: &str) {
+    let pos = h.get_by_label_contains(label).rect().center();
+    h.hover_at(pos);
+    for pressed in [true, false] {
+        h.input_mut()
+            .events
+            .push(eframe::egui::Event::PointerButton {
+                pos,
+                button: eframe::egui::PointerButton::Secondary,
+                pressed,
+                modifiers: eframe::egui::Modifiers::NONE,
+            });
+        h.run_steps(1);
+    }
+    h.run_steps(3);
+}
+
+/// A menu item (its accessible name, without the icon) is shown.
+fn menu_has(h: &H, item: &str) -> bool {
+    h.query_by_label(item).is_some()
+}
+
+/// A running container offers Restart and Stop, a stopped one Start; the
+/// menu item runs the command.
+#[test]
+fn container_context_menu_follows_the_state() {
+    let fx = super::fixture();
+    let mut h = harness(&fx, TALL, Theme::Light);
+    with_containers(&mut h);
+
+    right_click_label(&mut h, "redis-scratch");
+    assert!(menu_has(&h, "Restart") && menu_has(&h, "Stop"));
+    assert!(!menu_has(&h, "Start"));
+    if super::wgpu_available() {
+        save(&mut h, "containers_menu_running");
+    }
+    // A click elsewhere closes the menu (it covers the rows below).
+    let away = eframe::egui::pos2(1000.0, 700.0);
+    h.hover_at(away);
+    for pressed in [true, false] {
+        h.input_mut()
+            .events
+            .push(eframe::egui::Event::PointerButton {
+                pos: away,
+                button: eframe::egui::PointerButton::Primary,
+                pressed,
+                modifiers: eframe::egui::Modifiers::NONE,
+            });
+        h.run_steps(1);
+    }
+    h.run_steps(2);
+    assert!(!menu_has(&h, "Restart"), "menu closed");
+
+    right_click_label(&mut h, "mailpit");
+    assert!(menu_has(&h, "Start"));
+    assert!(!menu_has(&h, "Restart") && !menu_has(&h, "Stop"));
+    h.get_by_label("Start").click();
+    h.run_steps(1);
+    assert!(app(&mut h).containers.pending("a6").is_some());
+    if super::wgpu_available() {
+        save(&mut h, "containers_started");
+    }
 }

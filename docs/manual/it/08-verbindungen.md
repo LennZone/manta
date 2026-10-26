@@ -163,7 +163,7 @@ I Preferiti salvano il container **per nome**, quindi un preferito continua a fu
 
 ### Container arrestati e immagini senza shell
 
-- I **container arrestati** si aprono in **sola lettura** (indicatore **Arrestato**). Puoi copiare i file all’esterno; avvia il container per apportare modifiche.
+- I **container arrestati** si aprono in **sola lettura** (indicatore **Arrestato**). Puoi copiare i file all’esterno; avvia il container per apportare modifiche (clic con il tasto destro nella barra laterale → **Avvia**).
 - Anche i container **senza shell** (immagini distroless o scratch) sono di sola lettura.
 - Manta legge una cartella di un container arrestato tutta in una volta; se supera i 512 MB segnala che è troppo grande. In quel caso avvia il container.
 
@@ -172,7 +172,7 @@ I Preferiti salvano il container **per nome**, quindi un preferito continua a fu
 Clic destro → **Apri shell nel container** (disponibile anche nella palette dei comandi) apre una shell all’interno del container nel terminale sotto il pannello, direttamente nella cartella che stai guardando. Vedi [Terminale](11-terminal.md#container-ssh).
 
 > [!NOTE]
-> Manta modifica solo i file su cui agisci tu. Non avvia, non arresta e non rimuove mai i container.
+> Manta modifica solo i file su cui agisci tu. Avvia, riavvia o arresta un container solo quando lo scegli nella barra laterale e non rimuove mai i container.
 
 ## Connessioni nei Preferiti {#favoriten}
 

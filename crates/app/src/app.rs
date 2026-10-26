@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 use eframe::egui::{self, CornerRadius, Key, Modifiers, RichText, Sense, Stroke};
 use manta_core::{ConnectionConfig, EntryKind, SharedVfs, VfsPath};
 use manta_ops::{ConflictPolicy, Job, JobId, JobKind, JobStatus, TransferManager};
+use manta_vfs::container::discover::DockerOp;
 
 pub(crate) mod archive_ops;
 mod conflicts;
@@ -259,6 +260,12 @@ pub enum Action {
     OpenContainer(Box<ConnectionConfig>),
     /// Show the pods of another namespace in the sidebar.
     SetKubeNamespace(String),
+    /// Start, restart or stop a Docker container (sidebar context menu).
+    DockerControl {
+        id: String,
+        name: String,
+        op: DockerOp,
+    },
     /// Open a shell inside the pane's container in the terminal.
     OpenContainerShell(Side),
     /// Show the pane as Icons, List, Columns or Gallery (⌘1 – ⌘4).
@@ -1763,6 +1770,12 @@ impl MantaApp {
                 WorkResult::TrashMeasured(summary) => self.on_trash_measured(summary),
                 WorkResult::TrashEmptied(result) => self.on_trash_emptied(result),
                 WorkResult::Ejected { path, name, result } => self.on_ejected(path, name, result),
+                WorkResult::DockerControlled {
+                    id,
+                    name,
+                    op,
+                    result,
+                } => self.on_docker_controlled(id, name, op, result),
                 WorkResult::FileOp {
                     description,
                     failure,
@@ -2826,6 +2839,7 @@ impl MantaApp {
                 }
             }
             Action::SetKubeNamespace(ns) => self.containers.set_namespace(ns),
+            Action::DockerControl { id, name, op } => self.docker_control(id, name, op),
             Action::OpenContainerShell(side) => self.open_container_shell(side),
             Action::CloudDownload(side) => self.cloud_op(side, crate::cloud::CloudOp::Download),
             Action::CloudEvict(side) => self.cloud_op(side, crate::cloud::CloudOp::Evict),
@@ -3741,6 +3755,54 @@ impl MantaApp {
             move || manta_vfs::volumes::eject(&p).map_err(|e| e.to_string()),
             move |result| WorkResult::Ejected { path, name, result },
         );
+    }
+
+    /// `docker start|restart|stop` in the background; the sidebar row shows
+    /// "Starting …" etc. until it is done.
+    fn docker_control(&mut self, id: String, name: String, op: DockerOp) {
+        if !self.containers.begin(&id, op) {
+            return;
+        }
+        let runner = crate::containers::discovery_env().runner;
+        let (job_id, job_name) = (id.clone(), name.clone());
+        self.worker.spawn(
+            "docker-control",
+            move || {
+                manta_vfs::container::discover::docker_control(&*runner, op, &job_id, &job_name)
+                    .map_err(|e| e.to_string())
+            },
+            move |result| WorkResult::DockerControlled {
+                id,
+                name,
+                op,
+                result,
+            },
+        );
+    }
+
+    fn on_docker_controlled(
+        &mut self,
+        id: String,
+        name: String,
+        op: DockerOp,
+        result: Result<(), String>,
+    ) {
+        self.containers.finish(&id);
+        match result {
+            Ok(()) => self.set_success(match op {
+                DockerOp::Start => t!("status.container_started", name = name),
+                DockerOp::Restart => t!("status.container_restarted", name = name),
+                DockerOp::Stop => t!("status.container_stopped", name = name),
+            }),
+            Err(e) => self.set_error_detail(
+                match op {
+                    DockerOp::Start => t!("error.container_start", name = name),
+                    DockerOp::Restart => t!("error.container_restart", name = name),
+                    DockerOp::Stop => t!("error.container_stop", name = name),
+                },
+                e,
+            ),
+        }
     }
 
     /// The volume is gone: leave it in every tab, rescan the devices.

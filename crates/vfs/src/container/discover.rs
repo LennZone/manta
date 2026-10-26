@@ -1,6 +1,9 @@
-//! Finding containers and pods for the sidebar and the connect dialog.
-//! Read-only CLI calls (`docker ps`, `kubectl get`); blocking, so run them
-//! off the UI thread.
+//! Finding containers and pods for the sidebar and the connect dialog
+//! (read-only CLI calls: `docker ps`, `kubectl get`), and starting,
+//! restarting and stopping Docker containers from the sidebar. Blocking,
+//! so run them off the UI thread.
+
+use std::time::Duration;
 
 use manta_core::{VfsError, VfsResult};
 
@@ -27,6 +30,50 @@ impl DockerContainer {
     pub fn running(&self) -> bool {
         self.state == "running"
     }
+
+    /// What the sidebar offers for this container: a stopped one can be
+    /// started; a running, paused or restarting one restarted or stopped.
+    pub fn ops(&self) -> &'static [DockerOp] {
+        match self.state.as_str() {
+            "running" | "paused" | "restarting" => &[DockerOp::Restart, DockerOp::Stop],
+            _ => &[DockerOp::Start],
+        }
+    }
+}
+
+/// A lifecycle command for a Docker container.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DockerOp {
+    Start,
+    Restart,
+    Stop,
+}
+
+impl DockerOp {
+    /// The `docker` subcommand.
+    pub fn verb(self) -> &'static str {
+        match self {
+            DockerOp::Start => "start",
+            DockerOp::Restart => "restart",
+            DockerOp::Stop => "stop",
+        }
+    }
+}
+
+/// `docker stop` waits up to 10 s for the process to exit before it kills
+/// it; leave room for that and for slow health checks on start.
+const CONTROL_TIMEOUT: Duration = Duration::from_secs(60);
+
+/// `docker start|restart|stop <id>`; errors name the container by `name`.
+pub fn docker_control(runner: &dyn Runner, op: DockerOp, id: &str, name: &str) -> VfsResult<()> {
+    let args = [op.verb().to_string(), id.to_string()];
+    let out = runner
+        .run("docker", &args, None, CONTROL_TIMEOUT)
+        .map_err(|e| spawn_error("docker", &e))?;
+    if !out.success {
+        return Err(map_error("docker", &out.stderr, name));
+    }
+    Ok(())
 }
 
 /// A pod and its containers.
@@ -215,6 +262,45 @@ mod tests {
     use super::super::runner::mock::MockRunner;
     use super::super::runner::CmdOutput;
     use super::*;
+
+    #[test]
+    fn container_ops_follow_the_state() {
+        let c = |state: &str| DockerContainer {
+            id: "1".into(),
+            name: "web".into(),
+            image: "nginx".into(),
+            state: state.into(),
+            status: String::new(),
+            project: None,
+            service: None,
+        };
+        use DockerOp::*;
+        assert_eq!(c("running").ops(), [Restart, Stop]);
+        assert_eq!(c("paused").ops(), [Restart, Stop]);
+        assert_eq!(c("restarting").ops(), [Restart, Stop]);
+        assert_eq!(c("exited").ops(), [Start]);
+        assert_eq!(c("created").ops(), [Start]);
+    }
+
+    #[test]
+    fn docker_control_runs_the_verb_on_the_id() {
+        let r = MockRunner::new(|_, args, _| match args[0].as_str() {
+            "stop" => CmdOutput::fail("Error response from daemon: No such container: 3f2a"),
+            _ => CmdOutput::ok("3f2a\n"),
+        });
+        docker_control(&*r, DockerOp::Start, "3f2a", "web").unwrap();
+        docker_control(&*r, DockerOp::Restart, "3f2a", "web").unwrap();
+        let e = docker_control(&*r, DockerOp::Stop, "3f2a", "web").unwrap_err();
+        assert!(e.to_string().contains("web not found"), "{e}");
+        assert_eq!(
+            r.calls(),
+            [
+                ["docker", "start", "3f2a"],
+                ["docker", "restart", "3f2a"],
+                ["docker", "stop", "3f2a"]
+            ]
+        );
+    }
 
     #[test]
     fn parses_docker_ps() {

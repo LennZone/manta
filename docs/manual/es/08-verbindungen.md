@@ -163,7 +163,7 @@ Los favoritos guardan el contenedor **por nombre**, así que un favorito sigue f
 
 ### Contenedores detenidos e imágenes sin shell
 
-- **Los contenedores detenidos** se abren en modo de **solo lectura** (etiqueta **Detenido**). Puedes copiar archivos hacia fuera; inicia el contenedor para hacer cambios.
+- **Los contenedores detenidos** se abren en modo de **solo lectura** (etiqueta **Detenido**). Puedes copiar archivos hacia fuera; inicia el contenedor para hacer cambios (clic derecho en la barra lateral → **Iniciar**).
 - Los contenedores **sin shell** (imágenes distroless o scratch) también son de solo lectura.
 - Manta lee de una vez cada carpeta de un contenedor detenido; si ocupa más de 512 MB, indica “demasiado grande”. En ese caso, inicia el contenedor.
 
@@ -172,7 +172,7 @@ Los favoritos guardan el contenedor **por nombre**, así que un favorito sigue f
 Clic derecho → **Abrir shell en el contenedor** (también en la paleta de comandos) abre una shell dentro del contenedor en el terminal situado bajo el panel, justo en la carpeta que estás viendo. Consulta [Terminal](11-terminal.md#container-ssh).
 
 > [!NOTE]
-> Manta solo modifica los archivos sobre los que actúas tú. Nunca inicia, detiene ni elimina contenedores.
+> Manta solo modifica los archivos sobre los que actúas tú. Solo inicia, reinicia o detiene un contenedor cuando lo eliges en la barra lateral, y nunca elimina contenedores.
 
 ## Conexiones como favoritos {#favoriten}
 
