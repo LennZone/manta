@@ -203,6 +203,8 @@ Drag items onto **Trash** in the sidebar: local items go to the Trash without as
 2. Press **F2** (**Rename…**) or choose **Rename…** in the context menu.
 3. Type the new name and press ↩.
 
+**Click to rename**, like in Finder: click an item that is already selected once more and wait a moment. In the List view the name becomes editable right in the row (the name without its extension is selected); ↩ or a click elsewhere renames, Esc cancels. In the other views the **Rename…** dialog opens. A double-click still opens the item.
+
 Manta checks the name right away: it must not be empty, contain "/" or already exist in the folder.
 
 **Rename many items at once**: select several and press **F2**, or press **⇧⌘R** (**Batch Rename…**). The plugin offers rules, a live preview and **Undo**. See [Batch Rename](14-plugins.md#umbenennen).

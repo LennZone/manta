@@ -351,6 +351,26 @@ type TagMenuCache = (
     Option<crate::tags::TagMenu>,
 );
 
+/// How long after the second click on the selected item its name becomes
+/// editable; longer than a double-click, so that one still opens the item.
+pub const RENAME_CLICK_DELAY: std::time::Duration = std::time::Duration::from_millis(600);
+
+/// A name edited in place in the List view (click-to-rename).
+pub struct InlineRename {
+    pub form: crate::dialogs::NameForm,
+    /// Focus and the selection of the stem are set up.
+    pub started: bool,
+}
+
+impl InlineRename {
+    pub fn new(form: crate::dialogs::NameForm) -> Self {
+        InlineRename {
+            form,
+            started: false,
+        }
+    }
+}
+
 pub struct Tab {
     pub id: u64,
     pub loc: Location,
@@ -400,6 +420,12 @@ pub struct Tab {
     /// Type-to-select: the letters typed so far and when the last one came.
     pub type_ahead: String,
     pub type_ahead_at: Option<std::time::Instant>,
+    /// Click-to-rename (Finder): a plain click on the item that already was
+    /// the only selection, and when. [`RENAME_CLICK_DELAY`] later its name
+    /// becomes editable, unless a double-click, a drag or another click came.
+    pub rename_click: Option<(String, std::time::Instant)>,
+    /// The name being edited in place (List view).
+    pub inline_rename: Option<InlineRename>,
     /// Name to select once the next listing arrives.
     pub pending_select: Option<String>,
     /// Names to select (all of them) once the next listing arrives
@@ -477,6 +503,8 @@ impl Tab {
             content_h: 0.0,
             type_ahead: String::new(),
             type_ahead_at: None,
+            rename_click: None,
+            inline_rename: None,
             pending_select: None,
             pending_select_many: Vec::new(),
             listing_gen: 0,
@@ -2251,6 +2279,10 @@ fn file_list(
     let now = chrono::Local::now();
     let multi = tab.selected.len() > 1;
     let menu = MenuCtx::of(ui.ctx(), tab, info.count < 2);
+    let editing = tab
+        .inline_rename
+        .as_ref()
+        .and_then(|r| r.form.original.clone());
 
     let out = ui
         .scope_builder(
@@ -2266,6 +2298,7 @@ fn file_list(
                 scroll.show_rows(ui, size::ROW, tab.view.len(), |ui, range| {
                     ui.spacing_mut().item_spacing.y = 0.0;
                     crate::a11y::list(ui, &list_name(tab), tab.view.len());
+                    let mut edit_row = None;
                     for vi in range {
                         // Rows are not Tab stops (the list is one, see
                         // `list_anchor`); VoiceOver reaches them as rows.
@@ -2317,6 +2350,9 @@ fn file_list(
                             now,
                             deco,
                         );
+                        if editing.as_deref() == Some(entry.name.as_str()) {
+                            edit_row = Some(row);
+                        }
                         let over_badge = badge_rect.is_some_and(|r| {
                             resp.hover_pos()
                                 .is_some_and(|pos| r.expand(2.0).contains(pos))
@@ -2366,6 +2402,9 @@ fn file_list(
                             context_menu(ui, side, actions, info.context_cmds, &menu)
                         });
                     }
+                    if let Some(row) = edit_row {
+                        inline_rename_ui(ui, row, &cols, side, tab, actions);
+                    }
                 })
             },
         )
@@ -2375,7 +2414,20 @@ fn file_list(
     tab.content_h = out.content_size.y;
 
     if let Some((vi, mods)) = clicked {
+        // Click-to-rename: a plain click on the item that already was the
+        // only selection of the active pane.
+        let name = tab.entry_at(vi).map(|e| e.name.clone());
+        let again = active
+            && mods.is_none()
+            && tab.selected.len() == 1
+            && name.as_ref().is_some_and(|n| tab.selected.contains(n));
         tab.click(vi, mods);
+        tab.rename_click = name
+            .filter(|_| again)
+            .map(|n| (n, std::time::Instant::now()));
+    }
+    if double.is_some() || drag_start.is_some() || context.is_some() {
+        tab.rename_click = None;
     }
     if let Some(vi) = double {
         tab.select_only(vi);
@@ -2397,6 +2449,91 @@ fn file_list(
         if let Some(payload) = DragPayload::of_tab(side, tab) {
             egui::DragAndDrop::set_payload(ui.ctx(), payload);
         }
+    }
+}
+
+/// Left inset of the name in the in-place editor, so the typed text sits
+/// where the name was painted.
+const INLINE_PAD: f32 = 4.0;
+
+/// The in-place name editor over the name column of `row` (List view).
+/// ↩ renames, Esc cancels, clicking elsewhere renames too (Finder).
+fn inline_rename_ui(
+    ui: &mut egui::Ui,
+    row: egui::Rect,
+    cols: &Columns,
+    side: Side,
+    tab: &mut Tab,
+    actions: &mut Vec<Action>,
+) {
+    let id = egui::Id::unique(("inline-rename", side, tab.id));
+    let Some(ir) = tab.inline_rename.as_mut() else {
+        return;
+    };
+    let p = pal(ui);
+    let r = egui::Rect::from_x_y_ranges(
+        (cols.name.min + 24.0 - INLINE_PAD)..=cols.name.max,
+        row.y_range(),
+    )
+    .shrink2(egui::vec2(0.0, 2.0));
+    // ↩ / Esc while the field has focus (egui reports the lost focus a
+    // frame later, when the key is no longer pressed).
+    let focused = ui.memory(|m| m.has_focus(id));
+    let (enter, esc) = ui.input(|i| {
+        (
+            i.key_pressed(egui::Key::Enter),
+            i.key_pressed(egui::Key::Escape),
+        )
+    });
+    if focused && (enter || esc) {
+        actions.push(Action::InlineRenameEnd {
+            side,
+            commit: !esc,
+            enter,
+        });
+        ui.memory_mut(|m| m.surrender_focus(id));
+        return;
+    }
+    let problem = ir.form.validated().err();
+    let stroke = match problem {
+        Some(_) => p.danger,
+        None => p.focus_ring,
+    };
+    ui.painter().rect(
+        r,
+        CornerRadius::same(radius::ROW),
+        p.content,
+        Stroke::new(1.5, stroke),
+        egui::StrokeKind::Outside,
+    );
+    let resp = ui.put(
+        r,
+        widgets::bare_input(&mut ir.form.name, r, INLINE_PAD)
+            .id(id)
+            .text_color(p.text)
+            // Esc stays with the field (egui would drop the focus first,
+            // which reads as "clicked elsewhere": rename).
+            .event_filter(egui::EventFilter {
+                escape: true,
+                ..Default::default()
+            }),
+    );
+    let resp = resp.on_hover_text(t!("dialog.rename.field"));
+    if !ir.started {
+        resp.request_focus();
+        crate::dialogs::select_name(ui.ctx(), id, &ir.form.name, true);
+        ir.started = true;
+    }
+    if let Some(e) = &problem {
+        resp.show_tooltip_text(e);
+    }
+    // Focus went elsewhere (a click outside): rename, like Finder.
+    if resp.lost_focus() {
+        actions.push(Action::InlineRenameEnd {
+            side,
+            commit: true,
+            enter: false,
+        });
     }
 }
 

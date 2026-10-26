@@ -2087,6 +2087,130 @@ fn names_in(dir: &Path) -> Vec<String> {
     v
 }
 
+/// A plain click at `pos` (List view row).
+fn click_row_at(h: &mut H, pos: egui::Pos2) {
+    h.hover_at(pos);
+    h.step();
+    for pressed in [true, false] {
+        h.event(egui::Event::PointerButton {
+            pos,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        });
+        h.step();
+    }
+}
+
+/// Centre of the List view row showing `name` in the left pane (WIDE).
+fn row_pos(h: &mut H, name: &str) -> egui::Pos2 {
+    let tab = app(h).pane(Side::Left).tab();
+    let vi = tab.view_index_of(name).expect("row") as f32;
+    egui::pos2(
+        420.0,
+        120.0 + vi * crate::theme::size::ROW - tab.scroll_offset,
+    )
+}
+
+/// Let more than the double-click time pass between two clicks.
+fn pause(h: &mut H) {
+    std::thread::sleep(crate::pane::RENAME_CLICK_DELAY);
+    h.run_steps(30);
+}
+
+/// Finder's click-to-rename: a second, slow click on the selected item
+/// makes its name editable in place (stem selected); ↩ renames, Esc
+/// cancels. A double-click opens instead, and a first click only selects.
+#[test]
+fn click_on_selected_item_renames_in_place() {
+    let fx = fixture();
+    let mut h = harness(&fx, WIDE, Theme::Light);
+    app(&mut h).active = Side::Left;
+    let editing = |h: &mut H| app(h).pane(Side::Left).tab().inline_rename.is_some();
+
+    // First click selects only.
+    let pos = row_pos(&mut h, "notes.txt");
+    click_row_at(&mut h, pos);
+    pause(&mut h);
+    assert!(
+        !editing(&mut h),
+        "a click on an unselected item only selects"
+    );
+    assert!(app(&mut h)
+        .pane(Side::Left)
+        .tab()
+        .selected
+        .contains("notes.txt"));
+
+    // A second click on it, after a moment: the name becomes editable.
+    click_row_at(&mut h, pos);
+    pause(&mut h);
+    assert!(editing(&mut h), "second click starts renaming");
+    if wgpu_available() {
+        save(&mut h, "inline_rename");
+    }
+    // The stem is selected: typing replaces "notes", keeps ".txt".
+    h.event(egui::Event::Text("todo".into()));
+    h.run_steps(2);
+    let name = app(&mut h)
+        .pane(Side::Left)
+        .tab()
+        .inline_rename
+        .as_ref()
+        .map(|r| r.form.name.clone());
+    assert_eq!(name.as_deref(), Some("todo.txt"));
+    h.key_press(egui::Key::Enter);
+    h.run_steps(2);
+    assert!(!editing(&mut h));
+    wait_until(&mut h, "the rename", |_| fx.root.join("todo.txt").exists());
+    assert!(!fx.root.join("notes.txt").exists());
+    wait_until(&mut h, "the renamed row selected", |h| {
+        app(h)
+            .pane(Side::Left)
+            .tab()
+            .view_index_of("todo.txt")
+            .is_some()
+            && app(h).pane(Side::Left).tab().selected.contains("todo.txt")
+    });
+
+    // Esc cancels.
+    let pos = row_pos(&mut h, "todo.txt");
+    click_row_at(&mut h, pos);
+    pause(&mut h);
+    assert!(editing(&mut h));
+    h.event(egui::Event::Text("other".into()));
+    h.key_press(egui::Key::Escape);
+    h.run_steps(2);
+    assert!(!editing(&mut h));
+    pause(&mut h);
+    assert!(
+        fx.root.join("todo.txt").exists(),
+        "{:?}",
+        names_in(&fx.root)
+    );
+
+    // A double-click on the selected item opens it, no renaming.
+    let pos = row_pos(&mut h, "Design");
+    click_row_at(&mut h, pos);
+    pause(&mut h);
+    // Each test frame advances egui's clock by ~0.25 s: widen the
+    // double-click time so two clicks in a row count as one.
+    h.ctx
+        .options_mut(|o| o.input_options.max_double_click_delay = 2.0);
+    click_row_at(&mut h, pos);
+    click_row_at(&mut h, pos);
+    pause(&mut h);
+    assert!(!editing(&mut h), "double-click must not rename");
+    settle(&mut h);
+    assert!(app(&mut h)
+        .pane(Side::Left)
+        .tab()
+        .loc
+        .path
+        .as_str()
+        .ends_with("/Design"));
+}
+
 /// ⌥⌘N (File menu and both context menus) asks for a name, creates an
 /// empty file and selects it; a taken name is refused in the dialog.
 #[test]

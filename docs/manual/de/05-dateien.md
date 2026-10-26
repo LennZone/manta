@@ -203,6 +203,8 @@ Zieh Objekte auf **Papierkorb** in der Seitenleiste: Lokale Objekte landen ohne 
 2. Drücke **F2** (**Umbenennen …**) oder wähle **Umbenennen …** im Kontextmenü.
 3. Tippe den neuen Namen und drücke ↩.
 
+**Per Klick umbenennen**, wie im Finder: Klicke ein bereits ausgewähltes Objekt noch einmal an und warte kurz. In der Listenansicht wird der Name direkt in der Zeile editierbar (markiert ist der Name ohne Endung); ↩ oder ein Klick daneben benennt um, Esc bricht ab. In den anderen Ansichten öffnet sich der Dialog **Umbenennen …**. Ein Doppelklick öffnet das Objekt wie gewohnt.
+
 Manta prüft den Namen sofort: Er darf nicht leer sein, kein „/“ enthalten und nicht schon im Ordner existieren.
 
 **Mehrere Objekte auf einmal umbenennen**: Wähle mehrere aus und drücke **F2**, oder drücke **⇧⌘R** (**Stapelweise umbenennen …**). Das Plugin bietet Regeln, eine Live-Vorschau und **Widerrufen**. Siehe [Stapelweise umbenennen](14-plugins.md#umbenennen).

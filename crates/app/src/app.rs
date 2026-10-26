@@ -129,6 +129,16 @@ pub enum Action {
     /// `true` = move.
     CopyToOther(Side, bool),
     Rename(Side),
+    /// Click-to-rename fired: edit the selected item's name in place
+    /// (List view; the rename dialog in the other views).
+    RenameInPlace(Side),
+    /// The in-place name editor lost focus: rename unless Esc (`commit`
+    /// false); `enter`: an invalid name keeps the editor open.
+    InlineRenameEnd {
+        side: Side,
+        commit: bool,
+        enter: bool,
+    },
     NewFolder(Side),
     /// An empty file in the pane's folder (asks for the name).
     NewFile(Side),
@@ -697,6 +707,9 @@ fn spawn_listing(worker: &Worker, tab: &mut Tab, path: Option<VfsPath>) {
 
 /// Change a tab's location (optionally recording history) and load it.
 fn navigate_tab(worker: &Worker, tab: &mut Tab, loc: Location, home: bool, push_history: bool) {
+    // A name being edited (or about to be) belongs to the folder left.
+    tab.rename_click = None;
+    tab.inline_rename = None;
     // Leaving the folder stops an archive that is still being opened.
     if let Some(o) = tab.opening.take() {
         o.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
@@ -1439,7 +1452,8 @@ impl MantaApp {
                 }
                 // Not under a rename / new folder name being typed, nor over
                 // a listing that is loading anyway: try again shortly.
-                let naming = matches!(&self.dialog, Some(Dialog::Name(f)) if f.tab_id == tab.id);
+                let naming = tab.inline_rename.is_some()
+                    || matches!(&self.dialog, Some(Dialog::Name(f)) if f.tab_id == tab.id);
                 if naming || tab.loading {
                     self.live.defer(&dir, last, now);
                     continue;
@@ -1458,7 +1472,8 @@ impl MantaApp {
         for pane in &mut self.panes {
             let tab = pane.tab_mut();
             let Some(last) = tab.stale else { continue };
-            let naming = matches!(&self.dialog, Some(Dialog::Name(f)) if f.tab_id == tab.id);
+            let naming = tab.inline_rename.is_some()
+                || matches!(&self.dialog, Some(Dialog::Name(f)) if f.tab_id == tab.id);
             if naming || tab.loading {
                 continue;
             }
@@ -2586,48 +2601,22 @@ impl MantaApp {
                     self.plugins.run_command(BATCH_RENAME_CMD, &state);
                     return;
                 }
-                let tab = self.pane(side).tab();
-                match sel.as_slice() {
-                    // A search result: renamed in its own folder.
-                    [entry] if tab.in_search() => {
-                        let Some(dir) = entry.path.parent() else {
-                            return;
-                        };
-                        // The names next to it (local folders only: no
-                        // network on the UI thread; servers refuse a clash).
-                        let existing = match tab.loc.fs.local_path(&dir) {
-                            Some(_) => tab
-                                .loc
-                                .fs
-                                .list(&dir)
-                                .map(|v| v.into_iter().map(|e| e.name).collect())
-                                .unwrap_or_default(),
-                            None => Vec::new(),
-                        };
-                        let form = NameForm::new(
-                            tab.id,
-                            tab.loc.fs.clone(),
-                            dir,
-                            Some(entry.path.file_name().to_string()),
-                            existing,
-                        );
-                        self.dialog = Some(Dialog::Name(form));
+                match sel.len() {
+                    0 => self.set_info(t!("status.select_rename")),
+                    1 => {
+                        if let Some(form) = self.rename_form(side) {
+                            self.dialog = Some(Dialog::Name(form));
+                        }
                     }
-                    [entry] => {
-                        let existing = tab.entries.iter().map(|e| e.name.clone()).collect();
-                        let form = NameForm::new(
-                            tab.id,
-                            tab.loc.fs.clone(),
-                            tab.loc.path.clone(),
-                            Some(entry.name.clone()),
-                            existing,
-                        );
-                        self.dialog = Some(Dialog::Name(form));
-                    }
-                    [] => self.set_info(t!("status.select_rename")),
                     _ => self.set_info(t!("status.select_single_rename")),
                 }
             }
+            Action::RenameInPlace(side) => self.rename_in_place(side),
+            Action::InlineRenameEnd {
+                side,
+                commit,
+                enter,
+            } => self.inline_rename_end(side, commit, enter),
             Action::NewFolder(side) => {
                 let tab = self.pane(side).tab();
                 let existing = tab.entries.iter().map(|e| e.name.clone()).collect();
@@ -4388,92 +4377,204 @@ impl MantaApp {
             Dialog::HostKey(f) => self.host_key_answered(*f, true),
             Dialog::Conflict(_) => {}
             Dialog::WhatsNew(_) => self.mark_whats_new_seen(),
-            Dialog::Name(mut f) => match f.validated() {
-                Err(e) => {
-                    f.error = Some(e);
-                    self.dialog = Some(Dialog::Name(f));
+            Dialog::Name(f) => {
+                if let Err(f) = self.submit_name(f) {
+                    self.dialog = Some(Dialog::Name(*f));
                 }
-                Ok(name) => {
-                    let fs = f.fs.clone();
-                    let dir = f.dir.clone();
-                    let target = dir.join(&name);
-                    let select = Some((f.tab_id, name.clone()));
-                    let refresh = vec![(fs.clone(), dir.clone())];
-                    let side = self.side_of_tab(f.tab_id);
-                    match f.original {
-                        None if f.new_file => {
-                            let a = self.new_action(
-                                side,
-                                FileActionKind::NewFile,
-                                &fs,
-                                vec![target.clone()],
-                                None,
-                            );
-                            let action = Some(self.start_action(a));
-                            self.worker.spawn(
-                                "touch",
-                                move || create_empty_file(&*fs, &target).map_err(|e| e.to_string()),
-                                move |result| WorkResult::FileOp {
-                                    description: t!("status.created_file", name = name),
-                                    failure: t!("error.create_file", name = name),
-                                    refresh,
-                                    select,
-                                    action,
-                                    result,
-                                },
-                            );
-                        }
-                        None => {
-                            let a = self.new_action(
-                                side,
-                                FileActionKind::NewFolder,
-                                &fs,
-                                vec![target.clone()],
-                                None,
-                            );
-                            let action = Some(self.start_action(a));
-                            self.worker.spawn(
-                                "mkdir",
-                                move || fs.create_dir(&target).map_err(|e| e.to_string()),
-                                move |result| WorkResult::FileOp {
-                                    description: t!("status.created_folder", name = name),
-                                    failure: t!("error.create_folder", name = name),
-                                    refresh,
-                                    select,
-                                    action,
-                                    result,
-                                },
-                            );
-                        }
-                        Some(old) if old == name => {}
-                        Some(old) => {
-                            let from = dir.join(&old);
-                            let mut a = self.new_action(
-                                side,
-                                FileActionKind::Rename,
-                                &fs,
-                                vec![from.clone()],
-                                None,
-                            );
-                            a.destination = Some(target.clone());
-                            let action = Some(self.start_action(a));
-                            self.worker.spawn(
-                                "rename",
-                                move || fs.rename(&from, &target).map_err(|e| e.to_string()),
-                                move |result| WorkResult::FileOp {
-                                    description: t!("status.renamed", old = old, name = name),
-                                    failure: t!("error.rename", name = old),
-                                    refresh,
-                                    select,
-                                    action,
-                                    result,
-                                },
-                            );
-                        }
+            }
+        }
+    }
+
+    /// Create the folder / file or rename as `f` says (the name dialog and
+    /// in-place renaming). An invalid name comes back with its error set.
+    fn submit_name(&mut self, mut f: NameForm) -> Result<(), Box<NameForm>> {
+        match f.validated() {
+            Err(e) => {
+                f.error = Some(e);
+                return Err(Box::new(f));
+            }
+            Ok(name) => {
+                let fs = f.fs.clone();
+                let dir = f.dir.clone();
+                let target = dir.join(&name);
+                let select = Some((f.tab_id, name.clone()));
+                let refresh = vec![(fs.clone(), dir.clone())];
+                let side = self.side_of_tab(f.tab_id);
+                match f.original {
+                    None if f.new_file => {
+                        let a = self.new_action(
+                            side,
+                            FileActionKind::NewFile,
+                            &fs,
+                            vec![target.clone()],
+                            None,
+                        );
+                        let action = Some(self.start_action(a));
+                        self.worker.spawn(
+                            "touch",
+                            move || create_empty_file(&*fs, &target).map_err(|e| e.to_string()),
+                            move |result| WorkResult::FileOp {
+                                description: t!("status.created_file", name = name),
+                                failure: t!("error.create_file", name = name),
+                                refresh,
+                                select,
+                                action,
+                                result,
+                            },
+                        );
+                    }
+                    None => {
+                        let a = self.new_action(
+                            side,
+                            FileActionKind::NewFolder,
+                            &fs,
+                            vec![target.clone()],
+                            None,
+                        );
+                        let action = Some(self.start_action(a));
+                        self.worker.spawn(
+                            "mkdir",
+                            move || fs.create_dir(&target).map_err(|e| e.to_string()),
+                            move |result| WorkResult::FileOp {
+                                description: t!("status.created_folder", name = name),
+                                failure: t!("error.create_folder", name = name),
+                                refresh,
+                                select,
+                                action,
+                                result,
+                            },
+                        );
+                    }
+                    Some(old) if old == name => {}
+                    Some(old) => {
+                        let from = dir.join(&old);
+                        let mut a = self.new_action(
+                            side,
+                            FileActionKind::Rename,
+                            &fs,
+                            vec![from.clone()],
+                            None,
+                        );
+                        a.destination = Some(target.clone());
+                        let action = Some(self.start_action(a));
+                        self.worker.spawn(
+                            "rename",
+                            move || fs.rename(&from, &target).map_err(|e| e.to_string()),
+                            move |result| WorkResult::FileOp {
+                                description: t!("status.renamed", old = old, name = name),
+                                failure: t!("error.rename", name = old),
+                                refresh,
+                                select,
+                                action,
+                                result,
+                            },
+                        );
                     }
                 }
-            },
+            }
         }
+        Ok(())
+    }
+
+    /// Click-to-rename: the name becomes editable in the List view; the
+    /// other views (names under icons, in columns) use the rename dialog.
+    /// Nothing happens in read-only places or under a modal.
+    fn rename_in_place(&mut self, side: Side) {
+        if self.pane(side).tab().loc.read_only() || self.modal_open() {
+            return;
+        }
+        let Some(form) = self.rename_form(side) else {
+            return;
+        };
+        if self.pane(side).view == crate::views::ViewMode::List {
+            self.pane_mut(side).tab_mut().inline_rename = Some(pane::InlineRename::new(form));
+        } else {
+            self.dialog = Some(Dialog::Name(form));
+        }
+    }
+
+    fn inline_rename_end(&mut self, side: Side, commit: bool, enter: bool) {
+        let Some(ir) = self.pane_mut(side).tab_mut().inline_rename.take() else {
+            return;
+        };
+        if !commit {
+            return;
+        }
+        if let Err(f) = self.submit_name(ir.form) {
+            if enter {
+                // ↩ on an invalid name: keep editing (the field says why).
+                self.pane_mut(side).tab_mut().inline_rename = Some(pane::InlineRename::new(*f));
+            } else if let Some(e) = f.error {
+                self.set_error(e);
+            }
+        }
+    }
+
+    /// Click-to-rename: start editing once the delay after the second
+    /// click has passed and the item is still the only selection. The
+    /// editor goes away when the pane leaves the List view.
+    fn poll_rename_click(&mut self, ctx: &egui::Context, actions: &mut Vec<Action>) {
+        let modal = self.modal_open();
+        for pane in &mut self.panes {
+            let side = pane.id;
+            let list = pane.view == crate::views::ViewMode::List;
+            let tab = pane.tab_mut();
+            if !list {
+                tab.inline_rename = None;
+            }
+            let Some((name, at)) = &tab.rename_click else {
+                continue;
+            };
+            let left = pane::RENAME_CLICK_DELAY.saturating_sub(at.elapsed());
+            if !left.is_zero() {
+                ctx.request_repaint_after(left);
+                continue;
+            }
+            let still = tab.selected.len() == 1 && tab.selected.contains(name);
+            tab.rename_click = None;
+            if still && !modal && tab.inline_rename.is_none() {
+                actions.push(Action::RenameInPlace(side));
+            }
+        }
+    }
+
+    /// The rename form for the pane's single selected item (a search
+    /// result is renamed in its own folder).
+    fn rename_form(&self, side: Side) -> Option<NameForm> {
+        let tab = self.pane(side).tab();
+        let sel = tab.selected_entries();
+        let [entry] = sel.as_slice() else {
+            return None;
+        };
+        if tab.in_search() {
+            let dir = entry.path.parent()?;
+            // The names next to it (local folders only: no network on the
+            // UI thread; servers refuse a clash).
+            let existing = match tab.loc.fs.local_path(&dir) {
+                Some(_) => tab
+                    .loc
+                    .fs
+                    .list(&dir)
+                    .map(|v| v.into_iter().map(|e| e.name).collect())
+                    .unwrap_or_default(),
+                None => Vec::new(),
+            };
+            return Some(NameForm::new(
+                tab.id,
+                tab.loc.fs.clone(),
+                dir,
+                Some(entry.path.file_name().to_string()),
+                existing,
+            ));
+        }
+        let existing = tab.entries.iter().map(|e| e.name.clone()).collect();
+        Some(NameForm::new(
+            tab.id,
+            tab.loc.fs.clone(),
+            tab.loc.path.clone(),
+            Some(entry.name.clone()),
+            existing,
+        ))
     }
 
     // ------------------------------------------------------------ plugins
@@ -7171,6 +7272,7 @@ impl MantaApp {
         if let Some(target) = crate::help::take_request(&ctx) {
             actions.push(Action::ShowHelp(target));
         }
+        self.poll_rename_click(&ctx, &mut actions);
         for a in actions {
             self.handle_action(&ctx, a);
         }

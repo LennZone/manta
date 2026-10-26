@@ -203,6 +203,8 @@ Trascina gli elementi su **Cestino** nella barra laterale: gli elementi locali v
 2. Premi **F2** (**Rinomina…**) o scegli **Rinomina…** nel menu contestuale.
 3. Digita il nuovo nome e premi ↩.
 
+**Rinominare con un clic**, come nel Finder: fai di nuovo clic su un elemento già selezionato e attendi un attimo. Nella vista Elenco il nome diventa modificabile direttamente nella riga (è selezionato il nome senza estensione); ↩ o un clic altrove rinomina, Esc annulla. Nelle altre viste si apre la finestra **Rinomina…**. Un doppio clic apre comunque l’elemento.
+
 Manta controlla subito il nome: non deve essere vuoto, contenere “/” o esistere già nella cartella.
 
 **Rinominare molti elementi in una volta**: selezionane diversi e premi **F2**, oppure premi **⇧⌘R** (**Rinomina in blocco…**). Il plug-in offre regole, un’anteprima in tempo reale e la possibilità di annullare. Vedi [Rinomina in blocco](14-plugins.md#umbenennen).

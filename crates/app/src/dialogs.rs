@@ -2775,21 +2775,12 @@ impl NameForm {
             });
             if !self.focus_requested {
                 resp.request_focus();
-                // Select the stem (without extension) like Finder does.
-                let stem_len = match self.name.rfind('.') {
-                    Some(i) if i > 0 && (self.original.is_some() || self.new_file) => {
-                        self.name[..i].chars().count()
-                    }
-                    _ => self.name.chars().count(),
-                };
-                if let Some(mut state) = egui::TextEdit::load_state(ui.ctx(), resp.id) {
-                    let range = egui::text::CCursorRange::two(
-                        egui::text::CCursor::new(0),
-                        egui::text::CCursor::new(stem_len),
-                    );
-                    state.cursor.set_char_range(Some(range));
-                    state.store(ui.ctx(), resp.id);
-                }
+                select_name(
+                    ui.ctx(),
+                    resp.id,
+                    &self.name,
+                    self.original.is_some() || self.new_file,
+                );
                 self.focus_requested = true;
             }
             if resp.changed() {
@@ -2815,6 +2806,23 @@ impl NameForm {
 }
 
 // ------------------------------------------------------------------ helpers
+
+/// Select the name in the text edit `id`: only the stem (without the
+/// extension) when `stem`, like Finder does.
+pub(crate) fn select_name(ctx: &egui::Context, id: egui::Id, name: &str, stem: bool) {
+    let len = match name.rfind('.') {
+        Some(i) if i > 0 && stem => name[..i].chars().count(),
+        _ => name.chars().count(),
+    };
+    if let Some(mut state) = egui::TextEdit::load_state(ctx, id) {
+        let range = egui::text::CCursorRange::two(
+            egui::text::CCursor::new(0),
+            egui::text::CCursor::new(len),
+        );
+        state.cursor.set_char_range(Some(range));
+        state.store(ctx, id);
+    }
+}
 
 pub(crate) fn folder_name(dir: &VfsPath) -> String {
     let n = dir.file_name();

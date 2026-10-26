@@ -203,6 +203,8 @@ Arrastra ítems a **Papelera**, en la barra lateral: los ítems locales van a la
 2. Pulsa **F2** (**Renombrar…**) o elige **Renombrar…** en el menú contextual.
 3. Escribe el nombre nuevo y pulsa ↩.
 
+**Renombrar con un clic**, como en Finder: vuelve a hacer clic en un ítem que ya esté seleccionado y espera un momento. En la vista de lista el nombre pasa a ser editable en la propia fila (se selecciona el nombre sin la extensión); ↩ o un clic fuera lo renombra y Esc cancela. En las demás vistas se abre el diálogo **Renombrar…**. Un doble clic sigue abriendo el ítem.
+
 Manta comprueba el nombre al instante: no puede estar vacío, contener “/” ni existir ya en la carpeta.
 
 **Renombrar muchos ítems a la vez**: selecciona varios y pulsa **F2**, o pulsa **⇧⌘R** (**Renombrar en lote…**). El plugin ofrece reglas, una vista previa en directo y **Deshacer**. Consulta [Renombrar en lote](14-plugins.md#umbenennen).

@@ -203,6 +203,8 @@ Faites glisser des éléments sur **Corbeille** dans la barre latérale : les �
 2. Appuyez sur **F2** (**Renommer…**) ou choisissez **Renommer…** dans le menu contextuel.
 3. Tapez le nouveau nom et appuyez sur ↩.
 
+**Renommer d’un clic**, comme dans le Finder : cliquez de nouveau sur un élément déjà sélectionné et patientez un instant. Dans la présentation par liste, le nom devient modifiable directement dans la ligne (le nom sans l’extension est sélectionné) ; ↩ ou un clic ailleurs renomme, Échap annule. Dans les autres présentations, la zone de dialogue **Renommer…** s’ouvre. Un double-clic ouvre toujours l’élément.
+
 Manta vérifie immédiatement le nom : il ne doit pas être vide, contenir « / » ni exister déjà dans le dossier.
 
 **Renommer de nombreux éléments à la fois** : sélectionnez-en plusieurs et appuyez sur **F2**, ou appuyez sur **⇧⌘R** (**Renommer par lot…**). Le plug-in propose des règles, un aperçu en direct et une fonction d’annulation. Voir [Renommage par lot](14-plugins.md#umbenennen).
