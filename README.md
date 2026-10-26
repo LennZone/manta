@@ -52,7 +52,8 @@ updates.
   picker; network volumes mounted in Finder show up under Devices with an eject button
 - Amazon S3 and S3-compatible storage (Cloudflare R2, MinIO, Backblaze B2, Wasabi,
   DigitalOcean Spaces, Hetzner)
-- Docker containers and Kubernetes pods as folders, through the `docker` / `kubectl` CLIs
+- Docker containers and Kubernetes pods as folders, through the `docker` / `kubectl` CLIs;
+  start, restart and stop Docker containers from the sidebar
 - iCloud Drive, Google Drive, OneDrive, Dropbox, Box and other cloud folders synced by
   macOS, with download state and "Download now" / "Remove download"
 - Passwords, key passphrases and S3 secret keys are kept in the macOS Keychain
@@ -65,6 +66,8 @@ updates.
 - Archives as folders: zip, tar and compressed tars open right in the pane (read-only);
   Compress… creates zip, tar.gz, tar.xz or tar.zst
 - Move to Trash like Finder (Put Back works), Quick Look with Space
+- New Folder (⇧⌘N) and New File (⌥⌘N), also in the context menu; click a selected item
+  again to rename it in place, like Finder
 - Folder compare and sync, folder sizes, a Disk Usage treemap, batch rename with a live
   preview and Undo, duplicate finder
 
