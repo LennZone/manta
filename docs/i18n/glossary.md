@@ -322,6 +322,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `cmd.view_gallery` | View as Gallery | Als Galerie | 为画廊 | Como galería | Par galerie | Come galleria | Как галерея |
 | `settings.view_per_folder` | Remember view per folder | Ansicht pro Ordner merken | 为每个文件夹记住显示方式 | Recordar la visualización por carpeta | Mémoriser la présentation par dossier | Ricorda la vista per ogni cartella | Запоминать вид для каждой папки |
 | `settings.remote_thumbnails` | Load thumbnails for server files | Vorschaubilder für Server-Dateien laden | 为服务器文件载入缩略图 | Cargar miniaturas de archivos del servidor | Charger les vignettes des fichiers sur serveur | Carica miniature dei file sul server | Загружать миниатюры файлов на сервере |
+| `settings.system_icons` | File icons from macOS | Dateisymbole von macOS | 使用 macOS 文件图标 | Iconos de archivo de macOS | Icônes de fichiers de macOS | Icone dei file di macOS | Значки файлов macOS |
 
 ## App: Dialogs
 

@@ -44,6 +44,7 @@ Lo stesso interruttore si trova nel menu **Manta** (**Manta come gestore file pr
 | **Apri gli archivi come cartelle** | A capo o doppio clic sfoglia gli archivi ZIP e TAR nel pannello (in sola lettura). **⌥↩** li apre con l’app predefinita. Vedi [Archivi](10-archive.md). |
 | **Ricorda la vista per ogni cartella** | Ogni cartella si apre nella vista in cui è stata mostrata l’ultima volta (Icone, Elenco, Colonne, Galleria). Disattivata (predefinito): la vista appartiene al pannello. Vedi [Viste](03-ansichten.md#pro-ordner). |
 | **Carica miniature dei file sul server** | Scarica le immagini piccole (sotto i 5 MB) in background. Disattivata (predefinito): i file sui server mostrano l’icona del loro tipo. Vedi [Miniature](03-ansichten.md#server-vorschaubilder). |
+| **Icone dei file di macOS** | I file mostrano l’icona che macOS ha per il loro tipo e le app la propria, come nel Finder, anche sui server. Disattivata: i simboli di Manta. Predefinito: attivata. |
 
 ### Anteprima {#vorschau}
 

@@ -133,6 +133,10 @@ pub struct Prefs {
     /// thumbnails; off: server files show their type icon.
     #[serde(default)]
     pub remote_thumbnails: bool,
+    /// Files show the icon macOS has for their type (and apps their own),
+    /// like Finder; off: Manta's glyphs.
+    #[serde(default = "yes")]
+    pub system_icons: bool,
     /// The newest one-time "what's new" notice the user has dismissed
     /// (see `app::WHATS_NEW`). New installs start at the current one.
     #[serde(default)]

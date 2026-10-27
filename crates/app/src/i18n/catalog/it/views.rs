@@ -34,4 +34,6 @@ pub const ENTRIES: Translations = &[
     ("settings.view_per_folder.note", "Ogni cartella si apre nella vista in cui è stata mostrata l’ultima volta (Icone, Elenco, Colonne, Galleria)."),
     ("settings.remote_thumbnails", "Carica miniature dei file sul server"),
     ("settings.remote_thumbnails.note", "Scarica in background le immagini piccole (meno di 5 MB). Se disattivato, i file sul server mostrano l’icona del loro tipo."),
+    ("settings.system_icons", "Icone dei file di macOS"),
+    ("settings.system_icons.note", "I file mostrano l’icona che macOS ha per il loro tipo e le app la propria, come nel Finder. Se disattivato: i simboli di Manta."),
 ];

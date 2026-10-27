@@ -1104,6 +1104,8 @@ pub struct PaneInfo<'a> {
     pub thumbs: Option<&'a crate::thumbs::Thumbs>,
     /// Load thumbnails of small images on servers (a setting).
     pub remote_thumbs: bool,
+    /// Files show the icon macOS has for their type (a setting).
+    pub type_icons: bool,
     /// Finder tags of the visible folders (the Columns view's other
     /// columns read theirs here).
     pub tags: Option<&'a crate::tags::TagStore>,
@@ -2228,6 +2230,7 @@ fn file_list(
     widths: &mut [f32; 3],
     actions: &mut Vec<Action>,
 ) {
+    let row_icons = crate::views::RowIcons::of(info, &tab.loc);
     let side = info.side;
 
     if blocking_state(ui, rect, side, tab, actions) {
@@ -2333,13 +2336,7 @@ fn file_list(
                             .flatten();
                         let sync_info = tab.cloud.as_ref().and_then(|c| c.get(&entry.name));
                         let sync = sync_info.map(|i| i.state);
-                        let icon = match crate::thumbs::is_app_bundle(entry) {
-                            true => match crate::views::thumb_of(ui, info, tab, entry, 18.0) {
-                                crate::thumbs::Thumb::Ready(tex) => Some(tex),
-                                _ => None,
-                            },
-                            false => None,
-                        };
+                        let icon = row_icons.get(ui, entry, 18.0);
                         let (badge_rect, sync_rect) = paint_row(
                             ui,
                             row,

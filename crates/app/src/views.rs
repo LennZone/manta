@@ -604,6 +604,9 @@ pub(crate) fn thumb_of(ui: &egui::Ui, info: &PaneInfo<'_>, tab: &Tab, e: &Entry,
     let Some(method) = thumbs::method_for(e) else {
         return Thumb::Unavailable;
     };
+    if method == Method::AppIcon && !info.type_icons {
+        return Thumb::Unavailable;
+    }
     if tab.loc.archive.is_some() {
         return Thumb::Unavailable;
     }
@@ -622,6 +625,54 @@ pub(crate) fn thumb_of(ui: &egui::Ui, info: &PaneInfo<'_>, tab: &Tab, e: &Entry,
     thumbs.get_any(&key, || {
         Some((Source::Remote(fs.clone(), e.path.clone()), Method::Image))
     })
+}
+
+/// Real icons for small rows (List, Columns): an app's own icon, and the
+/// icon macOS shows for a file's type. Built before a view borrows its tab.
+pub(crate) struct RowIcons<'a> {
+    thumbs: Option<&'a thumbs::Thumbs>,
+    types: bool,
+    /// The folder's file system when it is on this Mac (app icons).
+    local: Option<manta_core::SharedVfs>,
+}
+
+impl<'a> RowIcons<'a> {
+    pub fn of(info: &PaneInfo<'a>, loc: &crate::pane::Location) -> RowIcons<'a> {
+        RowIcons {
+            thumbs: info.thumbs,
+            types: info.type_icons,
+            local: (loc.conn.is_none() && loc.archive.is_none()).then(|| loc.fs.clone()),
+        }
+    }
+
+    /// The icon of `e` at `pt` points, once it is made (`None`: draw the
+    /// glyph; folders always do, except apps).
+    pub fn get(&self, ui: &egui::Ui, e: &Entry, pt: f32) -> Option<egui::TextureHandle> {
+        let thumbs = self.thumbs?;
+        let px = thumbs::bucket_for(pt * ui.ctx().pixels_per_point());
+        if !self.types {
+            return None;
+        }
+        let thumb = if thumbs::is_app_bundle(e) {
+            let fs = self.local.as_ref()?;
+            let key = ThumbKey::for_entry("", e, px);
+            thumbs.get_any(&key, || {
+                fs.local_path(&e.path)
+                    .map(|p| (Source::Local(p), Method::AppIcon))
+            })
+        } else if !e.is_dir() && cfg!(target_os = "macos") {
+            let ext = icons::extension(&e.name);
+            thumbs.get_any(&thumbs::type_key(&ext, px), || {
+                Some((Source::Type(ext.clone()), Method::TypeIcon))
+            })
+        } else {
+            return None;
+        };
+        match thumb {
+            Thumb::Ready(tex) => Some(tex),
+            _ => None,
+        }
+    }
 }
 
 /// `size` scaled to fit `into` (aspect kept, never enlarged beyond 2×),
@@ -687,12 +738,19 @@ fn paint_entry_icon(
             let tr = fit(tex.size_vec2(), r.shrink(r.width() * 0.04), bottom);
             paint_texture(ui, &tex, tr, if r.width() > 120.0 { 4 } else { 2 }, dim);
         }
-        _ => {
-            let (glyph, _, fill) = icons::entry_icon(e, p);
-            // Glyph sizes in whole steps (each size is rasterised once).
-            let gs = ((r.width() * 0.86) / 4.0).round() * 4.0;
-            widgets::paint_icon(ui, r, glyph, gs, color, fill);
-        }
+        _ => match RowIcons::of(info, &tab.loc).get(ui, e, r.width()) {
+            // No thumbnail (yet): the type's own icon, like Finder.
+            Some(tex) => {
+                let tr = fit(tex.size_vec2(), r, bottom);
+                paint_plain(ui, &tex, tr, dim);
+            }
+            None => {
+                let (glyph, _, fill) = icons::entry_icon(e, p);
+                // Glyph sizes in whole steps (each size is rasterised once).
+                let gs = ((r.width() * 0.86) / 4.0).round() * 4.0;
+                widgets::paint_icon(ui, r, glyph, gs, color, fill);
+            }
+        },
     }
     if e.kind == manta_core::EntryKind::Symlink || e.link_target.is_some() {
         let s = (r.width() * 0.26).clamp(12.0, 28.0);
@@ -1757,6 +1815,7 @@ pub fn columns_view(
     widths: &mut Vec<f32>,
     actions: &mut Vec<Action>,
 ) {
+    let row_icons = &RowIcons::of(info, &tab.loc);
     let side = info.side;
     if pane::blocking_state(ui, rect, side, tab, actions) {
         return;
@@ -1882,6 +1941,7 @@ pub fn columns_view(
                             highlight.as_deref(),
                             false,
                             tags.as_deref(),
+                            row_icons,
                             &mut out_actions,
                         );
                     }
@@ -1903,6 +1963,7 @@ pub fn columns_view(
                         None,
                         true,
                         tags.as_deref(),
+                        row_icons,
                         &mut out_actions,
                     );
                     column_edge(ui, col, side, tab.id, i, &mut resize, &mut reset);
@@ -1984,6 +2045,16 @@ fn column_edge(
     }
 }
 
+/// An icon texture as is (no shadow, unlike thumbnails), faded by `dim`.
+pub(crate) fn paint_plain(ui: &egui::Ui, tex: &egui::TextureHandle, r: egui::Rect, dim: f32) {
+    ui.painter().image(
+        tex.id(),
+        r,
+        egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+        Color32::WHITE.gamma_multiply(dim),
+    );
+}
+
 /// One row of a column: icon, name (cut), and at the right a folder chevron
 /// (plus a size or badges where known).
 #[allow(clippy::too_many_arguments)]
@@ -1991,6 +2062,7 @@ fn column_row(
     ui: &egui::Ui,
     r: egui::Rect,
     e: &Entry,
+    icons_: &RowIcons<'_>,
     fill: Option<Color32>,
     on_accent: bool,
     deco: Option<&MergedDecoration>,
@@ -2009,14 +2081,17 @@ fn column_row(
         egui::pos2(inset.left() + 13.0, r.center().y),
         egui::vec2(16.0, 16.0),
     );
-    widgets::paint_icon(
-        ui,
-        ir,
-        glyph,
-        15.0,
-        if on_accent { p.text_on_accent } else { c.icon },
-        filled,
-    );
+    match icons_.get(ui, e, 16.0) {
+        Some(tex) => paint_plain(ui, &tex, ir, c.dim),
+        None => widgets::paint_icon(
+            ui,
+            ir,
+            glyph,
+            15.0,
+            if on_accent { p.text_on_accent } else { c.icon },
+            filled,
+        ),
+    }
     let mut right = inset.right() - space::SM;
     if e.is_dir() {
         let cr = egui::Rect::from_center_size(
@@ -2117,6 +2192,7 @@ fn active_column(
     menu: &MenuCtx,
     actions: &mut Vec<Action>,
 ) {
+    let row_icons = &RowIcons::of(info, &tab.loc);
     let side = info.side;
     let p = pal(ui);
     let bg = ui.interact(
@@ -2183,6 +2259,7 @@ fn active_column(
                         ui,
                         r,
                         e,
+                        row_icons,
                         fill,
                         selected && active,
                         deco,
@@ -2276,6 +2353,7 @@ fn other_column(
     highlight: Option<&str>,
     next: bool,
     tags: Option<&crate::tags::FolderTags>,
+    row_icons: &RowIcons<'_>,
     actions: &mut Vec<Action>,
 ) {
     let p = pal(ui);
@@ -2385,7 +2463,7 @@ fn other_column(
                 let t = tags
                     .and_then(|t| t.get(&e.name))
                     .map_or(&[][..], |v| v.as_slice());
-                column_row(ui, r, e, fill, false, None, None, t);
+                column_row(ui, r, e, row_icons, fill, false, None, None, t);
                 if resp.clicked() {
                     clicked = Some(e.name.clone());
                 }

@@ -77,7 +77,7 @@ Die Galerie zeigt das ausgewählte Objekt groß, darunter seinen Namen und eine 
 
 ## Vorschaubilder {#vorschaubilder}
 
-In der Symbol-, Spalten- und Galerieansicht zeigt Manta Vorschaubilder (Miniaturen). Sie entstehen im Hintergrund, die Ansicht bleibt dabei bedienbar; bis ein Bild fertig ist, siehst du das Symbol des Dateityps. Apps (`.app`) zeigen wie im Finder ihr eigenes Symbol, auch in der Listenansicht.
+In der Symbol-, Spalten- und Galerieansicht zeigt Manta Vorschaubilder (Miniaturen). Sie entstehen im Hintergrund, die Ansicht bleibt dabei bedienbar; bis ein Bild fertig ist, siehst du das Symbol des Dateityps. Ohne Vorschaubild zeigen Dateien – auch in der Listen- und Spaltenansicht – das Symbol, das macOS für ihren Typ hat, Apps (`.app`) ihr eigenes, wie im Finder (abschaltbar unter **Einstellungen**: **Dateisymbole von macOS**).
 
 - **Bilder** (PNG, JPEG, GIF, BMP, WebP) liest Manta selbst und dreht sie nach der Kamera-Ausrichtung (EXIF).
 - **PDFs, Videos, HEIC, Dokumente** usw. liefert macOS (wie in der Schnellansicht). Dateien ohne Vorschau behalten ihr Typsymbol.

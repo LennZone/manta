@@ -107,6 +107,20 @@ pub enum Method {
     QuickLook,
     /// An app bundle's icon (Quick Look, like Finder shows it).
     AppIcon,
+    /// The icon macOS shows for a file type (by extension, for any file,
+    /// local or not; Quick Look of an empty stand-in file).
+    TypeIcon,
+}
+
+/// The cache key of the type icon for files named `*.ext` ("" for none).
+pub fn type_key(ext: &str, px: u32) -> ThumbKey {
+    ThumbKey {
+        origin: "type-icon".into(),
+        path: ext.to_string(),
+        mtime: 0,
+        size: 0,
+        px,
+    }
 }
 
 /// Formats the `image` crate decodes here.
@@ -149,6 +163,8 @@ pub fn method_for(e: &Entry) -> Option<Method> {
 #[derive(Clone)]
 pub enum Source {
     Local(PathBuf),
+    /// A file type (extension) for [`Method::TypeIcon`].
+    Type(String),
     /// A server file, downloaded (only images below [`REMOTE_MAX`]).
     Remote(SharedVfs, VfsPath),
 }
@@ -613,6 +629,8 @@ fn make_thumb(
         }
         (Source::Local(path), Method::QuickLook) => quicklook(path, px, false)?,
         (Source::Local(path), Method::AppIcon) => quicklook(path, px, true)?,
+        (Source::Type(ext), _) => quicklook(&type_stand_in(ext)?, px, true)?,
+        (_, Method::TypeIcon) => return Err("a type icon needs a type".into()),
         (Source::Remote(..), Method::QuickLook | Method::AppIcon) => {
             return Err("Quick Look needs a local file".into())
         }
@@ -684,6 +702,28 @@ fn prune_disk(dir: &Path, max: u64, target: u64) {
             total -= len;
         }
     }
+}
+
+/// An empty file named `icon.<ext>` in the temp folder: Quick Look gives
+/// its icon, the one macOS shows for that type.
+fn type_stand_in(ext: &str) -> Result<PathBuf, String> {
+    let ok = ext
+        .chars()
+        .all(|c| c.is_alphanumeric() || matches!(c, '-' | '_' | '+'));
+    if !ok || ext.len() > 32 {
+        return Err(format!("odd extension {ext:?}"));
+    }
+    let dir = std::env::temp_dir().join("manta-type-icons");
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let path = dir.join(if ext.is_empty() {
+        "icon".to_string()
+    } else {
+        format!("icon.{ext}")
+    });
+    if !path.exists() {
+        std::fs::write(&path, b"").map_err(|e| e.to_string())?;
+    }
+    Ok(path)
 }
 
 /// A Quick Look thumbnail of a local file (PDF, video, HEIC, document …).
@@ -917,6 +957,18 @@ mod tests {
             img.height()
         );
         assert!(img.pixels().any(|p| p[3] > 0), "not blank");
+    }
+
+    /// Quick Look gives the icon macOS shows for a file type.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn quick_look_makes_type_icons() {
+        for ext in ["pdf", "txt", ""] {
+            let img = quicklook(&type_stand_in(ext).unwrap(), 64, true).expect(ext);
+            assert!(img.width() >= 32, "{ext}: {}", img.width());
+            assert!(img.pixels().any(|p| p[3] > 0), "{ext}: blank");
+        }
+        assert!(type_stand_in("../x").is_err(), "no paths as extensions");
     }
 
     fn job_source() -> Option<(Source, Method)> {

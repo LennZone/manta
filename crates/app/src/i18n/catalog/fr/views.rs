@@ -34,4 +34,6 @@ pub const ENTRIES: Translations = &[
     ("settings.view_per_folder.note", "Chaque dossier s’ouvre dans la dernière présentation utilisée (Icônes, Liste, Colonnes, Galerie)."),
     ("settings.remote_thumbnails", "Charger les vignettes des fichiers sur serveur"),
     ("settings.remote_thumbnails.note", "Télécharge les petites images (moins de 5\u{a0}Mo) en arrière-plan. Désactivé\u{a0}: les fichiers sur serveur affichent l’icône de leur type."),
+    ("settings.system_icons", "Icônes de fichiers de macOS"),
+    ("settings.system_icons.note", "Les fichiers affichent l’icône que macOS associe à leur type, les apps la leur, comme dans le Finder. Désactivé\u{a0}: les symboles de Manta."),
 ];

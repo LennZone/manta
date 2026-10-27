@@ -44,6 +44,7 @@ Only available when Manta runs from the **Applications** folder ("Move Manta to 
 | **Open archives as folders** | Return or double-click browses ZIP and TAR archives in the pane (read-only). **⌥↩** opens them with the default app. See [Archives](10-archive.md). |
 | **Remember view per folder** | Each folder opens in the view it was last shown in (Icons, List, Columns, Gallery). Off (default): the view belongs to the pane. See [Views](03-ansichten.md#pro-ordner). |
 | **Load thumbnails for server files** | Downloads small images (under 5 MB) in the background. Off (default): server files show their type icon. See [Thumbnails](03-ansichten.md#server-vorschaubilder). |
+| **File icons from macOS** | Files show the icon macOS has for their type, apps their own – like in Finder, on servers too. Off: Manta's symbols. Default: on. |
 
 ### Preview {#vorschau}
 

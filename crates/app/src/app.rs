@@ -425,6 +425,8 @@ pub struct MantaApp {
     pub(crate) started: Instant,
     /// The first open / reveal request was handled (cold start is over).
     cold_open_used: bool,
+    /// Tests: show the macOS type icons (off so renders don't change).
+    pub(crate) test_type_icons: bool,
     /// Settings was open last frame (re-check the default state on open).
     settings_was_open: bool,
     /// Software updates: launch check, update window, Settings section.
@@ -937,6 +939,7 @@ impl MantaApp {
             viewer: crate::default_viewer::DefaultViewer::platform(),
             started: Instant::now(),
             cold_open_used: false,
+            test_type_icons: false,
             settings_was_open: false,
             help: crate::help::Help::default(),
             updates: init.updates.unwrap_or_else(|| {
@@ -6684,6 +6687,8 @@ impl MantaApp {
         let thumbs = &self.thumbs;
         let tag_store = &self.tags;
         let remote_thumbs = self.prefs.remote_thumbnails;
+        // Off in tests (renders stay the same) unless a test asks for them.
+        let type_icons = self.prefs.system_icons && (cfg!(not(test)) || self.test_type_icons);
         for (i, pane) in self.panes.iter_mut().enumerate() {
             let side = pane.id;
             let r = rects[i];
@@ -6728,6 +6733,7 @@ impl MantaApp {
                         context_cmds: &context_cmds,
                         thumbs: Some(thumbs),
                         remote_thumbs,
+                        type_icons,
                         tags: Some(tag_store),
                     };
                     let mut tab_sel = bottom_tab.get(&side).cloned();

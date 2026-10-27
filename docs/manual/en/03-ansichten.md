@@ -77,7 +77,7 @@ The gallery shows the selected item large, with its name and a line with kind, s
 
 ## Thumbnails {#vorschaubilder}
 
-In Icons, Columns and Gallery view Manta shows thumbnails. They are made in the background, so the view stays responsive; until a thumbnail is ready you see the file type icon. Apps (`.app`) show their own icon, as in Finder, in the List view too.
+In Icons, Columns and Gallery view Manta shows thumbnails. They are made in the background, so the view stays responsive; until a thumbnail is ready you see the file type icon. Without a thumbnail, files show the icon macOS has for their type – in the List and Columns views too – and apps (`.app`) their own, as in Finder (can be turned off in **Settings**: **File icons from macOS**).
 
 - **Images** (PNG, JPEG, GIF, BMP, WebP) are read by Manta itself and rotated according to the camera orientation (EXIF).
 - **PDFs, videos, HEIC, documents** and so on come from macOS (as in Quick Look). Files without a preview keep their type icon.

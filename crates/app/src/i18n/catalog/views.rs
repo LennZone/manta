@@ -34,5 +34,7 @@ pub const ENTRIES: Entries = &[
     ("settings.view_per_folder", "Remember view per folder", "Ansicht pro Ordner merken"),
     ("settings.view_per_folder.note", "Each folder opens in the view it was last shown in (Icons, List, Columns, Gallery).", "Jeder Ordner öffnet sich in der Darstellung, in der er zuletzt gezeigt wurde (Symbole, Liste, Spalten, Galerie)."),
     ("settings.remote_thumbnails", "Load thumbnails for server files", "Vorschaubilder für Server-Dateien laden"),
+    ("settings.system_icons", "File icons from macOS", "Dateisymbole von macOS"),
+    ("settings.system_icons.note", "Files show the icon macOS has for their type, apps their own, like in Finder. Off: Manta's symbols.", "Dateien zeigen das Symbol, das macOS für ihren Typ hat, Apps ihr eigenes – wie im Finder. Aus: Mantas Symbole."),
     ("settings.remote_thumbnails.note", "Downloads small images (under 5 MB) in the background. Off: server files show their type icon.", "Lädt kleine Bilder (unter 5 MB) im Hintergrund. Aus: Server-Dateien zeigen ihr Typsymbol."),
 ];

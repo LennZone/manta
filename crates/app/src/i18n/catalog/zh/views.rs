@@ -34,4 +34,6 @@ pub const ENTRIES: Translations = &[
     ("settings.view_per_folder.note", "每个文件夹都会以上次使用的显示方式打开（图标、列表、分栏、画廊）。"),
     ("settings.remote_thumbnails", "为服务器文件载入缩略图"),
     ("settings.remote_thumbnails.note", "在后台下载小图像（小于 5 MB）。关闭时，服务器文件显示其类型图标。"),
+    ("settings.system_icons", "使用 macOS 文件图标"),
+    ("settings.system_icons.note", "文件显示 macOS 为其类型提供的图标，App 显示自己的图标，与访达相同。关闭时：使用 Manta 的符号。"),
 ];

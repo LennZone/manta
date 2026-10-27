@@ -1949,6 +1949,20 @@ fn general_ui(
                 }
             },
         );
+        if cfg!(target_os = "macos") {
+            ui.add_space(space::SM);
+            setting_row(
+                ui,
+                t!("settings.system_icons"),
+                t!("settings.system_icons.note"),
+                |ui| {
+                    if widgets::toggle_switch(ui, prefs.system_icons, true).clicked() {
+                        prefs.system_icons = !prefs.system_icons;
+                        changed = true;
+                    }
+                },
+            );
+        }
     });
     if cfg!(target_os = "macos") {
         ui.add_space(space::MD);

@@ -2289,6 +2289,35 @@ fn context_menu_creates_inside_the_clicked_folder() {
     }
 }
 
+/// "File icons from macOS": List rows show the type's icon once Quick
+/// Look made it (the glyph meanwhile).
+#[cfg(target_os = "macos")]
+#[test]
+fn list_rows_show_macos_type_icons() {
+    use crate::thumbs::{type_key, Method, Source, Thumb};
+    let fx = fixture();
+    let mut h = harness(&fx, WIDE, Theme::Light);
+    app(&mut h).test_type_icons = true;
+    let px = crate::thumbs::bucket_for(18.0 * h.ctx.pixels_per_point());
+    wait_until(&mut h, "the .md type icon made", |h| {
+        let key = type_key("md", px);
+        matches!(
+            app(h)
+                .thumbs
+                .get_any(&key, || Some((Source::Type("md".into()), Method::TypeIcon))),
+            Thumb::Ready(_)
+        )
+    });
+    if std::env::var_os("MANTA_RENDER_DIR").is_some() {
+        // Every type in view, not just .md.
+        for _ in 0..20 {
+            h.run_steps(2);
+            app(&mut h).thumbs.wait_idle(Duration::from_secs(5));
+        }
+        save(&mut h, "list_system_icons");
+    }
+}
+
 #[test]
 fn batch_rename_renames_and_undoes_on_local_fs() {
     use manta_plugin::{FileActionKind, FileActionPhase};
