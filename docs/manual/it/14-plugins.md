@@ -16,7 +16,7 @@ Molti plug-in mostrano il loro contenuto in una **barra laterale a destra** o in
 
 ## Dimensioni cartelle {#ordnergroessen}
 
-**Dimensioni cartelle** mostra le dimensioni reali anche per le cartelle nella colonna **Dimensione**, misurate in background e memorizzate nella cache.
+**Dimensioni cartelle** mostra le dimensioni reali anche per le cartelle nella colonna **Dimensione**, misurate in background e memorizzate nella cache. Le dimensioni restano anche dopo un riavvio: Manta le mostra subito e le rimisura in background nel caso qualcosa sia cambiato.
 
 - Mentre Manta sta ancora contando, mostra ad esempio “≥ 1,2 GB” con un piccolo indicatore di attività.
 - Passa con il puntatore su una dimensione per vedere il numero di file e la dimensione su disco.

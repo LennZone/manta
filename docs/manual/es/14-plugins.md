@@ -16,7 +16,7 @@ Muchos plugins muestran su contenido en una **barra lateral a la derecha** o en 
 
 ## Tamaños de carpeta {#ordnergroessen}
 
-**Tamaños de carpeta** muestra también el tamaño real de las carpetas en la columna **Tamaño**, medido en segundo plano y guardado en caché.
+**Tamaños de carpeta** muestra también el tamaño real de las carpetas en la columna **Tamaño**, medido en segundo plano y guardado en caché. Los tamaños se conservan tras reiniciar: Manta los muestra al instante y vuelve a medir en segundo plano por si algo ha cambiado.
 
 - Mientras Manta sigue contando, muestra por ejemplo “≥ 1,2 GB” con un pequeño indicador de actividad.
 - Pasa el puntero sobre un tamaño para ver el número de archivos y el tamaño en disco.

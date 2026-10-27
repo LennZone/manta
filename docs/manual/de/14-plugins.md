@@ -16,7 +16,7 @@ Viele Plugins zeigen ihre Inhalte in einem **Panel rechts** oder in einem **Pane
 
 ## Ordnergrößen {#ordnergroessen}
 
-**Ordnergrößen** zeigt in der Spalte **Größe** auch für Ordner die echte Größe – im Hintergrund gemessen und zwischengespeichert.
+**Ordnergrößen** zeigt in der Spalte **Größe** auch für Ordner die echte Größe – im Hintergrund gemessen und zwischengespeichert. Die Größen bleiben auch nach einem Neustart erhalten: Manta zeigt sie sofort und misst im Hintergrund nach, ob sich etwas geändert hat.
 
 - Solange Manta noch zählt, steht dort z. B. „≥ 1,2 GB“ mit einem kleinen Kreisel.
 - Fährst du über eine Größe, siehst du die Anzahl der Dateien und den Platz auf dem Volume.

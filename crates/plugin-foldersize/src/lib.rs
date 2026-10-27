@@ -18,6 +18,7 @@ pub mod engine;
 pub mod i18n;
 pub mod panel;
 pub mod settings;
+pub mod store;
 pub mod treemap;
 pub mod walker;
 
@@ -210,6 +211,7 @@ impl Plugin for FolderSizePlugin {
             handle.clone(),
             self.panel_data.clone(),
             self.settings.auto,
+            Some(handle.data_dir().join(store::FILE)),
         ));
         self.handle = Some(handle);
     }

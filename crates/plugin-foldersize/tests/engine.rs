@@ -213,3 +213,67 @@ fn remote_panes_get_nothing() {
     assert!(!collect_for(&rx, &mut sizes, Duration::from_millis(300)));
     p.disable();
 }
+
+/// Sizes from the last run show at once and are then re-measured quietly
+/// (something deeper inside may have changed); measured sizes are saved.
+#[test]
+fn sizes_survive_a_restart_and_are_checked_again() {
+    use manta_plugin_foldersize::{store, walker};
+    let tmp = tempfile::tempdir().unwrap();
+    let data = tempfile::tempdir().unwrap();
+    let root = tmp.path().join("root");
+    // Enough files that the re-measure takes a moment.
+    for i in 0..2_000 {
+        file(&root.join(format!("big/x/{i}.bin")), 100);
+    }
+    let big = root.join("big");
+    let stamp = walker::stamp(&fs::metadata(&big).unwrap());
+    // What the last run measured (wrong by now: the folder grew inside).
+    let mut old = std::collections::HashMap::new();
+    let mut totals = walker::Totals {
+        logical: 123,
+        files: 1,
+        done: true,
+        ..Default::default()
+    };
+    totals.by_cat[0] = 123;
+    old.insert(
+        big.clone(),
+        store::Stored {
+            stamp,
+            totals,
+            measured: 1,
+        },
+    );
+    let cache = data.path().join(store::FILE);
+    store::save(&cache, old.iter()).unwrap();
+
+    let (mut p, rx) = start(data.path());
+    p.on_event(&PluginEvent::DirectoryChanged(pane_state(
+        PaneId::Left,
+        Some(&root),
+    )));
+    let mut seen = Vec::new();
+    let mut sizes = Default::default();
+    assert!(collect(&rx, &mut sizes, |m| {
+        if let Some(s) = m.get("big") {
+            if seen.last() != Some(&s.bytes) {
+                seen.push(s.bytes);
+            }
+        }
+        m.get("big").is_some_and(|s| s.bytes == 200_000)
+    }));
+    assert_eq!(seen.first(), Some(&123), "the saved size first: {seen:?}");
+    assert!(sizes["big"].complete);
+
+    // The new size is saved (a few seconds later, or when the plugin stops).
+    p.disable();
+    let t = Instant::now();
+    while store::load(&cache)
+        .get(&big)
+        .is_none_or(|s| s.totals.logical != 200_000)
+    {
+        assert!(t.elapsed() < Duration::from_secs(10), "never saved");
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}

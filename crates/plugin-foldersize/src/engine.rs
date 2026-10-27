@@ -13,6 +13,9 @@
 //!   actions invalidate cached ancestors and descendants of what they
 //!   touched. A refresh re-measures entries older than [`STALE_AFTER`] in
 //!   the background while the cached value stays visible.
+//! - **On disk:** the cache is saved ([`crate::store`]) a few seconds after
+//!   it changed and on shutdown. Sizes from the last run show at once and
+//!   are re-measured quietly the first time they are shown.
 //! - **Rate limit:** sizes go to the host at most every [`FLUSH_INTERVAL`].
 
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
@@ -26,6 +29,7 @@ use std::time::{Duration, Instant};
 use manta_core::VfsPath;
 use manta_plugin::{HostRequest, PaneId, PluginHandle, SizeInfo};
 
+use crate::store::{self, Stored};
 use crate::walker::{self, Category, StampKey, Totals};
 
 /// At most this often partial sizes are sent to the host / the panel.
@@ -34,6 +38,8 @@ pub const FLUSH_INTERVAL: Duration = Duration::from_millis(200);
 pub const STALE_AFTER: Duration = Duration::from_secs(60);
 /// Worker threads.
 pub const WORKERS: usize = 3;
+/// The cache is saved this long after its first unsaved change.
+pub const SAVE_AFTER: Duration = Duration::from_secs(5);
 
 /// Who wants sizes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -114,12 +120,18 @@ pub struct Engine {
 }
 
 impl Engine {
-    pub fn start(handle: PluginHandle, panel: PanelRef, auto: bool) -> Engine {
+    /// `store`: where the cache is kept between runs (`None`: memory only).
+    pub fn start(
+        handle: PluginHandle,
+        panel: PanelRef,
+        auto: bool,
+        store: Option<PathBuf>,
+    ) -> Engine {
         let (tx, rx) = mpsc::channel();
         let wtx = tx.clone();
         let join = std::thread::Builder::new()
             .name("foldersize".into())
-            .spawn(move || Core::new(handle, panel, auto, wtx).run(rx))
+            .spawn(move || Core::new(handle, panel, auto, wtx, store).run(rx))
             .expect("spawn foldersize thread");
         Engine {
             tx,
@@ -222,6 +234,10 @@ struct Cached {
     stamp: StampKey,
     totals: Totals,
     at: Instant,
+    /// Measured in this run (not just loaded from disk).
+    verified: bool,
+    /// When it was measured (seconds since the epoch, for the disk cache).
+    measured: u64,
 }
 
 struct Target {
@@ -248,6 +264,10 @@ struct Core {
     targets: HashMap<Consumer, Target>,
     panel_dirty: bool,
     last_flush: Instant,
+    /// The cache file.
+    store: Option<PathBuf>,
+    /// The cache changed since it was saved (since when).
+    unsaved: Option<Instant>,
 }
 
 fn size_info(t: &Totals) -> SizeInfo {
@@ -265,7 +285,13 @@ fn related(a: &Path, b: &Path) -> bool {
 }
 
 impl Core {
-    fn new(handle: PluginHandle, panel: PanelRef, auto: bool, tx: Sender<Msg>) -> Core {
+    fn new(
+        handle: PluginHandle,
+        panel: PanelRef,
+        auto: bool,
+        tx: Sender<Msg>,
+        store: Option<PathBuf>,
+    ) -> Core {
         let queue = Arc::new(Queue::default());
         let workers = (0..WORKERS)
             .map(|i| {
@@ -277,27 +303,85 @@ impl Core {
                     .expect("spawn foldersize worker")
             })
             .collect();
+        let now = Instant::now();
+        let cache = store
+            .as_deref()
+            .map(store::load)
+            .unwrap_or_default()
+            .into_iter()
+            .map(|(path, s)| {
+                let c = Cached {
+                    stamp: s.stamp,
+                    totals: s.totals,
+                    at: now,
+                    verified: false,
+                    measured: s.measured,
+                };
+                (path, c)
+            })
+            .collect();
         Core {
             handle,
             panel,
             auto,
             queue,
             workers,
-            cache: HashMap::new(),
+            cache,
             partial: HashMap::new(),
             jobs: HashMap::new(),
             next_job: 1,
             targets: HashMap::new(),
             panel_dirty: false,
             last_flush: Instant::now(),
+            store,
+            unsaved: None,
+        }
+    }
+
+    fn mark_unsaved(&mut self) {
+        if self.store.is_some() && self.unsaved.is_none() {
+            self.unsaved = Some(Instant::now());
+        }
+    }
+
+    /// Save the cache when it has been unsaved for [`SAVE_AFTER`] (or now).
+    fn save(&mut self, now: bool) {
+        let (Some(path), Some(since)) = (&self.store, self.unsaved) else {
+            return;
+        };
+        if !now && since.elapsed() < SAVE_AFTER {
+            return;
+        }
+        self.unsaved = None;
+        let rows: Vec<(PathBuf, Stored)> = self
+            .cache
+            .iter()
+            .map(|(p, c)| {
+                let s = Stored {
+                    stamp: c.stamp,
+                    totals: c.totals,
+                    measured: c.measured,
+                };
+                (p.clone(), s)
+            })
+            .collect();
+        if let Err(e) = store::save(path, rows.iter().map(|(p, s)| (p, s))) {
+            log::warn!("folder size cache {}: {e}", path.display());
         }
     }
 
     fn run(mut self, rx: Receiver<Msg>) {
         loop {
             let busy = self.panel_dirty || self.targets.values().any(|t| !t.pending.is_empty());
-            let msg = if busy {
-                let wait = FLUSH_INTERVAL.saturating_sub(self.last_flush.elapsed());
+            let save_wait = self.unsaved.map(|t| SAVE_AFTER.saturating_sub(t.elapsed()));
+            let msg = if busy || save_wait.is_some() {
+                let mut wait = Duration::MAX;
+                if busy {
+                    wait = FLUSH_INTERVAL.saturating_sub(self.last_flush.elapsed());
+                }
+                if let Some(w) = save_wait {
+                    wait = wait.min(w);
+                }
                 match rx.recv_timeout(wait) {
                     Ok(m) => Some(m),
                     Err(RecvTimeoutError::Timeout) => None,
@@ -329,11 +413,13 @@ impl Core {
             if urgent || self.last_flush.elapsed() >= FLUSH_INTERVAL {
                 self.flush();
             }
+            self.save(false);
         }
         self.shutdown();
     }
 
     fn shutdown(&mut self) {
+        self.save(true);
         for j in self.jobs.values() {
             j.cancel.store(true, Ordering::Relaxed);
         }
@@ -388,14 +474,20 @@ impl Core {
                     t.requested.insert(p.clone());
                 }
                 for p in &paths {
-                    self.cache.remove(p);
+                    if self.cache.remove(p).is_some() {
+                        self.mark_unsaved();
+                    }
                     self.restart_job(p);
                 }
                 self.fill(c, false);
             }
             Msg::Invalidate(paths) => {
+                let before = self.cache.len();
                 self.cache
                     .retain(|k, _| !paths.iter().any(|p| related(k, p)));
+                if self.cache.len() != before {
+                    self.mark_unsaved();
+                }
                 let running: Vec<PathBuf> = self
                     .jobs
                     .keys()
@@ -554,8 +646,11 @@ impl Core {
             match self.cache.get(&ch.path) {
                 Some(c) if c.stamp == ch.stamp => {
                     known = Some(c.totals);
-                    if refresh && wants && c.at.elapsed() > STALE_AFTER {
-                        // Re-measure quietly; the cached value stays shown.
+                    // From the last run (something deeper inside may have
+                    // changed since), or old on a refresh: re-measure
+                    // quietly; the cached value stays shown.
+                    let stale = !c.verified || (refresh && c.at.elapsed() > STALE_AFTER);
+                    if wants && stale {
                         self.start_job(ch.path.clone(), consumer, ch.stamp, false);
                     } else if let Some(j) = self.jobs.get_mut(&ch.path) {
                         j.consumers.insert(consumer);
@@ -564,6 +659,7 @@ impl Core {
                 Some(_) => {
                     // Changed since it was measured.
                     self.cache.remove(&ch.path);
+                    self.mark_unsaved();
                 }
                 None => {}
             }
@@ -629,8 +725,11 @@ impl Core {
                     stamp,
                     totals,
                     at: Instant::now(),
+                    verified: true,
+                    measured: store::now(),
                 },
             );
+            self.mark_unsaved();
             self.jobs.remove(&path);
             self.partial.remove(&path);
         } else {
