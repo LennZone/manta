@@ -123,11 +123,17 @@ impl Job {
     }
 }
 
+/// SIGTERM to the whole group, with the group stopped meanwhile: the kernel
+/// signals one member after the other, and a shell whose child died first
+/// could still start its next command (`sleep 9; touch x`) before its own
+/// SIGTERM arrives. Stopped, nobody runs until every member has it pending.
 fn kill_group(pgid: i32) {
     if pgid > 1 {
-        // SAFETY: plain syscall; a negative pid addresses the process group.
+        // SAFETY: plain syscalls; a negative pid addresses the process group.
         unsafe {
+            libc::kill(-pgid, libc::SIGSTOP);
             libc::kill(-pgid, libc::SIGTERM);
+            libc::kill(-pgid, libc::SIGCONT);
         }
     }
 }
