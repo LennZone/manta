@@ -37,7 +37,7 @@ updates.
 - Any number of panes side by side, each with tabs, history, a breadcrumb path bar, filter,
   sorting and hidden files; panes, tabs and widths come back at the next launch
 - Four views like Finder, per pane: Icons (with thumbnails), List, Columns and Gallery;
-  apps show their own icons
+  files and apps show their macOS icons, like Finder
 - Command palette (⇧⌘P) with every action and its shortcut, Go to Path (⇧⌘G), and a full
   menu bar generated from the same commands
 - Local folders refresh by themselves when other apps change them (FSEvents)
@@ -69,7 +69,7 @@ updates.
 - Move to Trash like Finder (Put Back works), Quick Look with Space
 - New Folder (⇧⌘N) and New File (⌥⌘N), also in the context menu (right-click a folder to
   create inside it); click a selected item again to rename it in place, like Finder
-- Folder compare and sync, folder sizes (remembered across restarts), a Disk Usage
+- Folder compare and sync, folder sizes (kept across restarts, updated live), a Disk Usage
   treemap, batch rename with a live preview and Undo, duplicate finder
 
 **Built-in tools**
