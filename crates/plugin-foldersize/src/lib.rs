@@ -211,7 +211,7 @@ impl Plugin for FolderSizePlugin {
             handle.clone(),
             self.panel_data.clone(),
             self.settings.auto,
-            Some(handle.data_dir().join(store::FILE)),
+            Some(store::location(handle.data_dir(), handle.cache_dir())),
         ));
         self.handle = Some(handle);
     }

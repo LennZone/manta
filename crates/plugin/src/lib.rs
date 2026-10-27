@@ -854,6 +854,7 @@ pub struct PluginHandle {
     tx: Sender<(String, HostRequest)>,
     ctx: egui::Context,
     data_dir: PathBuf,
+    cache_dir: Option<PathBuf>,
 }
 
 impl PluginHandle {
@@ -868,7 +869,14 @@ impl PluginHandle {
             tx,
             ctx,
             data_dir,
+            cache_dir: None,
         }
+    }
+
+    /// Keep caches in `dir` (else in [`PluginHandle::data_dir`]).
+    pub fn with_cache_dir(mut self, dir: PathBuf) -> Self {
+        self.cache_dir = Some(dir);
+        self
     }
 
     pub fn plugin_id(&self) -> &str {
@@ -892,6 +900,12 @@ impl PluginHandle {
     /// Per-plugin directory for settings/state (created by the host).
     pub fn data_dir(&self) -> &PathBuf {
         &self.data_dir
+    }
+
+    /// Per-plugin directory for caches: in `~/Library/Caches` (not backed
+    /// up, may be deleted at any time); not created until written to.
+    pub fn cache_dir(&self) -> &PathBuf {
+        self.cache_dir.as_ref().unwrap_or(&self.data_dir)
     }
 
     /// The app's UI language (`"en"`, `"de"`). Changes arrive as

@@ -46,6 +46,8 @@ pub struct HostPaths {
     pub data_root: PathBuf,
     /// `plugins.json`.
     pub state_file: PathBuf,
+    /// Parent of the per-plugin cache dirs (may be deleted at any time).
+    pub cache_root: PathBuf,
 }
 
 impl HostPaths {
@@ -55,12 +57,18 @@ impl HostPaths {
             plugins_dir: root.join("plugins"),
             data_root: root.join("plugin-data"),
             state_file: root.join("plugins.json"),
+            cache_root: root.join("plugin-cache"),
         }
     }
 
-    /// `dirs::config_dir()/Manta`, if there is a config dir.
+    /// `dirs::config_dir()/Manta`, if there is a config dir; caches in
+    /// `dirs::cache_dir()/Manta` (`~/Library/Caches`, not backed up).
     pub fn default_paths() -> Option<Self> {
-        dirs::config_dir().map(|d| Self::under(&d.join("Manta")))
+        let mut p = Self::under(&dirs::config_dir()?.join("Manta"));
+        if let Some(c) = dirs::cache_dir() {
+            p.cache_root = c.join("Manta").join("plugin-cache");
+        }
+        Some(p)
     }
 }
 
@@ -813,7 +821,11 @@ impl PluginHost {
             }
         }
         let _ = std::fs::create_dir_all(&data_dir);
-        let handle = PluginHandle::new(id.to_string(), self.tx.clone(), self.ctx.clone(), data_dir);
+        let mut handle =
+            PluginHandle::new(id.to_string(), self.tx.clone(), self.ctx.clone(), data_dir);
+        if let Some(p) = &self.paths {
+            handle = handle.with_cache_dir(p.cache_root.join(id));
+        }
         self.slots[i].running = true;
         if self.call(i, "enable", |p| p.enable(handle)).is_none() {
             return;

@@ -49,6 +49,23 @@ struct Row {
     measured: u64,
 }
 
+/// The cache file in `cache_dir`. 0.4.3 kept it in `data_dir` (backed up):
+/// moved over once.
+pub fn location(data_dir: &Path, cache_dir: &Path) -> PathBuf {
+    let file = cache_dir.join(FILE);
+    let old = data_dir.join(FILE);
+    if old != file && old.is_file() {
+        if !file.exists() {
+            let _ = std::fs::create_dir_all(cache_dir);
+            if std::fs::rename(&old, &file).is_ok() {
+                return file;
+            }
+        }
+        let _ = std::fs::remove_file(&old);
+    }
+    file
+}
+
 /// Seconds since the epoch, now.
 pub fn now() -> u64 {
     std::time::SystemTime::now()
@@ -174,6 +191,20 @@ mod tests {
         assert_eq!(back.len(), MAX_ENTRIES);
         assert!(!back.contains_key(Path::new("/0")), "the oldest went");
         assert!(back.contains_key(Path::new(&format!("/{}", MAX_ENTRIES + 4))));
+    }
+
+    #[test]
+    fn moves_out_of_the_data_dir() {
+        let data = tempfile::tempdir().unwrap();
+        let cache = tempfile::tempdir().unwrap();
+        let caches = cache.path().join("foldersize");
+        std::fs::write(data.path().join(FILE), "x").unwrap();
+        let file = location(data.path(), &caches);
+        assert_eq!(file, caches.join(FILE));
+        assert_eq!(std::fs::read_to_string(&file).unwrap(), "x");
+        assert!(!data.path().join(FILE).exists());
+        // Same folder (no cache dir): stays.
+        assert_eq!(location(data.path(), data.path()), data.path().join(FILE));
     }
 
     #[test]

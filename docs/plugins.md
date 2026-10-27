@@ -231,6 +231,7 @@ on the website.
 | Installed plugins | `~/Library/Application Support/Manta/plugins/<id>/` |
 | On/off state, panel state, panel sizes | `~/Library/Application Support/Manta/plugins.json` |
 | Plugin data dir (`data_dir`) and `plugin.log` | `~/Library/Application Support/Manta/plugin-data/<id>/` |
+| Built-in plugins' caches (`PluginHandle::cache_dir`) | `~/Library/Caches/Manta/plugin-cache/<id>/` (not backed up; may be deleted) |
 
 New external plugins start **switched off**. Built-in plugins start on.
 
