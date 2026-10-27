@@ -17,6 +17,8 @@ pub const ENTRIES: Entries = &[
     ("pane.crumb.edit_tip", "Double-click to edit the path", "Doppelklicken, um den Pfad zu bearbeiten"),
     // Listing states
     ("pane.try_again", "Try Again", "Erneut versuchen"),
+    ("pane.menu.new_folder_in", "New Folder in “{name}”", "Neuer Ordner in „{name}“"),
+    ("pane.menu.new_file_in", "New File in “{name}”", "Neue Datei in „{name}“"),
     ("pane.start_container", "Start Container", "Container starten"),
     ("pane.starting_container", "Starting…", "Wird gestartet …"),
     ("pane.err.container_down.body", "Start it to see its files again.", "Starte ihn, um seine Dateien wieder zu sehen."),

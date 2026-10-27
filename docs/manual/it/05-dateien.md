@@ -219,6 +219,8 @@ Manta controlla subito il nome: non deve essere vuoto, contenere “/” o esist
 1. Premi **⌥⌘N** (**Nuovo file…**) oppure scegli **Nuovo file…** nel menu **Archivio** o nel menu contestuale di un pannello.
 2. Digita un nome (viene proposto “file senza titolo.txt”) e fai clic su **Crea**. Manta crea un file vuoto e lo seleziona.
 
+**Dentro una cartella**: se fai clic con il tasto destro su una cartella, le voci diventano **Nuova cartella in “…”** e **Nuovo file in “…”**; la cartella o il file vengono creati in quella cartella e il pannello resta dov’è. **⇧⌘N** e **⌥⌘N** continuano a creare nella cartella mostrata.
+
 ## Eliminare {#loeschen}
 
 Manta elimina come il Finder:

@@ -219,6 +219,8 @@ Manta vérifie immédiatement le nom : il ne doit pas être vide, contenir « 
 1. Appuyez sur **⌥⌘N** (**Nouveau fichier…**) ou choisissez **Nouveau fichier…** dans le menu **Fichier** ou dans le menu contextuel d’une sous-fenêtre.
 2. Tapez un nom (« fichier sans titre.txt » est proposé) et cliquez sur **Créer**. Manta crée un fichier vide et le sélectionne.
 
+**Dans un dossier** : si vous cliquez avec le bouton droit sur un dossier, les commandes deviennent **Nouveau dossier dans « … »** et **Nouveau fichier dans « … »** ; le dossier ou le fichier est alors créé dans ce dossier et la sous-fenêtre reste où elle est. **⇧⌘N** et **⌥⌘N** créent toujours dans le dossier affiché.
+
 ## Supprimer {#loeschen}
 
 Manta supprime comme le Finder :

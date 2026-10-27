@@ -15,6 +15,8 @@ pub const ENTRIES: Translations = &[
     ("pane.crumb.archive_tip", "归档已作为只读文件夹打开"),
     ("pane.crumb.edit_tip", "连按以编辑路径"),
     ("pane.try_again", "重试"),
+    ("pane.menu.new_folder_in", "在“{name}”中新建文件夹"),
+    ("pane.menu.new_file_in", "在“{name}”中新建文件"),
     ("pane.start_container", "启动容器"),
     ("pane.starting_container", "正在启动…"),
     ("pane.err.container_down.body", "启动它即可再次查看其文件。"),

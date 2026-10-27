@@ -2681,6 +2681,9 @@ pub struct NameForm {
     /// Names already present in `dir` (for collision checks).
     pub existing: Vec<String>,
     pub error: Option<String>,
+    /// Creates inside a folder of the listing (not the folder shown): the
+    /// title names it.
+    pub inside: bool,
     focus_requested: bool,
 }
 
@@ -2705,6 +2708,7 @@ impl NameForm {
             existing,
             new_file: false,
             error: None,
+            inside: false,
             focus_requested: false,
         }
     }
@@ -2737,6 +2741,16 @@ impl NameForm {
                 t!("dialog.rename.title", name = o),
                 t!("dialog.rename.button"),
                 icons::PENCIL_SIMPLE,
+            ),
+            None if self.new_file && self.inside => (
+                t!("dialog.new_file.title_in", name = self.dir.file_name()),
+                t!("dialog.new_file.button"),
+                icons::FILE_PLUS,
+            ),
+            None if self.inside => (
+                t!("dialog.new_folder.title_in", name = self.dir.file_name()),
+                t!("dialog.new_folder.button"),
+                icons::FOLDER_PLUS,
             ),
             None if self.new_file => (
                 t!("dialog.new_file.title").to_string(),

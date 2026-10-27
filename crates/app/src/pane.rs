@@ -3484,6 +3484,8 @@ pub(crate) struct MenuCtx {
     tags: Option<crate::tags::TagMenu>,
     /// The pane shows search results ("Show in Enclosing Folder").
     search: bool,
+    /// The one folder right-clicked: "New Folder / New File in" it.
+    into: Option<(VfsPath, String)>,
 }
 
 impl MenuCtx {
@@ -3535,6 +3537,12 @@ impl MenuCtx {
             },
             tags: tab.tag_menu(ctx),
             search: tab.in_search(),
+            into: match sel.as_slice() {
+                [e] if e.is_dir() && !crate::thumbs::is_app_bundle(e) && !tab.in_search() => {
+                    Some((e.path.clone(), e.name.clone()))
+                }
+                _ => None,
+            },
         }
     }
 
@@ -3753,20 +3761,48 @@ pub(crate) fn context_menu(
     if !m.read_only {
         menu_item(ui, Cmd::Compress, true, actions, Action::Compress(side));
     }
-    menu_item_ro(
-        ui,
-        Cmd::NewFolder,
-        m.read_only,
-        actions,
-        Action::NewFolder(side),
-    );
-    menu_item_ro(
-        ui,
-        Cmd::NewFile,
-        m.read_only,
-        actions,
-        Action::NewFile(side),
-    );
+    match &m.into {
+        // A folder: create in it (the shortcuts keep creating next to it).
+        Some((dir, name)) => {
+            for (cmd, label, file) in [
+                (
+                    Cmd::NewFolder,
+                    t!("pane.menu.new_folder_in", name = name),
+                    false,
+                ),
+                (Cmd::NewFile, t!("pane.menu.new_file_in", name = name), true),
+            ] {
+                let btn = egui::Button::new(format!("{}   {}", cmd.icon(), label));
+                let resp = ui
+                    .add_enabled(!m.read_only, btn)
+                    .on_disabled_hover_text(t!("pane.read_only_tip"));
+                if resp.clicked() {
+                    actions.push(Action::NewIn {
+                        side,
+                        dir: dir.clone(),
+                        file,
+                    });
+                    ui.close();
+                }
+            }
+        }
+        None => {
+            menu_item_ro(
+                ui,
+                Cmd::NewFolder,
+                m.read_only,
+                actions,
+                Action::NewFolder(side),
+            );
+            menu_item_ro(
+                ui,
+                Cmd::NewFile,
+                m.read_only,
+                actions,
+                Action::NewFile(side),
+            );
+        }
+    }
     if m.container_shell {
         menu_item(
             ui,

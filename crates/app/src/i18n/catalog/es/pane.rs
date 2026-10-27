@@ -15,6 +15,8 @@ pub const ENTRIES: Translations = &[
     ("pane.crumb.archive_tip", "Archivo comprimido abierto como carpeta de solo lectura"),
     ("pane.crumb.edit_tip", "Haz doble clic para editar la ruta"),
     ("pane.try_again", "Reintentar"),
+    ("pane.menu.new_folder_in", "Nueva carpeta en “{name}”"),
+    ("pane.menu.new_file_in", "Nuevo archivo en “{name}”"),
     ("pane.start_container", "Iniciar contenedor"),
     ("pane.starting_container", "Iniciando…"),
     ("pane.err.container_down.body", "Inícialo para volver a ver sus archivos."),

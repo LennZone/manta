@@ -2242,6 +2242,53 @@ fn new_file_creates_an_empty_file_and_selects_it() {
     assert_eq!(std::fs::metadata(fx.root.join("todo.md")).unwrap().len(), 0);
 }
 
+/// Right-click a folder: New Folder / New File are made inside it (the
+/// dialog says where); the pane stays where it is.
+#[test]
+fn context_menu_creates_inside_the_clicked_folder() {
+    use egui_kittest::kittest::Queryable;
+    let fx = fixture();
+    let mut h = harness(&fx, WIDE, Theme::Light);
+    for (item, file, name) in [
+        ("New Folder in “Design”", false, "Made Inside"),
+        ("New File in “Design”", true, "made-inside.txt"),
+    ] {
+        select(&mut h, Side::Left, &["Design"]);
+        h.run_steps(2);
+        let pos = egui::pos2(330.0, row_y(&mut h, "Design"));
+        h.hover_at(pos);
+        for pressed in [true, false] {
+            h.event(egui::Event::PointerButton {
+                pos,
+                button: egui::PointerButton::Secondary,
+                pressed,
+                modifiers: Default::default(),
+            });
+        }
+        h.run_steps(3);
+        h.get_by_label_contains(item).click();
+        h.run_steps(2);
+        let Some(Dialog::Name(f)) = &mut app(&mut h).dialog else {
+            panic!("{item} opens the name dialog");
+        };
+        assert!(f.inside && f.new_file == file);
+        assert!(f.dir.as_str().ends_with("/Design"));
+        f.name = name.into();
+        h.key_press(egui::Key::Enter);
+        let path = fx.root.join("Design").join(name);
+        wait_until(&mut h, "made inside Design", |_| path.exists());
+        assert_eq!(path.is_dir(), !file);
+        assert!(!fx.root.join(name).exists(), "not next to it");
+        h.run_steps(2);
+        assert!(app(&mut h).dialog.is_none());
+        assert_eq!(
+            app(&mut h).pane(Side::Left).tab().loc.path.as_str(),
+            fx.root.to_str().unwrap(),
+            "the pane stays"
+        );
+    }
+}
+
 #[test]
 fn batch_rename_renames_and_undoes_on_local_fs() {
     use manta_plugin::{FileActionKind, FileActionPhase};
@@ -2719,12 +2766,17 @@ fn render_quick_actions() {
 /// y (points) of the README.md row in the left pane (fixture layout: the
 /// first row at 120 pt, rows 24 pt high).
 fn readme_row_y(h: &mut H) -> f32 {
+    row_y(h, "README.md")
+}
+
+/// The y of `name`'s row in the left pane (List view).
+fn row_y(h: &mut H, name: &str) -> f32 {
     let i = h
         .state()
         .pane(Side::Left)
         .tab()
-        .view_index_of("README.md")
-        .expect("README.md listed");
+        .view_index_of(name)
+        .unwrap_or_else(|| panic!("{name} listed"));
     120.0 + 24.0 * i as f32
 }
 

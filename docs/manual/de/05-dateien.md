@@ -219,6 +219,8 @@ Manta prüft den Namen sofort: Er darf nicht leer sein, kein „/“ enthalten u
 1. Drücke **⌥⌘N** (**Neue Datei …**) oder wähle **Neue Datei …** im Menü **Ablage** oder im Kontextmenü eines Bereichs.
 2. Tippe einen Namen (vorgeschlagen ist „Neue Datei.txt“) und klicke auf **Erstellen**. Manta legt eine leere Datei an und wählt sie aus.
 
+**In einem Ordner anlegen**: Klickst du mit der rechten Maustaste auf einen Ordner, heißen die Einträge **Neuer Ordner in „…“** und **Neue Datei in „…“** – Ordner bzw. Datei entstehen dann in diesem Ordner, der Bereich bleibt, wo er ist. **⇧⌘N** und **⌥⌘N** legen weiterhin im angezeigten Ordner an.
+
 ## Löschen {#loeschen}
 
 Manta löscht wie der Finder:

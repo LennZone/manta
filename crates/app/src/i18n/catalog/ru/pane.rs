@@ -15,6 +15,8 @@ pub const ENTRIES: Translations = &[
     ("pane.crumb.archive_tip", "Архив открыт как папка только для чтения"),
     ("pane.crumb.edit_tip", "Дважды нажмите, чтобы изменить путь"),
     ("pane.try_again", "Повторить"),
+    ("pane.menu.new_folder_in", "Новая папка в «{name}»"),
+    ("pane.menu.new_file_in", "Новый файл в «{name}»"),
     ("pane.start_container", "Запустить контейнер"),
     ("pane.starting_container", "Запуск…"),
     ("pane.err.container_down.body", "Запустите его, чтобы снова увидеть файлы."),

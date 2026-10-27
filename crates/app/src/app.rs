@@ -142,6 +142,13 @@ pub enum Action {
     NewFolder(Side),
     /// An empty file in the pane's folder (asks for the name).
     NewFile(Side),
+    /// New folder (`file`: new file) inside the folder `dir` shown in the
+    /// pane (its context menu).
+    NewIn {
+        side: Side,
+        dir: VfsPath,
+        file: bool,
+    },
     /// ⌘⌫: local items to the Trash; elsewhere a permanent delete (asks).
     Delete(Side),
     /// ⌥⌘⌫: delete permanently (asks).
@@ -2592,6 +2599,15 @@ impl MantaApp {
             Action::Rename(side) if self.refuse_read_only(side, ReadOnlyOp::Rename) => {}
             Action::NewFolder(side) if self.refuse_read_only(side, ReadOnlyOp::NewFolder) => {}
             Action::NewFile(side) if self.refuse_read_only(side, ReadOnlyOp::NewFile) => {}
+            Action::NewIn { side, file, .. }
+                if self.refuse_read_only(
+                    side,
+                    if file {
+                        ReadOnlyOp::NewFile
+                    } else {
+                        ReadOnlyOp::NewFolder
+                    },
+                ) => {}
             Action::Delete(side) | Action::DeletePermanently(side)
                 if self.refuse_read_only(side, ReadOnlyOp::Delete) => {}
             Action::Rename(side) => {
@@ -2636,6 +2652,27 @@ impl MantaApp {
                 let existing = tab.entries.iter().map(|e| e.name.clone()).collect();
                 let form =
                     NameForm::new_file(tab.id, tab.loc.fs.clone(), tab.loc.path.clone(), existing);
+                self.dialog = Some(Dialog::Name(form));
+            }
+            Action::NewIn { side, dir, file } => {
+                let tab = self.pane(side).tab();
+                let fs = tab.loc.fs.clone();
+                // Names in that folder for the default name and the clash
+                // check: on this Mac only (a server listing would block);
+                // elsewhere creating an existing name fails with a message.
+                let existing: Vec<String> = match tab.loc.conn {
+                    None => fs
+                        .list(&dir)
+                        .map(|l| l.into_iter().map(|e| e.name).collect())
+                        .unwrap_or_default(),
+                    Some(_) => Vec::new(),
+                };
+                let mut form = if file {
+                    NameForm::new_file(tab.id, fs, dir, existing)
+                } else {
+                    NameForm::new(tab.id, fs, dir, None, existing)
+                };
+                form.inside = true;
                 self.dialog = Some(Dialog::Name(form));
             }
             Action::Delete(side) | Action::DeletePermanently(side) => {
@@ -4454,8 +4491,13 @@ impl MantaApp {
                 let fs = f.fs.clone();
                 let dir = f.dir.clone();
                 let target = dir.join(&name);
-                let select = Some((f.tab_id, name.clone()));
-                let refresh = vec![(fs.clone(), dir.clone())];
+                // Made inside a folder of the listing: nothing to select
+                // there; the folder itself changed too (its date, its size).
+                let select = (!f.inside).then(|| (f.tab_id, name.clone()));
+                let mut refresh = vec![(fs.clone(), dir.clone())];
+                if f.inside {
+                    refresh.push((fs.clone(), dir.parent().unwrap_or_else(VfsPath::root)));
+                }
                 let side = self.side_of_tab(f.tab_id);
                 match f.original {
                     None if f.new_file => {

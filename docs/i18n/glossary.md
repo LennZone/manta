@@ -160,6 +160,8 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `place.archive` | Archive | Archiv | 归档 | Archivo comprimido | Archive | Archivio | Архив |
 | `pane.enclosing_folders` | Show enclosing folders | Übergeordnete Ordner anzeigen | 显示上层文件夹 | Mostrar carpetas contenedoras | Afficher les dossiers parents | Mostra le cartelle superiori | Показать вышестоящие папки |
 | `pane.try_again` | Try Again | Erneut versuchen | 重试 | Reintentar | Réessayer | Riprova | Повторить |
+| `pane.menu.new_folder_in` | New Folder in “{name}” | Neuer Ordner in „{name}“ | 在“{name}”中新建文件夹 | Nueva carpeta en “{name}” | Nouveau dossier dans « {name} » | Nuova cartella in “{name}” | Новая папка в «{name}» |
+| `pane.menu.new_file_in` | New File in “{name}” | Neue Datei in „{name}“ | 在“{name}”中新建文件 | Nuevo archivo en “{name}” | Nouveau fichier dans « {name} » | Nuovo file in “{name}” | Новый файл в «{name}» |
 | `pane.start_container` | Start Container | Container starten | 启动容器 | Iniciar contenedor | Démarrer le conteneur | Avvia container | Запустить контейнер |
 | `pane.starting_container` | Starting… | Wird gestartet … | 正在启动… | Iniciando… | Démarrage… | Avvio… | Запуск… |
 | `pane.go_back` | Go Back | Zurück | 返回 | Volver | Revenir | Torna indietro | Назад |
@@ -454,10 +456,12 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `dialog.rename.button` | Rename | Umbenennen | 重新命名 | Renombrar | Renommer | Rinomina | Переименовать |
 | `dialog.rename.field` | New name | Neuer Name | 新名称 | Nombre nuevo | Nouveau nom | Nuovo nome | Новое имя |
 | `dialog.new_folder.title` | New Folder | Neuer Ordner | 新建文件夹 | Nueva carpeta | Nouveau dossier | Nuova cartella | Новая папка |
+| `dialog.new_folder.title_in` | New Folder in “{name}” | Neuer Ordner in „{name}“ | 在“{name}”中新建文件夹 | Nueva carpeta en “{name}” | Nouveau dossier dans « {name} » | Nuova cartella in “{name}” | Новая папка в «{name}» |
 | `dialog.new_folder.button` | Create | Erstellen | 创建 | Crear | Créer | Crea | Создать |
 | `dialog.new_folder.field` | Folder name | Ordnername | 文件夹名称 | Nombre de la carpeta | Nom du dossier | Nome cartella | Имя папки |
 | `dialog.new_folder.default_name` | untitled folder | Neuer Ordner | 未命名文件夹 | carpeta sin título | dossier sans titre | cartella senza titolo | новая папка |
 | `dialog.new_file.title` | New File | Neue Datei | 新建文件 | Nuevo archivo | Nouveau fichier | Nuovo file | Новый файл |
+| `dialog.new_file.title_in` | New File in “{name}” | Neue Datei in „{name}“ | 在“{name}”中新建文件 | Nuevo archivo en “{name}” | Nouveau fichier dans « {name} » | Nuovo file in “{name}” | Новый файл в «{name}» |
 | `dialog.new_file.button` | Create | Erstellen | 创建 | Crear | Créer | Crea | Создать |
 | `dialog.new_file.field` | File name | Dateiname | 文件名称 | Nombre del archivo | Nom du fichier | Nome del file | Имя файла |
 | `dialog.new_file.default_name` | untitled.txt | Neue Datei.txt | 未命名文件.txt | archivo sin título.txt | fichier sans titre.txt | file senza titolo.txt | новый файл.txt |
