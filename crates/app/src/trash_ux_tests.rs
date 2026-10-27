@@ -405,8 +405,17 @@ fn click_at(h: &mut H, pos: egui::Pos2) {
     h.run_steps(2);
 }
 
+/// Where a drag starts: empty space in the left pane, below its rows.
+fn drag_start(h: &mut H) -> egui::Pos2 {
+    let rows = app(h).pane(Side::Left).tab().view.len();
+    egui::pos2(330.0, (120.0 + 24.0 * (rows + 2) as f32).min(600.0))
+}
+
 /// Hover `pos` with `payload` in flight (set again each frame: egui clears
-/// it on a press), then release there when `release`.
+/// it on a press), then release there when `release`. Like a real drag the
+/// button goes down elsewhere (in the pane), not on the target: a press
+/// and release on the target would be a click (the Trash row opens the
+/// Trash in the pane).
 fn drag_to<P: std::any::Any + Send + Sync>(
     h: &mut H,
     pos: egui::Pos2,
@@ -414,15 +423,20 @@ fn drag_to<P: std::any::Any + Send + Sync>(
     make: impl Fn(&mut H) -> P,
 ) {
     let ctx = h.ctx.clone();
+    if !ctx.input(|i| i.pointer.primary_down()) {
+        let from = drag_start(h);
+        h.hover_at(from);
+        h.event(egui::Event::PointerButton {
+            pos: from,
+            button: egui::PointerButton::Primary,
+            pressed: true,
+            modifiers: Modifiers::NONE,
+        });
+        h.step();
+    }
     let p = make(h);
     egui::DragAndDrop::set_payload(&ctx, p);
     h.hover_at(pos);
-    h.event(egui::Event::PointerButton {
-        pos,
-        button: egui::PointerButton::Primary,
-        pressed: true,
-        modifiers: Modifiers::NONE,
-    });
     h.step();
     let p = make(h);
     egui::DragAndDrop::set_payload(&ctx, p);
@@ -525,6 +539,11 @@ fn dropping_local_items_on_the_trash_moves_them_there() {
         local_payload(h, &fx, &["README.md", "notes.txt"])
     });
     assert!(app(&mut h).dialog.is_none(), "no question, like ⌘⌫");
+    assert_eq!(
+        app(&mut h).pane(Side::Left).tab().loc.path.as_str(),
+        fx.root.to_string_lossy(),
+        "a drop is not a click: the pane stays in its folder"
+    );
     wait_for(&mut h, "items in the Trash", |_| {
         fake_trash(&fx).join("notes.txt").exists()
     });
