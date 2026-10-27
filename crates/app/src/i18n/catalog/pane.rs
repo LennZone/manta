@@ -149,6 +149,7 @@ pub const ENTRIES: Entries = &[
     ("sidebar.place.desktop", "Desktop", "Schreibtisch"),
     ("sidebar.place.documents", "Documents", "Dokumente"),
     ("sidebar.place.downloads", "Downloads", "Downloads"),
+    ("sidebar.place.applications", "Applications", "Programme"),
     // Preview and Quick Look
     ("preview.close_hint", "Space or ⌘W to close", "Leertaste oder ⌘W zum Schließen"),
     ("preview.unreadable", "This file couldn't be read", "Diese Datei konnte nicht gelesen werden"),

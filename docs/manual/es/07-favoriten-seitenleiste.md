@@ -9,7 +9,7 @@ La barra lateral de la izquierda te lleva con un clic a tus ubicaciones más imp
 | Sección | Contenido |
 |---|---|
 | **Favoritos** | Carpetas y conexiones a servidores que has guardado. |
-| **Ubicaciones** | Inicio, Escritorio, Documentos, Descargas y, al final, la **Papelera** (consulta más abajo). |
+| **Ubicaciones** | Inicio, Aplicaciones, Escritorio, Documentos, Descargas y, al final, la **Papelera** (consulta más abajo). |
 | **Nube** | iCloud Drive y las carpetas de las apps de nube (Google Drive para ordenadores, OneDrive, Dropbox, Box…); consulta [Almacenamiento en la nube](09-cloud.md). La sección solo aparece cuando Manta encuentra al menos un almacenamiento en la nube. |
 | **Dispositivos** | Macintosh HD y todos los volúmenes montados (unidades USB, discos, recursos compartidos de red, imágenes de disco). |
 | **Servidores** | Los servidores a los que estás conectado. Sin conexión, muestra **Conectarse al servidor…**. |

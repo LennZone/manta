@@ -252,6 +252,7 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `sidebar.place.desktop` | Desktop | Schreibtisch | 桌面 | Escritorio | Bureau | Scrivania | Рабочий стол |
 | `sidebar.place.documents` | Documents | Dokumente | 文稿 | Documentos | Documents | Documenti | Документы |
 | `sidebar.place.downloads` | Downloads | Downloads | 下载 | Descargas | Téléchargements | Download | Загрузки |
+| `sidebar.place.applications` | Applications | Programme | 应用程序 | Aplicaciones | Applications | Applicazioni | Программы |
 | `preview.unreadable` | This file couldn't be read | Diese Datei konnte nicht gelesen werden | 无法读取此文件 | No se ha podido leer este archivo | Impossible de lire ce fichier | Impossibile leggere questo file | Не удалось прочитать этот файл |
 | `preview.no_preview` | No preview for this file | Keine Vorschau für diese Datei | 此文件没有预览 | No hay vista previa para este archivo | Aucun aperçu pour ce fichier | Nessuna anteprima per questo file | Нет просмотра для этого файла |
 | `ql.unavailable` | Quick Look isn't available | Die Schnellansicht ist nicht verfügbar | “快速查看”不可用 | Vista Rápida no está disponible | Coup d’œil n’est pas disponible | Visualizzazione rapida non è disponibile | Быстрый просмотр недоступен |

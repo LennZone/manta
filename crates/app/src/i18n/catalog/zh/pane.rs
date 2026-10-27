@@ -139,6 +139,7 @@ pub const ENTRIES: Translations = &[
     ("sidebar.place.desktop", "桌面"),
     ("sidebar.place.documents", "文稿"),
     ("sidebar.place.downloads", "下载"),
+    ("sidebar.place.applications", "应用程序"),
     ("preview.close_hint", "按空格键或 ⌘W 关闭"),
     ("preview.unreadable", "无法读取此文件"),
     ("preview.truncated", "正在显示文件的前 {size}。"),

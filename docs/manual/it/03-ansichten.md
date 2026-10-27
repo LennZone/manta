@@ -77,7 +77,7 @@ La galleria mostra in grande l’elemento selezionato, con il nome e sotto una r
 
 ## Miniature {#vorschaubilder}
 
-Nelle viste Icone, Colonne e Galleria Manta mostra le miniature. Vengono create in background, così la vista resta reattiva; finché una miniatura non è pronta vedi l’icona del tipo di file.
+Nelle viste Icone, Colonne e Galleria Manta mostra le miniature. Vengono create in background, così la vista resta reattiva; finché una miniatura non è pronta vedi l’icona del tipo di file. Le app (`.app`) mostrano la propria icona, come nel Finder, anche nella vista Elenco.
 
 - Le **immagini** (PNG, JPEG, GIF, BMP, WebP) vengono lette direttamente da Manta e ruotate secondo l’orientamento della fotocamera (EXIF).
 - **PDF, video, HEIC, documenti** e così via sono forniti da macOS (come in Visualizzazione rapida). I file senza anteprima mantengono l’icona del loro tipo.

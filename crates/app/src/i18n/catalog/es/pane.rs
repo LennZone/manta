@@ -139,6 +139,7 @@ pub const ENTRIES: Translations = &[
     ("sidebar.place.desktop", "Escritorio"),
     ("sidebar.place.documents", "Documentos"),
     ("sidebar.place.downloads", "Descargas"),
+    ("sidebar.place.applications", "Aplicaciones"),
     ("preview.close_hint", "Espacio o ⌘W para cerrar"),
     ("preview.unreadable", "No se ha podido leer este archivo"),
     ("preview.truncated", "Se muestran los primeros {size} del archivo."),

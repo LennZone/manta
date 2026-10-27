@@ -2333,6 +2333,13 @@ fn file_list(
                             .flatten();
                         let sync_info = tab.cloud.as_ref().and_then(|c| c.get(&entry.name));
                         let sync = sync_info.map(|i| i.state);
+                        let icon = match crate::thumbs::is_app_bundle(entry) {
+                            true => match crate::views::thumb_of(ui, info, tab, entry, 18.0) {
+                                crate::thumbs::Thumb::Ready(tex) => Some(tex),
+                                _ => None,
+                            },
+                            false => None,
+                        };
                         let (badge_rect, sync_rect) = paint_row(
                             ui,
                             row,
@@ -2349,6 +2356,7 @@ fn file_list(
                                 dir_size,
                                 sync,
                                 tags: tab.tags_of(&entry.name),
+                                icon,
                             },
                             &cols,
                             now,
@@ -3082,6 +3090,8 @@ struct RowState<'a> {
     sync: Option<manta_vfs::cloud_local::SyncState>,
     /// Finder tags (coloured dots after the name).
     tags: &'a [crate::tags::Tag],
+    /// The app's own icon (app bundles), drawn instead of the glyph.
+    icon: Option<egui::TextureHandle>,
 }
 
 /// Tooltip of a measured folder size: both sizes and the file count.
@@ -3205,7 +3215,18 @@ fn paint_row(
     let cy = row.center().y;
     let ir =
         egui::Rect::from_center_size(egui::pos2(cols.name.min + 9.0, cy), egui::vec2(18.0, 18.0));
-    widgets::paint_icon(ui, ir, glyph, size::ICON, icon_color, fill);
+    match &s.icon {
+        Some(tex) => {
+            let tint = Color32::WHITE.gamma_multiply(if hidden { 0.5 * dim } else { dim });
+            painter.image(
+                tex.id(),
+                ir,
+                egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                tint,
+            );
+        }
+        None => widgets::paint_icon(ui, ir, glyph, size::ICON, icon_color, fill),
+    }
     // Backends report a link to a folder as a folder with `link_target` set.
     if e.kind == manta_core::EntryKind::Symlink || e.link_target.is_some() {
         let b = egui::Rect::from_center_size(

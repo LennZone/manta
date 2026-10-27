@@ -133,6 +133,7 @@ pub const STEERING_WHEEL: &str = "\u{E9AC}";
 pub const STACK: &str = "\u{E466}";
 pub const HAMMER: &str = "\u{E80E}";
 pub const FLASK: &str = "\u{E79E}";
+pub const APP_STORE_LOGO: &str = "\u{E974}";
 pub const ROCKET_LAUNCH: &str = "\u{E3FE}";
 pub const LIGHTNING: &str = "\u{E2DE}";
 pub const LIST_BULLETS: &str = "\u{E2F2}";

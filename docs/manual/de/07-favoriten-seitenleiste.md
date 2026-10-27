@@ -9,7 +9,7 @@ Die Seitenleiste links bringt dich mit einem Klick zu deinen wichtigsten Orten: 
 | Abschnitt | Inhalt |
 |---|---|
 | **Favoriten** | Ordner und Server-Verbindungen, die du dir gemerkt hast. |
-| **Orte** | Benutzerordner, Schreibtisch, Dokumente, Downloads und ganz unten der **Papierkorb** (siehe unten). |
+| **Orte** | Benutzerordner, Programme, Schreibtisch, Dokumente, Downloads und ganz unten der **Papierkorb** (siehe unten). |
 | **Cloud** | iCloud Drive und die Ordner der Cloud-Apps (Google Drive für den Desktop, OneDrive, Dropbox, Box …), siehe [Cloud-Speicher](09-cloud.md). Der Abschnitt erscheint nur, wenn Manta mindestens einen Cloud-Speicher findet. |
 | **Geräte** | Macintosh HD und alle eingebundenen Volumes (USB-Sticks, Festplatten, Netzwerkfreigaben, Disk-Images). |
 | **Server** | Aktuell verbundene Server. Ohne Verbindung steht hier **Mit Server verbinden …**. |

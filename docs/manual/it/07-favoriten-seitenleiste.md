@@ -9,7 +9,7 @@ La barra laterale a sinistra ti porta con un clic nei posti più importanti: Pre
 | Sezione | Contenuto |
 |---|---|
 | **Preferiti** | Cartelle e connessioni ai server che hai salvato. |
-| **Posizioni** | Inizio, Scrivania, Documenti, Download e, in fondo, il **Cestino** (vedi sotto). |
+| **Posizioni** | Inizio, Applicazioni, Scrivania, Documenti, Download e, in fondo, il **Cestino** (vedi sotto). |
 | **Cloud** | iCloud Drive e le cartelle delle app cloud (Google Drive per desktop, OneDrive, Dropbox, Box, …), vedi [Archiviazione cloud](09-cloud.md). La sezione compare solo quando Manta trova almeno un’archiviazione cloud. |
 | **Dispositivi** | Macintosh HD e ogni volume montato (unità USB, dischi, condivisioni di rete, immagini disco). |
 | **Server** | I server a cui sei connesso. Senza connessione mostra **Connessione al server…**. |

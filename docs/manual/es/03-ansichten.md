@@ -77,7 +77,7 @@ La galería muestra el ítem seleccionado en grande, con su nombre y debajo una 
 
 ## Miniaturas {#vorschaubilder}
 
-En las visualizaciones Iconos, Columnas y Galería, Manta muestra miniaturas. Se generan en segundo plano, así que la visualización sigue respondiendo con fluidez; hasta que una miniatura está lista, ves el icono del tipo de archivo.
+En las visualizaciones Iconos, Columnas y Galería, Manta muestra miniaturas. Se generan en segundo plano, así que la visualización sigue respondiendo con fluidez; hasta que una miniatura está lista, ves el icono del tipo de archivo. Las apps (`.app`) muestran su propio icono, como en el Finder, también en la visualización Lista.
 
 - **Las imágenes** (PNG, JPEG, GIF, BMP, WebP) las lee el propio Manta y las gira según la orientación de la cámara (EXIF).
 - **Los PDF, vídeos, HEIC, documentos**, etc. los proporciona macOS (como en Vista Rápida). Los archivos sin vista previa conservan su icono de tipo.

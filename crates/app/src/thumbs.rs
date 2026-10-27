@@ -105,6 +105,8 @@ pub enum Method {
     Image,
     /// macOS Quick Look (PDFs, videos, HEIC, documents …).
     QuickLook,
+    /// An app bundle's icon (Quick Look, like Finder shows it).
+    AppIcon,
 }
 
 /// Formats the `image` crate decodes here.
@@ -115,8 +117,16 @@ pub fn decodable_image(name: &str) -> bool {
     )
 }
 
+/// A macOS app (`Safari.app`): a folder shown with its own icon.
+pub fn is_app_bundle(e: &Entry) -> bool {
+    e.is_dir() && e.name.len() > 4 && icons::extension(&e.name) == "app"
+}
+
 /// How `e` gets a thumbnail, if it can have one (local files).
 pub fn method_for(e: &Entry) -> Option<Method> {
+    if is_app_bundle(e) {
+        return cfg!(target_os = "macos").then_some(Method::AppIcon);
+    }
     if e.is_dir() || e.size == 0 {
         return None;
     }
@@ -601,8 +611,9 @@ fn make_thumb(
                 .map_err(|e| e.to_string())?;
             decode(image::ImageReader::new(std::io::Cursor::new(bytes)), px)?
         }
-        (Source::Local(path), Method::QuickLook) => quicklook(path, px)?,
-        (Source::Remote(..), Method::QuickLook) => {
+        (Source::Local(path), Method::QuickLook) => quicklook(path, px, false)?,
+        (Source::Local(path), Method::AppIcon) => quicklook(path, px, true)?,
+        (Source::Remote(..), Method::QuickLook | Method::AppIcon) => {
             return Err("Quick Look needs a local file".into())
         }
     };
@@ -677,7 +688,7 @@ fn prune_disk(dir: &Path, max: u64, target: u64) {
 
 /// A Quick Look thumbnail of a local file (PDF, video, HEIC, document …).
 #[cfg(target_os = "macos")]
-fn quicklook(path: &Path, px: u32) -> Result<image::RgbaImage, String> {
+fn quicklook(path: &Path, px: u32, icon: bool) -> Result<image::RgbaImage, String> {
     use block2::RcBlock;
     use objc2::AllocAnyThread;
     use objc2_core_foundation::CGSize;
@@ -700,7 +711,11 @@ fn quicklook(path: &Path, px: u32) -> Result<image::RgbaImage, String> {
                 height: px as f64,
             },
             1.0,
-            QLThumbnailGenerationRequestRepresentationTypes::Thumbnail,
+            if icon {
+                QLThumbnailGenerationRequestRepresentationTypes::Icon
+            } else {
+                QLThumbnailGenerationRequestRepresentationTypes::Thumbnail
+            },
         );
         let block = RcBlock::new(
             move |rep: *mut QLThumbnailRepresentation, _err: *mut NSError| {
@@ -719,7 +734,7 @@ fn quicklook(path: &Path, px: u32) -> Result<image::RgbaImage, String> {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn quicklook(_path: &Path, _px: u32) -> Result<image::RgbaImage, String> {
+fn quicklook(_path: &Path, _px: u32, _icon: bool) -> Result<image::RgbaImage, String> {
     Err("Quick Look is macOS only".into())
 }
 
@@ -870,6 +885,38 @@ mod tests {
                 Some(Method::QuickLook)
             );
         }
+    }
+
+    #[test]
+    fn apps_show_their_own_icon() {
+        let dir = |name: &str| Entry {
+            kind: EntryKind::Directory,
+            ..entry(name, 0, 0)
+        };
+        let want = cfg!(target_os = "macos").then_some(Method::AppIcon);
+        assert_eq!(method_for(&dir("Safari.app")), want);
+        assert_eq!(method_for(&dir("Old.APP")), want);
+        assert_eq!(method_for(&dir("app")), None, "a folder named app");
+        assert_eq!(method_for(&dir(".app")), None);
+        assert_eq!(method_for(&entry("notes.app", 10, 0)), None, "a file");
+    }
+
+    /// Quick Look draws a real app's icon (as Finder shows it).
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn quick_look_makes_an_app_icon() {
+        let app = Path::new("/System/Applications/Calculator.app");
+        if !app.is_dir() {
+            return;
+        }
+        let img = quicklook(app, 64, true).expect("app icon");
+        assert!(
+            img.width() >= 32 && img.height() >= 32,
+            "{}×{}",
+            img.width(),
+            img.height()
+        );
+        assert!(img.pixels().any(|p| p[3] > 0), "not blank");
     }
 
     fn job_source() -> Option<(Source, Method)> {

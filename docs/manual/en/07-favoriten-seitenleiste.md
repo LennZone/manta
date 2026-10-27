@@ -9,7 +9,7 @@ The sidebar on the left takes you to your most important places in one click: fa
 | Section | Contents |
 |---|---|
 | **Favorites** | Folders and server connections you've kept. |
-| **Locations** | Home, Desktop, Documents, Downloads and, at the bottom, the **Trash** (see below). |
+| **Locations** | Home, Applications, Desktop, Documents, Downloads and, at the bottom, the **Trash** (see below). |
 | **Cloud** | iCloud Drive and the folders of the cloud apps (Google Drive for desktop, OneDrive, Dropbox, Box, …), see [Cloud Storage](09-cloud.md). The section only appears when Manta finds at least one cloud storage. |
 | **Devices** | Macintosh HD and every mounted volume (USB drives, disks, network shares, disk images). |
 | **Servers** | Servers you're connected to. Without a connection it shows **Connect to Server…**. |

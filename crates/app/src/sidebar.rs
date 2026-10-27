@@ -37,6 +37,11 @@ pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
         }
     };
     push(icons::HOUSE, "Home", dirs::home_dir());
+    push(
+        icons::APP_STORE_LOGO,
+        "Applications",
+        Some(PathBuf::from("/Applications")),
+    );
     push(icons::DESKTOP, "Desktop", dirs::desktop_dir());
     push(icons::FILE_TEXT, "Documents", dirs::document_dir());
     push(icons::DOWNLOAD_SIMPLE, "Downloads", dirs::download_dir());
@@ -87,6 +92,7 @@ fn place_label(name: &str) -> &str {
         "Desktop" => t!("sidebar.place.desktop"),
         "Documents" => t!("sidebar.place.documents"),
         "Downloads" => t!("sidebar.place.downloads"),
+        "Applications" => t!("sidebar.place.applications"),
         _ => name,
     }
 }

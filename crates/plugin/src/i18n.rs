@@ -871,6 +871,7 @@ pub mod check {
             Lang::Fr,
             &[
                 "Local",
+                "Applications",
                 "Services",
                 "Graphite",
                 "Archive",

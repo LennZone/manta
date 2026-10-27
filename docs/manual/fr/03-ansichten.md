@@ -77,7 +77,7 @@ La galerie affiche l’élément sélectionné en grand, avec son nom et, en des
 
 ## Vignettes {#vorschaubilder}
 
-Dans les présentations Icônes, Colonnes et Galerie, Manta affiche des vignettes. Elles sont créées en arrière-plan, la présentation reste donc réactive ; tant qu’une vignette n’est pas prête, vous voyez l’icône du type de fichier.
+Dans les présentations Icônes, Colonnes et Galerie, Manta affiche des vignettes. Elles sont créées en arrière-plan, la présentation reste donc réactive ; tant qu’une vignette n’est pas prête, vous voyez l’icône du type de fichier. Les apps (`.app`) affichent leur propre icône, comme dans le Finder, y compris en présentation Liste.
 
 - Les **images** (PNG, JPEG, GIF, BMP, WebP) sont lues par Manta lui-même et pivotées selon l’orientation de l’appareil photo (EXIF).
 - Les **PDF, vidéos, HEIC, documents**, etc. sont fournis par macOS (comme dans Coup d’œil). Les fichiers sans aperçu conservent l’icône de leur type.

@@ -9,7 +9,7 @@ La barre latérale, à gauche, vous mène en un clic à vos emplacements les plu
 | Section | Contenu |
 |---|---|
 | **Favoris** | Les dossiers et connexions aux serveurs que vous avez conservés. |
-| **Emplacements** | Départ, Bureau, Documents, Téléchargements et, tout en bas, la **Corbeille** (voir ci-dessous). |
+| **Emplacements** | Départ, Applications, Bureau, Documents, Téléchargements et, tout en bas, la **Corbeille** (voir ci-dessous). |
 | **Cloud** | iCloud Drive et les dossiers des apps cloud (Google Drive pour ordinateur, OneDrive, Dropbox, Box…), voir [Stockage cloud](09-cloud.md). La section n’apparaît que si Manta trouve au moins un stockage cloud. |
 | **Appareils** | Macintosh HD et tous les volumes montés (clés USB, disques, partages réseau, images disque). |
 | **Serveurs** | Les serveurs auxquels vous êtes connecté. Sans connexion, la section affiche **Se connecter au serveur…**. |
