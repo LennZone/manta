@@ -34,10 +34,19 @@ fn start(data: &Path) -> (FolderSizePlugin, Receiver<(String, HostRequest)>) {
 fn collect(
     rx: &Receiver<(String, HostRequest)>,
     sizes: &mut std::collections::HashMap<String, SizeInfo>,
+    done: impl FnMut(&std::collections::HashMap<String, SizeInfo>) -> bool,
+) -> bool {
+    collect_until(rx, sizes, Duration::from_secs(10), done)
+}
+
+fn collect_until(
+    rx: &Receiver<(String, HostRequest)>,
+    sizes: &mut std::collections::HashMap<String, SizeInfo>,
+    limit: Duration,
     mut done: impl FnMut(&std::collections::HashMap<String, SizeInfo>) -> bool,
 ) -> bool {
     let t = Instant::now();
-    while t.elapsed() < Duration::from_secs(10) {
+    while t.elapsed() < limit {
         if let Ok((_, HostRequest::SetSizes { sizes: s, .. })) =
             rx.recv_timeout(Duration::from_millis(50))
         {
@@ -276,4 +285,55 @@ fn sizes_survive_a_restart_and_are_checked_again() {
         assert!(t.elapsed() < Duration::from_secs(10), "never saved");
         std::thread::sleep(Duration::from_millis(20));
     }
+}
+
+/// A change deep inside a sub-folder (by another app) re-measures it by
+/// itself; the old size stays shown meanwhile.
+#[test]
+fn changes_deep_inside_are_measured_again() {
+    let tmp = tempfile::tempdir().unwrap();
+    let data = tempfile::tempdir().unwrap();
+    // FSEvents reports real paths (/private/var/… for /var/…).
+    let root = tmp.path().canonicalize().unwrap().join("root");
+    file(&root.join("big/x/y/a.bin"), 1_000);
+    file(&root.join("other/b.bin"), 10);
+    let (mut p, rx) = start(data.path());
+    p.on_event(&PluginEvent::DirectoryChanged(pane_state(
+        PaneId::Left,
+        Some(&root),
+    )));
+    let mut sizes = Default::default();
+    assert!(collect(&rx, &mut sizes, |m| m
+        .get("big")
+        .is_some_and(|s| s.complete && s.bytes == 1_000)));
+    // Another app adds files deep inside. Watching starts in the
+    // background (slower under load), so keep adding one a second until
+    // the size shown is the folder's real size.
+    let mut seen = Vec::new();
+    let mut want = 1_000;
+    let start_t = Instant::now();
+    let mut done = false;
+    for i in 0..10 {
+        file(&root.join(format!("big/x/y/new{i}.bin")), 5_000);
+        want += 5_000;
+        done = collect_until(&rx, &mut sizes, Duration::from_secs(1), |m| {
+            let b = m["big"].bytes;
+            if seen.last() != Some(&b) {
+                seen.push(b);
+            }
+            b == want && m["big"].complete
+        });
+        if done {
+            break;
+        }
+    }
+    assert!(
+        done,
+        "never re-measured in {:?}: {seen:?}",
+        start_t.elapsed()
+    );
+    assert!(
+        seen.iter().all(|b| (b - 1_000) % 5_000 == 0),
+        "only complete sizes, no partial ones: {seen:?}"
+    );
 }

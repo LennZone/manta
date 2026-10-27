@@ -2882,6 +2882,7 @@ dependencies = [
  "log",
  "manta-core",
  "manta-plugin",
+ "notify",
  "serde",
  "serde_json",
  "tempfile",

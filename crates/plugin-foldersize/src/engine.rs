@@ -16,6 +16,11 @@
 //! - **On disk:** the cache is saved ([`crate::store`]) a few seconds after
 //!   it changed and on shutdown. Sizes from the last run show at once and
 //!   are re-measured quietly the first time they are shown.
+//! - **Watched:** the folders shown are watched recursively (FSEvents via
+//!   `notify`). A change anywhere inside a sub-folder re-measures that
+//!   sub-folder quietly once it has been quiet for [`CHANGE_QUIET`] (at
+//!   the latest after [`CHANGE_MAX_DELAY`], and never while it is still
+//!   being measured), so a busy folder is not measured over and over.
 //! - **Rate limit:** sizes go to the host at most every [`FLUSH_INTERVAL`].
 
 use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
@@ -40,6 +45,10 @@ pub const STALE_AFTER: Duration = Duration::from_secs(60);
 pub const WORKERS: usize = 3;
 /// The cache is saved this long after its first unsaved change.
 pub const SAVE_AFTER: Duration = Duration::from_secs(5);
+/// A changed sub-folder is re-measured after this long without changes …
+pub const CHANGE_QUIET: Duration = Duration::from_secs(1);
+/// … or this long after its first change (steady streams).
+pub const CHANGE_MAX_DELAY: Duration = Duration::from_secs(5);
 
 /// Who wants sizes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -66,6 +75,8 @@ pub enum Msg {
     Invalidate(Vec<PathBuf>),
     /// Measure every sub-folder automatically, or only on demand.
     SetAuto(bool),
+    /// The watcher saw these paths change (anything inside a shown folder).
+    Changed(Vec<PathBuf>),
     Shutdown,
     /// From a worker.
     Progress {
@@ -142,6 +153,53 @@ impl Engine {
     pub fn send(&self, m: Msg) {
         let _ = self.tx.send(m);
     }
+}
+
+// ------------------------------------------------------------------ watcher
+
+/// The watcher thread: watches the folders it is sent (the newest set wins)
+/// and reports changes as [`Msg::Changed`]. Ends with the coordinator.
+fn spawn_watcher(tx: Sender<Msg>) -> Sender<HashSet<PathBuf>> {
+    let (watch_tx, watch_rx) = mpsc::channel::<HashSet<PathBuf>>();
+    let spawned = std::thread::Builder::new()
+        .name("foldersize-watch".into())
+        .spawn(move || {
+            use notify::Watcher;
+            let mut w =
+                match notify::recommended_watcher(move |res: notify::Result<notify::Event>| {
+                    if let Ok(ev) = res {
+                        if !matches!(ev.kind, notify::EventKind::Access(_)) && !ev.paths.is_empty()
+                        {
+                            let _ = tx.send(Msg::Changed(ev.paths));
+                        }
+                    }
+                }) {
+                    Ok(w) => w,
+                    Err(e) => {
+                        log::warn!("folder sizes: no file watcher: {e}");
+                        return;
+                    }
+                };
+            let mut watched: HashSet<PathBuf> = HashSet::new();
+            while let Ok(mut want) = watch_rx.recv() {
+                while let Ok(newer) = watch_rx.try_recv() {
+                    want = newer;
+                }
+                for gone in watched.difference(&want) {
+                    let _ = w.unwatch(gone);
+                }
+                for new in want.difference(&watched) {
+                    if let Err(e) = w.watch(new, notify::RecursiveMode::Recursive) {
+                        log::warn!("folder sizes: can't watch {}: {e}", new.display());
+                    }
+                }
+                watched = want;
+            }
+        });
+    if let Err(e) = spawned {
+        log::warn!("folder sizes: no watcher thread: {e}");
+    }
+    watch_tx
 }
 
 // ------------------------------------------------------------------ workers
@@ -242,6 +300,9 @@ struct Cached {
 
 struct Target {
     dir: PathBuf,
+    /// `dir` with symlinks resolved, as the watcher reports paths
+    /// (`/private/var/…` for `/var/…`).
+    real_dir: PathBuf,
     vfs_dir: Option<VfsPath>,
     /// Sub-folders shown: path → name.
     children: HashMap<PathBuf, String>,
@@ -268,6 +329,12 @@ struct Core {
     store: Option<PathBuf>,
     /// The cache changed since it was saved (since when).
     unsaved: Option<Instant>,
+    /// To the watcher thread: the folders to watch (recursively). Starting
+    /// a watch can take a while, so it never holds up the sizes.
+    watch_tx: Sender<HashSet<PathBuf>>,
+    watched: HashSet<PathBuf>,
+    /// Changed sub-folders waiting to be re-measured: first and last change.
+    changed: HashMap<PathBuf, (Instant, Instant)>,
 }
 
 fn size_info(t: &Totals) -> SizeInfo {
@@ -293,6 +360,7 @@ impl Core {
         store: Option<PathBuf>,
     ) -> Core {
         let queue = Arc::new(Queue::default());
+        let watch_tx = spawn_watcher(tx.clone());
         let workers = (0..WORKERS)
             .map(|i| {
                 let q = queue.clone();
@@ -335,6 +403,97 @@ impl Core {
             last_flush: Instant::now(),
             store,
             unsaved: None,
+            watch_tx,
+            watched: HashSet::new(),
+            changed: HashMap::new(),
+        }
+    }
+
+    /// Watch exactly the folders the consumers show.
+    fn sync_watches(&mut self) {
+        let want: HashSet<PathBuf> = self.targets.values().map(|t| t.dir.clone()).collect();
+        if want != self.watched {
+            self.watched = want.clone();
+            let _ = self.watch_tx.send(want);
+        }
+    }
+
+    /// Note which shown sub-folders the changed paths are in.
+    fn note_changes(&mut self, paths: Vec<PathBuf>) {
+        let now = Instant::now();
+        for p in paths {
+            // Our own cache file (someone looking at ~/Library/Caches).
+            if let Some(store) = &self.store {
+                if p.parent() == store.parent()
+                    && p.file_name()
+                        .is_some_and(|n| n.to_string_lossy().starts_with("size-cache"))
+                {
+                    continue;
+                }
+            }
+            for t in self.targets.values() {
+                let Ok(rest) = p
+                    .strip_prefix(&t.real_dir)
+                    .or_else(|_| p.strip_prefix(&t.dir))
+                else {
+                    continue;
+                };
+                let Some(first) = rest.components().next() else {
+                    continue; // the shown folder itself
+                };
+                let child = t.dir.join(first);
+                if t.children.contains_key(&child) {
+                    let e = self.changed.entry(child).or_insert((now, now));
+                    e.1 = now;
+                }
+            }
+        }
+    }
+
+    /// When the next noted change is due (for the run loop's timeout).
+    fn changes_wait(&self) -> Option<Duration> {
+        self.changed
+            .values()
+            .map(|(first, last)| {
+                CHANGE_QUIET
+                    .saturating_sub(last.elapsed())
+                    .min(CHANGE_MAX_DELAY.saturating_sub(first.elapsed()))
+            })
+            .min()
+            // Still being measured: look again a little later.
+            .map(|w| w.max(Duration::from_millis(100)))
+    }
+
+    /// Re-measure the changed sub-folders that are due, quietly (their
+    /// sizes stay shown). One still being measured waits for its result.
+    fn apply_changes(&mut self) {
+        let shown: HashSet<&PathBuf> = self
+            .targets
+            .values()
+            .flat_map(|t| t.children.keys())
+            .collect();
+        self.changed.retain(|p, _| shown.contains(p));
+        let due: Vec<PathBuf> = self
+            .changed
+            .iter()
+            .filter(|(p, (first, last))| {
+                (last.elapsed() >= CHANGE_QUIET || first.elapsed() >= CHANGE_MAX_DELAY)
+                    && !self.jobs.contains_key(*p)
+            })
+            .map(|(p, _)| p.clone())
+            .collect();
+        if due.is_empty() {
+            return;
+        }
+        for p in &due {
+            self.changed.remove(p);
+            if let Some(c) = self.cache.get_mut(p) {
+                c.verified = false;
+            }
+        }
+        let all: Vec<Consumer> = self.targets.keys().copied().collect();
+        for c in all {
+            self.fill(c, false);
         }
     }
 
@@ -374,12 +533,13 @@ impl Core {
         loop {
             let busy = self.panel_dirty || self.targets.values().any(|t| !t.pending.is_empty());
             let save_wait = self.unsaved.map(|t| SAVE_AFTER.saturating_sub(t.elapsed()));
-            let msg = if busy || save_wait.is_some() {
+            let change_wait = self.changes_wait();
+            let msg = if busy || save_wait.is_some() || change_wait.is_some() {
                 let mut wait = Duration::MAX;
                 if busy {
                     wait = FLUSH_INTERVAL.saturating_sub(self.last_flush.elapsed());
                 }
-                if let Some(w) = save_wait {
+                for w in [save_wait, change_wait].into_iter().flatten() {
                     wait = wait.min(w);
                 }
                 match rx.recv_timeout(wait) {
@@ -403,6 +563,7 @@ impl Core {
                         return;
                     }
                     Msg::Progress { job, path, totals } => self.progress(job, path, totals),
+                    Msg::Changed(paths) => self.note_changes(paths),
                     other => {
                         urgent = true;
                         self.handle_msg(other);
@@ -410,6 +571,7 @@ impl Core {
                 }
                 next = rx.try_recv().ok();
             }
+            self.apply_changes();
             if urgent || self.last_flush.elapsed() >= FLUSH_INTERVAL {
                 self.flush();
             }
@@ -454,8 +616,12 @@ impl Core {
                         self.panel_dirty = true;
                     }
                 }
-                let Some(dir) = dir else { return };
+                let Some(dir) = dir else {
+                    self.sync_watches();
+                    return;
+                };
                 let t = self.targets.entry(consumer).or_insert_with(|| Target {
+                    real_dir: std::fs::canonicalize(&dir).unwrap_or_else(|_| dir.clone()),
                     dir,
                     vfs_dir: None,
                     children: HashMap::new(),
@@ -464,6 +630,7 @@ impl Core {
                 });
                 t.vfs_dir = vfs_dir;
                 self.fill(consumer, refresh);
+                self.sync_watches();
             }
             Msg::Measure { pane, paths } => {
                 let c = Consumer::Pane(pane);
@@ -525,7 +692,7 @@ impl Core {
                     }
                 }
             }
-            Msg::Shutdown | Msg::Progress { .. } => {}
+            Msg::Shutdown | Msg::Progress { .. } | Msg::Changed(_) => {}
         }
     }
 

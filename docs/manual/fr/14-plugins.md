@@ -16,7 +16,7 @@ De nombreux plug-ins affichent leur contenu dans un **panneau latéral à droite
 
 ## Tailles des dossiers {#ordnergroessen}
 
-**Tailles des dossiers** affiche aussi la taille réelle des dossiers dans la colonne **Taille** – mesurée en arrière-plan et mise en cache. Les tailles sont conservées après un redémarrage : Manta les affiche aussitôt et les remesure en arrière-plan au cas où quelque chose aurait changé.
+**Tailles des dossiers** affiche aussi la taille réelle des dossiers dans la colonne **Taille** – mesurée en arrière-plan et mise en cache. Les tailles sont conservées après un redémarrage : Manta les affiche aussitôt et les remesure en arrière-plan au cas où quelque chose aurait changé. Lorsque quelque chose change dans un sous-dossier, même depuis une autre app, Manta le remesure peu après de lui-même.
 
 - Tant que Manta compte encore, il affiche par exemple « ≥ 1,2 Go » avec un petit indicateur d’activité.
 - Survolez une taille pour voir le nombre de fichiers et la taille sur le disque.

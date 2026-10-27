@@ -11,6 +11,7 @@ egui.workspace = true
 log.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+notify = "8"
 
 [dev-dependencies]
 tempfile = "3"

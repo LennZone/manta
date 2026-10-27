@@ -16,7 +16,7 @@ Many plugins show their content in a **sidebar on the right** or a **panel below
 
 ## Folder Sizes {#ordnergroessen}
 
-**Folder Sizes** shows real sizes for folders in the **Size** column too – measured in the background and cached. Sizes are kept across restarts: Manta shows them at once and re-measures in the background in case something changed.
+**Folder Sizes** shows real sizes for folders in the **Size** column too – measured in the background and cached. Sizes are kept across restarts: Manta shows them at once and re-measures in the background in case something changed. When something changes inside a sub-folder, also by another app, Manta re-measures it shortly afterwards by itself.
 
 - While Manta is still counting, it shows for example "≥ 1.2 GB" with a small spinner.
 - Hover over a size to see the number of files and the size on disk.
