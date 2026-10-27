@@ -252,18 +252,48 @@ fn count_lines_and_friends_through_the_host() {
     host.shutdown(Duration::from_secs(1));
 }
 
+/// The processes listed in `file` (one PID per line).
+fn pids_in(file: &Path) -> Vec<String> {
+    std::fs::read_to_string(file)
+        .unwrap_or_default()
+        .lines()
+        .map(|l| l.trim().to_string())
+        .filter(|l| !l.is_empty())
+        .collect()
+}
+
+/// `pid` still exists (`kill -0`).
+fn alive(pid: &str) -> bool {
+    std::process::Command::new("kill")
+        .args(["-0", pid])
+        .stderr(std::process::Stdio::null())
+        .status()
+        .is_ok_and(|s| s.success())
+}
+
 #[test]
 fn two_jobs_at_a_time_and_cancel_kills_the_group() {
     let mut s = setup();
     let marker = s.files.join("survivor");
-    let cmd = format!(
-        "(sleep 3; touch {m}) & sleep 30",
-        m = manta_plugin_quickactions::core::shell_quote(&marker.to_string_lossy())
+    let pids = s.files.join("pids");
+    // A background child in the job's process group: it notes its PID and
+    // would touch the marker much later. Checking that the PIDs are gone
+    // (not a short sleep racing the cancel) keeps this independent of load.
+    let quote = manta_plugin_quickactions::core::shell_quote;
+    let child = format!(
+        "echo $$ >> {p}; sleep 60; touch {m}",
+        p = quote(&pids.to_string_lossy()),
+        m = quote(&marker.to_string_lossy())
     );
+    let cmd = format!("sh -c {c} & sleep 60", c = quote(&child));
     let json = serde_json::json!({"actions": [
         {"id": "slow", "title": "Slow", "command": cmd},
     ]});
-    std::fs::create_dir_all(s.paths.data_root.join(ID)).unwrap();
+    // After the first load: it writes the defaults when there is no file,
+    // which could overwrite ours (written between its check and its write).
+    until(&mut s.host, "default actions", |h, _| {
+        has_cmd(h, "run.count-lines")
+    });
     std::fs::write(actions_file(&s), json.to_string()).unwrap();
     let files = s.files.clone();
     let host = &mut s.host;
@@ -275,6 +305,10 @@ fn two_jobs_at_a_time_and_cancel_kills_the_group() {
     until(host, "two running, one waiting", |h, _| {
         let p = panel_json(h, "actions");
         p.matches("running ·").count() == 2 && p.contains("\"waiting\"")
+    });
+    // Both running jobs started their background child.
+    until(host, "background children", |_, _| {
+        pids_in(&pids).len() >= 2
     });
     // The progress toast offers Cancel.
     let ev = until(host, "progress toast", |_, ev| {
@@ -297,9 +331,20 @@ fn two_jobs_at_a_time_and_cancel_kills_the_group() {
         p.matches("\"cancelled\"").count() == 3
             && toast_with(ev, ToastLevel::Info, "Cancelled “Slow”").is_some()
     });
-    // The background subshell was in the job's process group: it is gone
-    // too and never touches the marker.
-    std::thread::sleep(Duration::from_millis(3500));
+    // The background children were in the jobs' process groups: they are
+    // gone too and never touch the marker.
+    let start = Instant::now();
+    loop {
+        let left: Vec<String> = pids_in(&pids).into_iter().filter(|p| alive(p)).collect();
+        if left.is_empty() {
+            break;
+        }
+        assert!(
+            start.elapsed() < Duration::from_secs(20),
+            "the whole process group was stopped; still running: {left:?}"
+        );
+        std::thread::sleep(Duration::from_millis(20));
+    }
     assert!(!marker.exists(), "the whole process group was stopped");
     host.shutdown(Duration::from_secs(1));
 }
