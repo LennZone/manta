@@ -276,6 +276,8 @@ pub enum Action {
         name: String,
         op: DockerOp,
     },
+    /// "Start Container" on the pane's "not running" page.
+    StartContainer(Side),
     /// Open a shell inside the pane's container in the terminal.
     OpenContainerShell(Side),
     /// Show the pane as Icons, List, Columns or Gallery (⌘1 – ⌘4).
@@ -2829,6 +2831,7 @@ impl MantaApp {
             }
             Action::SetKubeNamespace(ns) => self.containers.set_namespace(ns),
             Action::DockerControl { id, name, op } => self.docker_control(id, name, op),
+            Action::StartContainer(side) => self.start_pane_container(side),
             Action::OpenContainerShell(side) => self.open_container_shell(side),
             Action::CloudDownload(side) => self.cloud_op(side, crate::cloud::CloudOp::Download),
             Action::CloudEvict(side) => self.cloud_op(side, crate::cloud::CloudOp::Evict),
@@ -3769,6 +3772,37 @@ impl MantaApp {
         );
     }
 
+    /// The Docker container a connection opens, by name.
+    fn docker_container_of(&self, conn: Option<u64>) -> Option<String> {
+        let c = self.connections.iter().find(|c| Some(c.id) == conn)?;
+        match manta_vfs::container::Target::from_config(&c.config).ok()? {
+            manta_vfs::container::Target::Docker { container } => Some(container),
+            _ => None,
+        }
+    }
+
+    /// `docker start` for the container the pane shows (it stopped while
+    /// open); the listing is loaded again once it runs.
+    fn start_pane_container(&mut self, side: Side) {
+        let Some(name) = self.docker_container_of(self.pane(side).tab().loc.conn) else {
+            return;
+        };
+        // The sidebar keys its "Starting…" by id; `docker start` takes either.
+        let id = match self.containers.snapshot().docker {
+            Some(Ok(list)) => list
+                .into_iter()
+                .find(|c| c.name == name || c.id == name)
+                .map(|c| c.id),
+            _ => None,
+        }
+        .unwrap_or_else(|| name.clone());
+        if self.containers.pending(&id).is_some() {
+            return;
+        }
+        self.pane_mut(side).tab_mut().container_starting = true;
+        self.docker_control(id, name, DockerOp::Start);
+    }
+
     fn on_docker_controlled(
         &mut self,
         id: String,
@@ -3777,6 +3811,29 @@ impl MantaApp {
         result: Result<(), String>,
     ) {
         self.containers.finish(&id);
+        // Panes showing the container ("not running" page): it runs again.
+        let conns: Vec<u64> = self
+            .connections
+            .iter()
+            .map(|c| c.id)
+            .filter(|&c| {
+                self.docker_container_of(Some(c))
+                    .is_some_and(|n| n == name || n == id)
+            })
+            .collect();
+        let worker = &self.worker;
+        for pane in &mut self.panes {
+            for tab in &mut pane.tabs {
+                if !tab.loc.conn.is_some_and(|c| conns.contains(&c)) {
+                    continue;
+                }
+                let waited = std::mem::take(&mut tab.container_starting);
+                if result.is_ok() && op != DockerOp::Stop && (waited || tab.error.is_some()) {
+                    let p = tab.loc.path.clone();
+                    start_listing(worker, tab, Some(p));
+                }
+            }
+        }
         match result {
             Ok(()) => self.set_success(match op {
                 DockerOp::Start => t!("status.container_started", name = name),

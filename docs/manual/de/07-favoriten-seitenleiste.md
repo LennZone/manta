@@ -94,7 +94,7 @@ Unter **Server** steht jede offene Verbindung mit einem grünen Punkt. Ein Klick
 
 Der Abschnitt **Container** listet deine Docker-Container, gruppiert nach Compose-Projekt wie in Docker Desktop. Laufende Container haben einen farbigen Punkt; gestoppte sind abgeblendet und unter „Gestoppt (N)“ zusammengeklappt. Für den aktuellen Kubernetes-Kontext gibt es eine Namespace-Auswahl mit Pods und ihren Containern.
 
-**Starten, neu starten, beenden**: Rechtsklick auf einen Docker-Container. Ein gestoppter Container bietet **Starten**, ein laufender **Neu starten** und **Beenden**. Manta führt `docker start`, `docker restart` bzw. `docker stop` aus; solange steht in der Zeile „Wird gestartet …“ (usw.), eine Meldung bestätigt das Ergebnis.
+**Starten, neu starten, beenden**: Rechtsklick auf einen Docker-Container. Ein gestoppter Container bietet **Starten**, ein laufender **Neu starten** und **Beenden**. Manta führt `docker start`, `docker restart` bzw. `docker stop` aus; solange steht in der Zeile „Wird gestartet …“ (usw.), eine Meldung bestätigt das Ergebnis. Stoppt ein Container, während er in einem Bereich offen ist, zeigt der Bereich **Container starten** statt **Erneut versuchen**; danach wird der Ordner wieder geladen.
 
 Die Liste aktualisiert sich alle 5 Sekunden im Hintergrund. Das Pfeil-Symbol (**Container aktualisieren**) liest sie sofort neu ein. Mehr in [Verbindungen](08-verbindungen.md#container).
 

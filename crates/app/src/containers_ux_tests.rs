@@ -615,3 +615,59 @@ fn container_context_menu_follows_the_state() {
         save(&mut h, "containers_started");
     }
 }
+
+/// A container that stopped while open: its pane offers Start Container
+/// (not Try Again); once `docker start` is done the folder is listed again.
+#[test]
+fn stopped_container_pane_offers_start() {
+    let fx = super::fixture();
+    let mut h = harness_with(&fx, TALL, Theme::Light, false);
+    with_containers(&mut h);
+    connect(&mut h, Side::Left, "shop-web");
+    {
+        let t = app(&mut h).pane_mut(Side::Left).tab_mut();
+        t.error = Some(
+            "connection error: container is not running: Error response from daemon: \
+             container 3f2a is not running"
+                .into(),
+        );
+    }
+    h.run_steps(3);
+    assert!(h.query_by_label("Try Again").is_none());
+    h.get_by_label("Start Container").click();
+    h.run_steps(1);
+    let start = std::time::Instant::now();
+    while app(&mut h).pane(Side::Left).tab().error.is_some()
+        || app(&mut h).pane(Side::Left).tab().loading
+    {
+        assert!(
+            start.elapsed() < crate::test_support::wait(),
+            "never listed again"
+        );
+        h.step();
+        std::thread::sleep(Duration::from_millis(5));
+    }
+    let t = app(&mut h).pane(Side::Left).tab();
+    assert!(!t.container_starting);
+    assert!(t.entries.iter().any(|e| e.name == "current"));
+    let titles = h.state().toasts.titles();
+    assert!(
+        titles.iter().any(|t| t == "Started “shop-web”"),
+        "{titles:?}"
+    );
+}
+
+/// A pod (or any other error) keeps Try Again.
+#[test]
+fn other_listing_errors_keep_try_again() {
+    let fx = super::fixture();
+    let mut h = harness_with(&fx, TALL, Theme::Light, false);
+    app(&mut h).pane_mut(Side::Left).tab_mut().error =
+        Some("connection error: container is not running".into());
+    h.run_steps(3);
+    assert!(
+        h.query_by_label("Try Again").is_some(),
+        "a local pane is not a container"
+    );
+    assert!(h.query_by_label("Start Container").is_none());
+}

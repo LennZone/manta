@@ -94,7 +94,7 @@ Every open connection is listed under **Servers** with a green dot. A click open
 
 The **Containers** section lists your Docker containers, grouped by Compose project as in Docker Desktop. Running containers have a coloured dot; stopped ones are dimmed and collapsed under "Stopped (N)". For the current Kubernetes context there is a namespace picker with pods and their containers.
 
-**Start, restart, stop**: right-click a Docker container. A stopped container offers **Start**, a running one **Restart** and **Stop**. Manta runs `docker start`, `docker restart` or `docker stop`; meanwhile the row says “Starting…” (etc.), and a message confirms the result.
+**Start, restart, stop**: right-click a Docker container. A stopped container offers **Start**, a running one **Restart** and **Stop**. Manta runs `docker start`, `docker restart` or `docker stop`; meanwhile the row says “Starting…” (etc.), and a message confirms the result. If a container stops while it is open in a pane, the pane offers **Start Container** instead of **Try Again**, and lists the folder again once it runs.
 
 The list refreshes in the background every 5 seconds. The arrow icon (**Refresh Containers**) reads it again right away. See [Connections](08-verbindungen.md#container).
 

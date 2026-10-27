@@ -17,6 +17,9 @@ pub const ENTRIES: Entries = &[
     ("pane.crumb.edit_tip", "Double-click to edit the path", "Doppelklicken, um den Pfad zu bearbeiten"),
     // Listing states
     ("pane.try_again", "Try Again", "Erneut versuchen"),
+    ("pane.start_container", "Start Container", "Container starten"),
+    ("pane.starting_container", "Starting…", "Wird gestartet …"),
+    ("pane.err.container_down.body", "Start it to see its files again.", "Starte ihn, um seine Dateien wieder zu sehen."),
     ("pane.go_back", "Go Back", "Zurück"),
     ("pane.loading", "Loading “{name}”…", "„{name}“ wird geladen …"),
     ("pane.no_match", "No items match “{filter}”", "Keine Objekte passen zu „{filter}“"),

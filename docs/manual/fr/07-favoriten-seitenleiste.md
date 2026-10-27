@@ -94,7 +94,7 @@ Chaque connexion ouverte est listée sous **Serveurs** avec un point vert. Un cl
 
 La section **Conteneurs** liste vos conteneurs Docker, regroupés par projet Compose comme dans Docker Desktop. Les conteneurs en cours d’exécution ont un point coloré ; les conteneurs arrêtés sont estompés et repliés sous « Arrêtés (N) ». Pour le contexte Kubernetes actuel, un sélecteur d’espace de noms affiche les pods et leurs conteneurs.
 
-**Démarrer, redémarrer, arrêter** : cliquez avec le bouton droit sur un conteneur Docker. Un conteneur arrêté propose **Démarrer**, un conteneur en cours d’exécution **Redémarrer** et **Arrêter**. Manta exécute `docker start`, `docker restart` ou `docker stop` ; pendant ce temps, la ligne indique « Démarrage… » (etc.) et un message confirme le résultat.
+**Démarrer, redémarrer, arrêter** : cliquez avec le bouton droit sur un conteneur Docker. Un conteneur arrêté propose **Démarrer**, un conteneur en cours d’exécution **Redémarrer** et **Arrêter**. Manta exécute `docker start`, `docker restart` ou `docker stop` ; pendant ce temps, la ligne indique « Démarrage… » (etc.) et un message confirme le résultat. Si un conteneur s’arrête alors qu’il est ouvert dans un panneau, celui-ci propose **Démarrer le conteneur** au lieu de **Réessayer**, puis réaffiche le dossier une fois le conteneur lancé.
 
 La liste s’actualise en arrière-plan toutes les 5 secondes. L’icône de flèche (**Actualiser les conteneurs**) la relit immédiatement. Voir [Connexions](08-verbindungen.md#container).
 

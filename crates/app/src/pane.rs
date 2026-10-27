@@ -426,6 +426,9 @@ pub struct Tab {
     pub rename_click: Option<(String, std::time::Instant)>,
     /// The name being edited in place (List view).
     pub inline_rename: Option<InlineRename>,
+    /// "Start Container" was clicked on the "not running" page; the button
+    /// reads "Starting…" until `docker start` is done.
+    pub container_starting: bool,
     /// Name to select once the next listing arrives.
     pub pending_select: Option<String>,
     /// Names to select (all of them) once the next listing arrives
@@ -505,6 +508,7 @@ impl Tab {
             type_ahead_at: None,
             rename_click: None,
             inline_rename: None,
+            container_starting: false,
             pending_select: None,
             pending_select_many: Vec::new(),
             listing_gen: 0,
@@ -2675,8 +2679,24 @@ pub(crate) fn blocking_state(
             }
             return true;
         }
-        let (title, body) = friendly_listing_error(&err);
-        let mut buttons = vec![(t!("pane.try_again"), ButtonKind::Primary)];
+        // A stopped Docker container: start it rather than try again (a pod
+        // can't be started; it keeps Try Again).
+        let docker_down = tab.loc.fs.protocol() == manta_core::Protocol::Docker
+            && err.to_lowercase().contains("container is not running");
+        let (title, body) = if docker_down {
+            (
+                t!("connect.err.container_down"),
+                t!("pane.err.container_down.body"),
+            )
+        } else {
+            friendly_listing_error(&err)
+        };
+        let primary = match (docker_down, tab.container_starting) {
+            (true, true) => t!("pane.starting_container"),
+            (true, false) => t!("pane.start_container"),
+            _ => t!("pane.try_again"),
+        };
+        let mut buttons = vec![(primary, ButtonKind::Primary)];
         let back = !tab.back.is_empty();
         if back {
             buttons.push((t!("pane.go_back"), ButtonKind::Secondary));
@@ -2697,6 +2717,11 @@ pub(crate) fn blocking_state(
             &detail,
             &buttons,
         ) {
+            Some(0) if docker_down => {
+                if !tab.container_starting {
+                    actions.push(Action::StartContainer(side));
+                }
+            }
             Some(0) => actions.push(Action::Refresh(side)),
             Some(1) => actions.push(Action::Back(side)),
             _ => {}

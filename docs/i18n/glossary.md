@@ -160,6 +160,8 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `place.archive` | Archive | Archiv | 归档 | Archivo comprimido | Archive | Archivio | Архив |
 | `pane.enclosing_folders` | Show enclosing folders | Übergeordnete Ordner anzeigen | 显示上层文件夹 | Mostrar carpetas contenedoras | Afficher les dossiers parents | Mostra le cartelle superiori | Показать вышестоящие папки |
 | `pane.try_again` | Try Again | Erneut versuchen | 重试 | Reintentar | Réessayer | Riprova | Повторить |
+| `pane.start_container` | Start Container | Container starten | 启动容器 | Iniciar contenedor | Démarrer le conteneur | Avvia container | Запустить контейнер |
+| `pane.starting_container` | Starting… | Wird gestartet … | 正在启动… | Iniciando… | Démarrage… | Avvio… | Запуск… |
 | `pane.go_back` | Go Back | Zurück | 返回 | Volver | Revenir | Torna indietro | Назад |
 | `pane.loading` | Loading “{name}”… | „{name}“ wird geladen … | 正在载入“{name}”… | Cargando “{name}”… | Chargement de « {name} »… | Caricamento di “{name}”… | Загрузка «{name}»… |
 | `pane.no_match` | No items match “{filter}” | Keine Objekte passen zu „{filter}“ | 没有与“{filter}”匹配的项目 | Ningún ítem coincide con “{filter}” | Aucun élément ne correspond à « {filter} » | Nessun elemento corrisponde a “{filter}” | Нет объектов, соответствующих «{filter}» |

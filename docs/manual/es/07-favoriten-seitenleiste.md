@@ -94,7 +94,7 @@ Cada conexión abierta aparece en **Servidores** con un punto verde. Un clic la 
 
 La sección **Contenedores** enumera tus contenedores de Docker, agrupados por proyecto de Compose como en Docker Desktop. Los contenedores en ejecución tienen un punto de color; los detenidos aparecen atenuados y plegados en “Detenidos (N)”. Para el contexto actual de Kubernetes hay un selector de namespace con los pods y sus contenedores.
 
-**Iniciar, reiniciar, detener**: haz clic con el botón derecho en un contenedor de Docker. Uno detenido ofrece **Iniciar**; uno en ejecución, **Reiniciar** y **Detener**. Manta ejecuta `docker start`, `docker restart` o `docker stop`; mientras tanto la fila indica “Iniciando…” (etc.) y un mensaje confirma el resultado.
+**Iniciar, reiniciar, detener**: haz clic con el botón derecho en un contenedor de Docker. Uno detenido ofrece **Iniciar**; uno en ejecución, **Reiniciar** y **Detener**. Manta ejecuta `docker start`, `docker restart` o `docker stop`; mientras tanto la fila indica “Iniciando…” (etc.) y un mensaje confirma el resultado. Si un contenedor se detiene mientras está abierto en un panel, el panel ofrece **Iniciar contenedor** en lugar de **Reintentar** y vuelve a mostrar la carpeta cuando se está ejecutando.
 
 La lista se actualiza en segundo plano cada 5 segundos. El icono de flecha (**Actualizar contenedores**) la vuelve a leer al instante. Consulta [Conexiones](08-verbindungen.md#container).
 

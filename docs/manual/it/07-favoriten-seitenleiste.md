@@ -94,7 +94,7 @@ Ogni connessione aperta è elencata sotto **Server** con un punto verde. Un clic
 
 La sezione **Container** elenca i tuoi container Docker, raggruppati per progetto Compose come in Docker Desktop. I container in esecuzione hanno un punto colorato; quelli arrestati sono attenuati e raccolti sotto “Arrestati (N)”. Per il contesto Kubernetes attuale c’è un selettore di namespace con i pod e i loro container.
 
-**Avvia, riavvia, arresta**: fai clic con il tasto destro su un container Docker. Un container arrestato offre **Avvia**, uno in esecuzione **Riavvia** e **Arresta**. Manta esegue `docker start`, `docker restart` o `docker stop`; nel frattempo la riga indica “Avvio…” (ecc.) e un messaggio conferma il risultato.
+**Avvia, riavvia, arresta**: fai clic con il tasto destro su un container Docker. Un container arrestato offre **Avvia**, uno in esecuzione **Riavvia** e **Arresta**. Manta esegue `docker start`, `docker restart` o `docker stop`; nel frattempo la riga indica “Avvio…” (ecc.) e un messaggio conferma il risultato. Se un container si arresta mentre è aperto in un pannello, il pannello offre **Avvia container** invece di **Riprova** e mostra di nuovo la cartella non appena è in esecuzione.
 
 L’elenco si aggiorna in background ogni 5 secondi. L’icona a freccia (**Aggiorna container**) lo rilegge subito. Vedi [Connessioni](08-verbindungen.md#container).
 
