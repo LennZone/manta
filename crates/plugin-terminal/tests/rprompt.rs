@@ -110,54 +110,77 @@ fn has_time_bits(l: &str) -> bool {
 /// the column where zsh puts the CURRENT one at this width (cols-1-indent,
 /// minus any trailing blank the theme adds), and none is split or left at
 /// an old column.
-fn assert_right_aligned(env: &Env, label: &str) {
+fn check_right_aligned(env: &Env, label: &str) -> Result<(), String> {
     let sh = env.s.lock();
     let cols = sh.term.grid().columns();
     let vis = sh.visible_text();
-    let dump = || {
-        format!(
-            "{label} ({cols} cols):\n{}",
+    let fail = |what: &str| {
+        Err(format!(
+            "{what} in {label} ({cols} cols):\n{}",
             vis.lines().map(|l| format!("|{l}|\n")).collect::<String>()
-        )
+        ))
     };
     let mut ends = Vec::new();
     for l in vis.lines() {
         let t = l.trim_end();
         let stray_ok = t == "ok" || t.ends_with(" ok") || t.contains("ok |") && !has_time_bits(t);
-        assert!(!stray_ok, "RPROMPT fragment in {}", dump());
+        if stray_ok {
+            return fail("RPROMPT fragment");
+        }
         if has_time_bits(t) {
-            assert!(
-                t.contains("ok | "),
-                "time without its RPROMPT (fragment) in {}",
-                dump()
-            );
-            let tail = &t[t.rfind("ok | ").unwrap()..];
-            assert_eq!(
-                tail.chars().count(),
-                "ok | 00:00:00".len(),
-                "split RPROMPT in {}",
-                dump()
-            );
+            let Some(at) = t.rfind("ok | ") else {
+                return fail("time without its RPROMPT (fragment)");
+            };
+            if t[at..].chars().count() != "ok | 00:00:00".len() {
+                return fail("split RPROMPT");
+            }
             ends.push(t.chars().count());
         }
     }
-    assert!(
-        ends.len() >= 2,
-        "expected history + current RPROMPTs in {}",
-        dump()
-    );
+    if ends.len() < 2 {
+        return fail("expected history + current RPROMPTs");
+    }
     // The last one is the live prompt, drawn by zsh itself.
     let zsh_end = *ends.last().unwrap();
-    assert!(
-        zsh_end + 2 >= cols - 1 && zsh_end < cols,
-        "zsh's own RPROMPT not at the edge in {}",
-        dump()
-    );
-    assert!(
-        ends.iter().all(|&e| e == zsh_end),
-        "RPROMPTs at different columns {ends:?} in {}",
-        dump()
-    );
+    if !(zsh_end + 2 >= cols - 1 && zsh_end < cols) {
+        return fail("zsh's own RPROMPT not at the edge");
+    }
+    if !ends.iter().all(|&e| e == zsh_end) {
+        return fail(&format!("RPROMPTs at different columns {ends:?}"));
+    }
+    Ok(())
+}
+
+/// [`check_right_aligned`] once the screen has settled. After a resize
+/// the old prompt line is reflowed at once, but zsh redraws it only when
+/// it gets to the SIGWINCH; with a heavy theme (p10k) on a loaded machine
+/// that takes longer than any fixed pause, and a snapshot in between shows
+/// the half-redrawn line. So wait until the screen stops changing and the
+/// check holds; fail only if it never does.
+fn assert_right_aligned(env: &mut Env, label: &str) {
+    const STABLE: Duration = Duration::from_millis(300);
+    let deadline = Instant::now() + Duration::from_secs(15);
+    let mut last = String::new();
+    let mut same_since = Instant::now();
+    loop {
+        env.s.tick(true);
+        let vis = env.s.lock().visible_text();
+        if vis != last {
+            last = vis;
+            same_since = Instant::now();
+        }
+        let result = check_right_aligned(env, label);
+        if result.is_ok() && same_since.elapsed() >= STABLE {
+            return;
+        }
+        if Instant::now() > deadline {
+            if let Err(e) = result {
+                panic!("{e}");
+            }
+            panic!("{label}: the screen never settled");
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
 }
 
 fn scenario(hermetic: bool) {
@@ -168,10 +191,10 @@ fn scenario(hermetic: bool) {
     for cmd in ["true", "echo hi", "true"] {
         run(&mut env, cmd);
     }
-    assert_right_aligned(&env, "start");
+    assert_right_aligned(&mut env, "start");
     for cols in [70u16, 140, 97, 61, 120] {
         resize(&mut env, cols);
-        assert_right_aligned(&env, "after resize");
+        assert_right_aligned(&mut env, "after resize");
     }
     // A burst of tiny changes (splitter drag).
     for cols in [120u16, 119, 117, 120, 118, 121, 120] {
@@ -179,7 +202,7 @@ fn scenario(hermetic: bool) {
         pump(&mut env.s, 12);
     }
     pump(&mut env.s, 500);
-    assert_right_aligned(&env, "after burst");
+    assert_right_aligned(&mut env, "after burst");
 
     // cd follow, then a GUI action echo.
     let other = env.other.clone();
@@ -193,7 +216,7 @@ fn scenario(hermetic: bool) {
             && s.is_idle()
     }));
     pump(&mut env.s, 300);
-    assert_right_aligned(&env, "after cd follow");
+    assert_right_aligned(&mut env, "after cd follow");
     let mut a = FileAction::new(
         1,
         PaneId::Left,
@@ -214,9 +237,9 @@ fn scenario(hermetic: bool) {
         .echo_waiting()
         == 0));
     pump(&mut env.s, 600);
-    assert_right_aligned(&env, "after echo");
+    assert_right_aligned(&mut env, "after echo");
     resize(&mut env, 80);
-    assert_right_aligned(&env, "after echo + resize");
+    assert_right_aligned(&mut env, "after echo + resize");
     env.s.shutdown(Duration::from_millis(300));
 }
 
