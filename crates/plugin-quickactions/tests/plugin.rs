@@ -302,18 +302,23 @@ fn two_jobs_at_a_time_and_cancel_kills_the_group() {
     for _ in 0..3 {
         host.run_command(&format!("{ID}:run.slow"), &active);
     }
-    until(host, "two running, one waiting", |h, _| {
+    // Events are kept across the waits: under load the progress toast can
+    // arrive while an earlier wait is still polling.
+    let mut ev = until(host, "two running, one waiting", |h, _| {
         let p = panel_json(h, "actions");
         p.matches("running ·").count() == 2 && p.contains("\"waiting\"")
     });
     // Both running jobs started their background child.
-    until(host, "background children", |_, _| {
+    ev.extend(until(host, "background children", |_, _| {
         pids_in(&pids).len() >= 2
-    });
+    }));
     // The progress toast offers Cancel.
-    let ev = until(host, "progress toast", |_, ev| {
-        ev.iter().any(|e| matches!(e, HostEvent::ActionToast { text, button, .. } if text.contains("Running “Slow” on 1 item") && button == "Cancel"))
-    });
+    let is_progress = |e: &HostEvent| matches!(e, HostEvent::ActionToast { text, button, .. } if text.contains("Running “Slow” on 1 item") && button == "Cancel");
+    if !ev.iter().any(is_progress) {
+        ev.extend(until(host, "progress toast", |_, new| {
+            new.iter().any(is_progress)
+        }));
+    }
     let cancel = ev
         .iter()
         .find_map(|e| match e {
