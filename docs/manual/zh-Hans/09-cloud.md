@@ -39,7 +39,7 @@ OneDrive 和 Dropbox 的设置方式相同：安装提供商的 App，登录，�
 
 ## 像在访达中一样的 iCloud Drive {#icloud-apps}
 
-iCloud Drive 在 Manta 中的样子与在访达中相同：顶层文件夹会显示你的文件夹和文件，**以及**你的 App 的文件夹，例如 **Obsidian**、**Pages 文稿**、**Numbers 表格**或**快捷指令**。Manta 显示的 App 文件夹与访达相同（即在 iCloud Drive 中共享文稿且其中已有文稿的 App）。
+iCloud Drive 在 Manta 中的样子与在访达中相同：顶层文件夹会显示你的文件夹和文件，**以及**你的 App 的文件夹，例如 **Obsidian**、**Pages 文稿**、**Numbers 表格**或**快捷指令**。Manta 显示的 App 文件夹与访达相同（即在 iCloud Drive 中共享文稿且其中已有文稿的 App）。如果 App 已安装在你的 Mac 上，每个 App 文件夹都会显示该 App 的图标（设置 **使用 macOS 文件图标**）。
 
 路径栏以 **iCloud Drive** 标签开头；在 App 文件夹中，后面跟着 App 的名称，例如 **iCloud Drive › Obsidian › Vault**。macOS 在磁盘上存放这些内容时使用的文件夹名称（`~/Library/Mobile Documents/com~apple~CloudDocs`、`iCloud~md~obsidian/Documents`）只有在你编辑路径时才会看到。
 

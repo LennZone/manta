@@ -87,6 +87,26 @@ pub fn display_name(container_dir: &Path) -> String {
     name
 }
 
+/// The bundle id of the app a container belongs to, for its icon:
+/// `iCloud~md~obsidian` -> `md.obsidian`, `com~apple~Pages` ->
+/// `com.apple.Pages`, `57T9237FN3~net~whatsapp~WhatsApp` ->
+/// `net.whatsapp.WhatsApp` (team prefix dropped).
+pub fn bundle_id(container: &str) -> Option<String> {
+    let mut rest = container;
+    if let Some((team, after)) = rest.split_once('~') {
+        let is_team = team.len() == 10
+            && team
+                .chars()
+                .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit());
+        if is_team {
+            rest = after;
+        }
+    }
+    rest = rest.strip_prefix("iCloud~").unwrap_or(rest);
+    (rest.contains('~') && !rest.starts_with('~') && !rest.ends_with('~'))
+        .then(|| rest.replace('~', "."))
+}
+
 /// The name a folder in iCloud Drive is shown under, like in Finder:
 /// "iCloud Drive" for the top folder, "Obsidian" for an app's folder.
 pub fn folder_label(path: &Path) -> Option<String> {
@@ -267,6 +287,28 @@ mod tests {
         assert!(!id_matches("c{1}m.a{3}e.N{5}s", "com~apple~Pages"));
         assert!(!id_matches("c{1}m.a{3}e.P{3}s", "com~apple~Pages~extra"));
         assert!(!id_matches("i{4}d.md.o{6}n", "iCloud~md~obsidia"));
+    }
+
+    #[test]
+    fn bundle_ids_of_containers() {
+        assert_eq!(
+            bundle_id("iCloud~md~obsidian").as_deref(),
+            Some("md.obsidian")
+        );
+        assert_eq!(
+            bundle_id("com~apple~Pages").as_deref(),
+            Some("com.apple.Pages")
+        );
+        assert_eq!(
+            bundle_id("57T9237FN3~net~whatsapp~WhatsApp").as_deref(),
+            Some("net.whatsapp.WhatsApp")
+        );
+        assert_eq!(
+            bundle_id("777W53UFB2~iCloud~com~burbn~instagram").as_deref(),
+            Some("com.burbn.instagram")
+        );
+        assert_eq!(bundle_id("iCloud~x").as_deref(), None);
+        assert_eq!(bundle_id("folder").as_deref(), None);
     }
 
     #[test]

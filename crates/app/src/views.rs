@@ -601,6 +601,12 @@ pub(crate) fn thumb_of(ui: &egui::Ui, info: &PaneInfo<'_>, tab: &Tab, e: &Entry,
     let Some(thumbs) = info.thumbs else {
         return Thumb::Unavailable;
     };
+    if info.type_icons && tab.loc.conn.is_none() && tab.loc.archive.is_none() {
+        let px = thumbs::bucket_for(pt * ui.ctx().pixels_per_point());
+        if let Some(t) = icloud_app_icon(thumbs, &tab.loc.fs, e, px) {
+            return t;
+        }
+    }
     let Some(method) = thumbs::method_for(e) else {
         return Thumb::Unavailable;
     };
@@ -625,6 +631,28 @@ pub(crate) fn thumb_of(ui: &egui::Ui, info: &PaneInfo<'_>, tab: &Tab, e: &Entry,
     thumbs.get_any(&key, || {
         Some((Source::Remote(fs.clone(), e.path.clone()), Method::Image))
     })
+}
+
+/// An app's folder in iCloud Drive shows the app's icon, like in Finder
+/// (`None`: not such a folder, or the app isn't installed).
+fn icloud_app_icon(
+    thumbs: &thumbs::Thumbs,
+    fs: &manta_core::SharedVfs,
+    e: &Entry,
+    px: u32,
+) -> Option<Thumb> {
+    if !e.is_dir() {
+        return None;
+    }
+    let app = thumbs::icloud_app(&fs.local_path(&e.path)?)?;
+    let key = ThumbKey {
+        origin: "icloud-app".into(),
+        path: app.to_string_lossy().into_owned(),
+        mtime: 0,
+        size: 0,
+        px,
+    };
+    Some(thumbs.get_any(&key, || Some((Source::Local(app), Method::AppIcon))))
 }
 
 /// Real icons for small rows (List, Columns): an app's own icon, and the
@@ -653,7 +681,13 @@ impl<'a> RowIcons<'a> {
         if !self.types {
             return None;
         }
-        let thumb = if thumbs::is_app_bundle(e) {
+        let icloud = self
+            .local
+            .as_ref()
+            .and_then(|fs| icloud_app_icon(thumbs, fs, e, px));
+        let thumb = if let Some(t) = icloud {
+            t
+        } else if thumbs::is_app_bundle(e) {
             let fs = self.local.as_ref()?;
             let key = ThumbKey::for_entry("", e, px);
             thumbs.get_any(&key, || {

@@ -323,9 +323,20 @@ fn changes_deep_inside_are_measured_again() {
             }
             b == want && m["big"].complete
         });
-        if done {
+        // Watching works: stop adding and wait for the last files (under
+        // load the re-measuring lags behind).
+        if done || seen.len() > 1 {
             break;
         }
+    }
+    if !done {
+        done = collect_until(&rx, &mut sizes, Duration::from_secs(10), |m| {
+            let b = m["big"].bytes;
+            if seen.last() != Some(&b) {
+                seen.push(b);
+            }
+            b == want && m["big"].complete
+        });
     }
     assert!(
         done,

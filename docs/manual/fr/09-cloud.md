@@ -39,7 +39,7 @@ Un clic ouvre le stockage dans la sous-fenêtre active.
 
 ## iCloud Drive comme dans le Finder {#icloud-apps}
 
-Dans Manta, iCloud Drive se présente comme dans le Finder : le dossier de plus haut niveau affiche vos dossiers et fichiers **et** les dossiers de vos apps – par exemple **Obsidian**, **Pages**, **Numbers** ou **Raccourcis**. Manta affiche les mêmes dossiers d’apps que le Finder (les apps qui partagent leurs documents dans iCloud Drive et en ont déjà).
+Dans Manta, iCloud Drive se présente comme dans le Finder : le dossier de plus haut niveau affiche vos dossiers et fichiers **et** les dossiers de vos apps – par exemple **Obsidian**, **Pages**, **Numbers** ou **Raccourcis**. Manta affiche les mêmes dossiers d’apps que le Finder (les apps qui partagent leurs documents dans iCloud Drive et en ont déjà). Chaque dossier d’app affiche l’icône de son app si celle-ci est installée sur votre Mac (réglage **Icônes de fichiers de macOS**).
 
 La barre du chemin d’accès commence par la pastille **iCloud Drive** ; dans un dossier d’app, le nom de l’app suit, par exemple **iCloud Drive › Obsidian › Vault**. Les noms de dossier sous lesquels macOS range tout cela sur le disque (`~/Library/Mobile Documents/com~apple~CloudDocs`, `iCloud~md~obsidian/Documents`) n’apparaissent que lorsque vous modifiez le chemin.
 

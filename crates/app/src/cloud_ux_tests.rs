@@ -441,6 +441,10 @@ fn icloud_drive_shows_app_folders_like_finder() {
     let top = mobile.join("com~apple~CloudDocs");
     let obsidian = mobile.join("iCloud~md~obsidian/Documents");
     std::fs::create_dir_all(obsidian.join("Vault")).unwrap();
+    // TextEdit ships with macOS: its folder gets its icon.
+    let textedit = mobile.join("com~apple~TextEdit/Documents");
+    std::fs::create_dir_all(&textedit).unwrap();
+    std::fs::write(textedit.join("Brief.rtf"), "{\\rtf1}").unwrap();
     // Read by the listing, the path bar and the guards (this test only).
     std::env::set_var(cloud_local::HOME_OVERRIDE_ENV, &ch.home);
     let (cloud, _) = ch.cloud();
@@ -492,10 +496,25 @@ fn icloud_drive_shows_app_folders_like_finder() {
     let loc = app(&mut h).pane(Side::Left).tab().loc.clone();
     assert_eq!(app(&mut h).place_label(&loc), "iCloud Drive");
 
+    // An app's folder shows its app's icon, like in Finder; folders inside
+    // it don't.
+    if cfg!(target_os = "macos") {
+        let app_of = crate::thumbs::icloud_app(&textedit);
+        assert!(
+            app_of
+                .as_deref()
+                .is_some_and(|a| a.ends_with("TextEdit.app")),
+            "{app_of:?}"
+        );
+    }
+    assert_eq!(crate::thumbs::icloud_app(&obsidian.join("Vault")), None);
+    assert_eq!(crate::thumbs::icloud_app(&top), None);
+
     if std::env::var_os("MANTA_RENDER_DIR").is_some() && wgpu_available() {
         let (cloud, _) = ch.cloud();
         let mut h = harness_de_cloud(&fx, Theme::Dark, cloud, None);
         app(&mut h).test_space = true;
+        app(&mut h).test_type_icons = true;
         open_local(&mut h, Side::Left, &top);
         open_local(&mut h, Side::Right, &obsidian.join("Vault"));
         super::wait_until(&mut h, "the free space", |h| {

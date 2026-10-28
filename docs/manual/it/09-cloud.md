@@ -39,7 +39,7 @@ Un clic apre l’archivio cloud nel pannello attivo.
 
 ## iCloud Drive come nel Finder {#icloud-apps}
 
-In Manta iCloud Drive appare come nel Finder: la cartella principale mostra le tue cartelle e i tuoi file **e** le cartelle delle tue app, ad esempio **Obsidian**, **Pages**, **Numbers** o **Comandi Rapidi**. Manta mostra le stesse cartelle delle app del Finder (le app che condividono i loro documenti in iCloud Drive e ne hanno già lì).
+In Manta iCloud Drive appare come nel Finder: la cartella principale mostra le tue cartelle e i tuoi file **e** le cartelle delle tue app, ad esempio **Obsidian**, **Pages**, **Numbers** o **Comandi Rapidi**. Manta mostra le stesse cartelle delle app del Finder (le app che condividono i loro documenti in iCloud Drive e ne hanno già lì). Ogni cartella di un’app mostra l’icona della sua app, se è installata sul tuo Mac (impostazione **Icone dei file di macOS**).
 
 La barra del percorso inizia con l’indicatore **iCloud Drive**; in una cartella di un’app segue il nome dell’app, ad esempio **iCloud Drive › Obsidian › Vault**. I nomi delle cartelle con cui macOS salva tutto sul disco (`~/Library/Mobile Documents/com~apple~CloudDocs`, `iCloud~md~obsidian/Documents`) li vedi solo quando modifichi il percorso.
 

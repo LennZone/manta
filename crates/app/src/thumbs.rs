@@ -136,6 +136,40 @@ pub fn is_app_bundle(e: &Entry) -> bool {
     e.is_dir() && e.name.len() > 4 && icons::extension(&e.name) == "app"
 }
 
+/// The app whose icon an app's folder in iCloud Drive shows, like in
+/// Finder (`…/iCloud~md~obsidian/Documents` -> `Obsidian.app`). `None`
+/// for other folders or when the app isn't installed (plain folder).
+/// Remembered: views ask every frame.
+pub fn icloud_app(folder: &Path) -> Option<PathBuf> {
+    let (docs, container) = manta_vfs::icloud::app_library_of(folder)?;
+    if docs != folder {
+        return None;
+    }
+    let id = manta_vfs::icloud::bundle_id(&container)?;
+    static APPS: Mutex<Option<HashMap<String, Option<PathBuf>>>> = Mutex::new(None);
+    let mut apps = APPS.lock().unwrap_or_else(|e| e.into_inner());
+    apps.get_or_insert_with(HashMap::new)
+        .entry(id)
+        .or_insert_with_key(|id| app_for_bundle_id(id))
+        .clone()
+}
+
+#[cfg(target_os = "macos")]
+fn app_for_bundle_id(id: &str) -> Option<PathBuf> {
+    use objc2_app_kit::NSWorkspace;
+    use objc2_foundation::NSString;
+    objc2::rc::autoreleasepool(|_| {
+        let url = NSWorkspace::sharedWorkspace()
+            .URLForApplicationWithBundleIdentifier(&NSString::from_str(id))?;
+        Some(PathBuf::from(url.path()?.to_string()))
+    })
+}
+
+#[cfg(not(target_os = "macos"))]
+fn app_for_bundle_id(_id: &str) -> Option<PathBuf> {
+    None
+}
+
 /// How `e` gets a thumbnail, if it can have one (local files).
 pub fn method_for(e: &Entry) -> Option<Method> {
     if is_app_bundle(e) {

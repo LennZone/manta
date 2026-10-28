@@ -246,6 +246,13 @@ App folders can't be renamed, moved or deleted (`LocalFs` refuses with `Permissi
 with a note); their contents can. `cloud_local::location_of` counts them as iCloud Drive, so the
 chip, badges and path bar (`icloud::crumb_base`, `icloud::folder_label`) treat them as part of it.
 
+With "File icons from macOS" on, an app folder shows its app's icon: `icloud::bundle_id` turns the
+container's name into a bundle id (`iCloud~md~obsidian` -> `md.obsidian`, team prefixes dropped),
+`thumbs::icloud_app` finds the app with `NSWorkspace URLForApplicationWithBundleIdentifier:`
+(remembered), and the views draw its icon like an `.app` (`Method::AppIcon`). Without the app the
+folder keeps the folder glyph. Quick Look and `NSWorkspace iconForFile:` both return a plain folder
+for these folders, hence the detour.
+
 ### Free space
 
 `Vfs::space` reports the free space where a folder is stored (`manta_core::Space`): the disk
