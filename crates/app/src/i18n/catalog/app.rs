@@ -39,6 +39,8 @@ pub const ENTRIES: Entries = &[
     ("status.hidden", ", {n} hidden", ", {n} ausgeblendet"),
     ("status.matching", " matching “{filter}”", " passend zu „{filter}“"),
     ("status.selected", "  ·  {n} selected", "  ·  {n} ausgewählt"),
+    ("status.available", "  ·  {size} available", "  ·  {size} verfügbar"),
+    ("status.available.tip", "{available} of {total} available", "{available} von {total} verfügbar"),
     ("status.palette_hint", "{shortcut}  Command Palette", "{shortcut}  Befehlspalette"),
     ("status.transfers.one", "{count} transfer · {percent}%", "{count} Übertragung · {percent} %"),
     ("status.transfers.other", "{count} transfers · {percent}%", "{count} Übertragungen · {percent} %"),

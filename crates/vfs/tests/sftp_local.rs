@@ -232,6 +232,12 @@ fn sftp_resume_against_a_local_sshd() {
     let fs: SharedVfs = Arc::new(fs);
     let caps = fs.supports_resume();
     assert!(caps.read_at && caps.append);
+    // The server's disk (statvfs@openssh.com).
+    let space = fs
+        .space(&vp(&std::env::temp_dir()))
+        .unwrap()
+        .expect("statvfs");
+    assert!(space.available > 0 && space.total.is_some_and(|t| t >= space.available));
 
     let work = tempfile::tempdir().unwrap();
     let root = work.path().canonicalize().unwrap();

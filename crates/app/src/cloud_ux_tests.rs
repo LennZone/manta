@@ -430,6 +430,82 @@ fn refused_eviction_is_reported() {
     );
 }
 
+/// iCloud Drive like Finder: the top folder also shows the apps' folders
+/// (by name, not `iCloud~md~obsidian/Documents`), the path bar starts at
+/// the "iCloud Drive" chip, and an app's folder can't be deleted or renamed.
+#[test]
+fn icloud_drive_shows_app_folders_like_finder() {
+    let fx = fixture();
+    let ch = CloudHome::new(false);
+    let mobile = ch.home.join("Library/Mobile Documents");
+    let top = mobile.join("com~apple~CloudDocs");
+    let obsidian = mobile.join("iCloud~md~obsidian/Documents");
+    std::fs::create_dir_all(obsidian.join("Vault")).unwrap();
+    // Read by the listing, the path bar and the guards (this test only).
+    std::env::set_var(cloud_local::HOME_OVERRIDE_ENV, &ch.home);
+    let (cloud, _) = ch.cloud();
+    let mut h = harness_cloud(&fx, Theme::Light, false, cloud, None);
+
+    open_local(&mut h, Side::Left, &top);
+    let tab = app(&mut h).pane(Side::Left).tab();
+    let names: Vec<&str> = tab.entries.iter().map(|e| e.name.as_str()).collect();
+    assert!(
+        names.contains(&"Notes") && names.contains(&"obsidian"),
+        "{names:?}"
+    );
+    assert_eq!(tab.title(), "iCloud Drive");
+    assert!(
+        crate::pane::crumbs(&tab.loc).is_empty(),
+        "the chip is the top"
+    );
+    let loc = app(&mut h).pane(Side::Left).tab().loc.clone();
+    assert_eq!(app(&mut h).place_label(&loc), "iCloud Drive");
+
+    // Deleting or renaming the app's folder is refused with a note.
+    select(&mut h, Side::Left, &["obsidian"]);
+    act(&mut h, Action::Delete(Side::Left));
+    act(&mut h, Action::Rename(Side::Left));
+    let toasts = app(&mut h).toasts.titles();
+    assert!(
+        toasts
+            .iter()
+            .any(|t| t == "“obsidian” belongs to its app and stays in iCloud Drive"),
+        "{toasts:?}"
+    );
+    assert!(
+        toasts
+            .iter()
+            .any(|t| t == "“obsidian” belongs to its app and keeps its name"),
+        "{toasts:?}"
+    );
+    assert!(app(&mut h).dialog.is_none());
+    assert!(obsidian.is_dir());
+
+    // Inside: the path bar reads "obsidian › Vault", still iCloud Drive.
+    open_local(&mut h, Side::Left, &obsidian.join("Vault"));
+    let tab = app(&mut h).pane(Side::Left).tab();
+    let labels: Vec<String> = crate::pane::crumbs(&tab.loc)
+        .into_iter()
+        .map(|c| c.label)
+        .collect();
+    assert_eq!(labels, ["obsidian", "Vault"]);
+    let loc = app(&mut h).pane(Side::Left).tab().loc.clone();
+    assert_eq!(app(&mut h).place_label(&loc), "iCloud Drive");
+
+    if std::env::var_os("MANTA_RENDER_DIR").is_some() && wgpu_available() {
+        let (cloud, _) = ch.cloud();
+        let mut h = harness_de_cloud(&fx, Theme::Dark, cloud, None);
+        app(&mut h).test_space = true;
+        open_local(&mut h, Side::Left, &top);
+        open_local(&mut h, Side::Right, &obsidian.join("Vault"));
+        super::wait_until(&mut h, "the free space", |h| {
+            h.query_by_label_contains("verfügbar").is_some()
+        });
+        save_to(&mut h, &render_dir("cloud"), "icloud_app_folders_de_dark");
+    }
+    std::env::remove_var(cloud_local::HOME_OVERRIDE_ENV);
+}
+
 #[test]
 fn google_drive_connection_needs_the_users_own_client() {
     let fx = fixture();

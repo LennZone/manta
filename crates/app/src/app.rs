@@ -427,6 +427,10 @@ pub struct MantaApp {
     cold_open_used: bool,
     /// Tests: show the macOS type icons (off so renders don't change).
     pub(crate) test_type_icons: bool,
+    /// Free space in the status bar, per folder.
+    space: crate::space::SpaceCache,
+    /// Tests: ask for free space (off so renders don't change).
+    pub(crate) test_space: bool,
     /// Settings was open last frame (re-check the default state on open).
     settings_was_open: bool,
     /// Software updates: launch check, update window, Settings section.
@@ -940,6 +944,8 @@ impl MantaApp {
             started: Instant::now(),
             cold_open_used: false,
             test_type_icons: false,
+            space: Default::default(),
+            test_space: false,
             settings_was_open: false,
             help: crate::help::Help::default(),
             updates: init.updates.unwrap_or_else(|| {
@@ -1797,6 +1803,13 @@ impl MantaApp {
                 WorkResult::TrashMeasured(summary) => self.on_trash_measured(summary),
                 WorkResult::TrashEmptied(result) => self.on_trash_emptied(result),
                 WorkResult::Ejected { path, name, result } => self.on_ejected(path, name, result),
+                WorkResult::Space { key, result } => {
+                    if let Err(e) = &result {
+                        log::debug!("free space of {}: {e}", key.1);
+                    }
+                    self.space
+                        .answer(key, result.ok().flatten(), Instant::now());
+                }
                 WorkResult::DockerControlled {
                     id,
                     name,
@@ -2418,6 +2431,7 @@ impl MantaApp {
                     self.refresh_matching(&fs, &dir);
                 }
             }
+            self.space.stale();
             if let Some(j) = self.jobs.iter().find(|j| j.id == id) {
                 match &j.state {
                     manta_ops::JobState::Failed(e) => {
@@ -2571,6 +2585,7 @@ impl MantaApp {
                 self.activate(side);
             }
             Action::Preview(side) => self.open_preview(ctx, side),
+            Action::CopyToOther(side, true) if self.refuse_app_folders(side, true) => {}
             Action::CopyToOther(side, mv) => {
                 let Some(to) = self.target_of(side) else {
                     self.set_info(t!("panes.needs_two"));
@@ -2582,6 +2597,13 @@ impl MantaApp {
                 let fs = tab.loc.fs.clone();
                 self.confirm_transfer(side, fs, paths, to, mv, false);
             }
+            Action::DropFiles {
+                ref fs,
+                ref paths,
+                mv: true,
+                ..
+            } if fs.protocol() == manta_core::Protocol::Local
+                && self.refuse_app_folder_paths(paths, true) => {}
             Action::DropFiles {
                 from,
                 to,
@@ -2612,7 +2634,14 @@ impl MantaApp {
                     },
                 ) => {}
             Action::Delete(side) | Action::DeletePermanently(side)
-                if self.refuse_read_only(side, ReadOnlyOp::Delete) => {}
+                if self.refuse_read_only(side, ReadOnlyOp::Delete)
+                    || self.refuse_app_folders(side, true) => {}
+            Action::Rename(side) | Action::RenameInPlace(side)
+                if self.refuse_app_folders(side, false) => {}
+            Action::DropOnTrash {
+                ref fs, ref paths, ..
+            } if fs.protocol() == manta_core::Protocol::Local
+                && self.refuse_app_folder_paths(paths, true) => {}
             Action::Rename(side) => {
                 let tab = self.pane(side).tab();
                 let sel = tab.selected_entries();
@@ -6389,6 +6418,7 @@ impl MantaApp {
 
     fn status_bar(&mut self, ui: &mut egui::Ui, actions: &mut Vec<Action>) {
         let p = pal(ui);
+        let space = self.free_space();
         let tab = self.pane(self.active).tab();
         let caption = theme::regular(text::CAPTION + 0.5);
         ui.horizontal_centered(|ui| {
@@ -6409,11 +6439,24 @@ impl MantaApp {
                     s.push_str(&format!(" ({})", util::format_size(size)));
                 }
             }
-            ui.label(
+            if let Some(sp) = space {
+                s.push_str(&t!(
+                    "status.available",
+                    size = util::format_size(sp.available)
+                ));
+            }
+            let r = ui.label(
                 RichText::new(s)
                     .font(caption.clone())
                     .color(p.text_secondary),
             );
+            if let Some(total) = space.and_then(|sp| sp.total.map(|t| (sp.available, t))) {
+                r.on_hover_text(t!(
+                    "status.available.tip",
+                    available = util::format_size(total.0),
+                    total = util::format_size(total.1)
+                ));
+            }
 
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                 // Job progress while the transfers panel is hidden ("Kopiere
@@ -6466,6 +6509,59 @@ impl MantaApp {
                 }
             });
         });
+    }
+
+    /// Show a notice and return true if the selection of `side` holds an
+    /// app's folder in iCloud Drive: like in Finder, those can't be renamed,
+    /// moved or deleted (`removal`: moving or deleting).
+    fn refuse_app_folders(&mut self, side: Side, removal: bool) -> bool {
+        let tab = self.pane(side).tab();
+        if tab.loc.conn.is_some() || tab.loc.archive.is_some() {
+            return false;
+        }
+        let paths: Vec<VfsPath> = tab.selected_entries().into_iter().map(|e| e.path).collect();
+        self.refuse_app_folder_paths(&paths, removal)
+    }
+
+    fn refuse_app_folder_paths(&mut self, paths: &[VfsPath], removal: bool) -> bool {
+        let Some(name) = paths
+            .iter()
+            .map(|p| std::path::Path::new(p.as_str()))
+            .find(|p| manta_vfs::icloud::is_app_library(p))
+            .and_then(manta_vfs::icloud::folder_label)
+        else {
+            return false;
+        };
+        let title = if removal {
+            t!("icloud.cant_remove_app_folder", name = name)
+        } else {
+            t!("icloud.cant_rename_app_folder", name = name)
+        };
+        self.toasts.push(
+            ToastKind::Info,
+            title,
+            Some(t!("icloud.app_folder_detail").into()),
+        );
+        true
+    }
+
+    /// Free space where the active pane is; asks for it (again) when it
+    /// is unknown or old. Shows the last answer meanwhile.
+    fn free_space(&mut self) -> Option<manta_core::Space> {
+        if cfg!(test) && !self.test_space {
+            return None;
+        }
+        let loc = self.pane(self.active).tab().loc.clone();
+        let key = crate::space::SpaceCache::key(&loc)?;
+        if self.space.should_ask(&key, Instant::now()) {
+            let (fs, path, k) = (loc.fs, loc.path, key.clone());
+            self.worker.spawn(
+                "space",
+                move || fs.space(&path).map_err(|e| e.to_string()),
+                move |result| WorkResult::Space { key: k, result },
+            );
+        }
+        self.space.get(&key)
     }
 
     /// The right end of the status bar (in a right-to-left layout): the

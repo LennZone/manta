@@ -231,6 +231,30 @@ How folder names are parsed (`parse_cloud_storage_name`):
 | `Box-Box` | Box |
 | `ProtonDrive-a@b.c-…`, `SynologyDrive-nas`, `Nextcloud-…` | Proton Drive (…), Synology Drive – nas, Nextcloud – … |
 
+### iCloud Drive's app folders
+
+Like Finder, iCloud Drive's top folder (`com~apple~CloudDocs`) also lists the apps' folders
+(`~/Library/Mobile Documents/<container>/Documents`) under the app's name
+(`NSFileManager displayNameAtPath:`). `LocalFs::list` adds them; their `Entry.path` is the
+container's `Documents` folder. Which containers show is iCloud's decision; there is no public
+API, so `crate::icloud` reads `brctl dump -i` and keeps the app libraries flagged
+`DocumentScopePublic` without `no-documents`, matching their obfuscated ids (`i{4}d.md.o{6}n`)
+against the folder names. If that fails, no app folders show. With `MANTA_CLOUD_HOME` set
+(tests, demos), every container with something in `Documents` shows.
+
+App folders can't be renamed, moved or deleted (`LocalFs` refuses with `PermissionDenied`, the UI
+with a note); their contents can. `cloud_local::location_of` counts them as iCloud Drive, so the
+chip, badges and path bar (`icloud::crumb_base`, `icloud::folder_label`) treat them as part of it.
+
+### Free space
+
+`Vfs::space` reports the free space where a folder is stored (`manta_core::Space`): the disk
+(`NSURLVolumeAvailableCapacityForImportantUsageKey`, like Finder) for local folders and SMB
+mounts, the iCloud quota (`brctl quota`) inside `Mobile Documents`, Drive's `about.storageQuota`,
+SFTP's `fstatvfs@openssh.com` and WebDAV's RFC 4331 quota. The status bar asks off the UI thread
+and keeps answers per folder (`crates/app/src/space.rs`: 10 s local, 60 s remote, stale after a
+transfer).
+
 ### Sync status and badges
 
 Reading the status never touches file contents, so it never triggers a download. It reads the

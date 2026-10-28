@@ -182,6 +182,32 @@ impl WebDavFs {
         }
     }
 
+    /// The quota of the folder at `path` (RFC 4331), if the server has one.
+    fn quota(&self, path: &VfsPath) -> VfsResult<Option<manta_core::Space>> {
+        let ctx = path.to_string();
+        let url = self.client.url(path.as_str(), true);
+        let headers = [
+            ("depth", "0".to_string()),
+            ("content-type", "application/xml; charset=utf-8".to_string()),
+        ];
+        let (status, text) = self.client.send_text(
+            "PROPFIND",
+            &url,
+            &headers,
+            Body::Bytes(xml::QUOTA_BODY.as_bytes()),
+            &ctx,
+        )?;
+        if status != 207 {
+            return Ok(None);
+        }
+        let (avail, used) =
+            xml::parse_quota(&text).map_err(|e| VfsError::Other(format!("{ctx}: {e}")))?;
+        Ok(avail.map(|available| manta_core::Space {
+            available,
+            total: used.map(|u| u.saturating_add(available)),
+        }))
+    }
+
     /// PROPFIND `Depth: 0` of one path.
     fn stat_item(&self, path: &VfsPath) -> VfsResult<DavItem> {
         let ctx = path.to_string();
@@ -233,6 +259,10 @@ impl WebDavFs {
 }
 
 impl Vfs for WebDavFs {
+    fn space(&self, path: &VfsPath) -> VfsResult<Option<manta_core::Space>> {
+        self.quota(path)
+    }
+
     fn label(&self) -> String {
         self.label.clone()
     }

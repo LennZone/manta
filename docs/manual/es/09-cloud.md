@@ -37,6 +37,28 @@ La sección **Nube** está entre **Ubicaciones** y **Dispositivos**. Cada almace
 
 Un clic abre el almacenamiento en el panel activo.
 
+## iCloud Drive como en el Finder {#icloud-apps}
+
+En Manta, iCloud Drive se ve como en el Finder: la carpeta superior muestra tus carpetas y archivos **y** las carpetas de tus apps, por ejemplo **Obsidian**, **Pages**, **Numbers** o **Atajos**. Manta muestra las mismas carpetas de apps que el Finder (las apps que comparten sus documentos en iCloud Drive y tienen alguno allí).
+
+La barra de ruta empieza con la etiqueta **iCloud Drive**; en una carpeta de app le sigue el nombre de la app, por ejemplo **iCloud Drive › Obsidian › Vault**. Los nombres de carpeta con los que macOS lo guarda en el disco (`~/Library/Mobile Documents/com~apple~CloudDocs`, `iCloud~md~obsidian/Documents`) solo los ves cuando editas la ruta.
+
+Una carpeta de app pertenece a su app: no puedes renombrarla, moverla ni eliminarla; si lo intentas, Manta te lo indica. Lo que hay dentro lo cambias con normalidad.
+
+## Espacio libre {#freier-speicher}
+
+Abajo, en la barra de estado, después del número de ítems aparece cuánto espacio queda libre, por ejemplo “12 ítems · 18 GB disponibles”. La descripción emergente muestra también el tamaño total, si se conoce.
+
+| Dónde | Qué significa “disponibles” |
+|---|---|
+| Carpetas en tu Mac | espacio libre del disco, como en el Finder, es decir, incluido el espacio que macOS libera cuando hace falta |
+| iCloud Drive | lo que aún queda libre en tu almacenamiento de iCloud |
+| Google Drive (conexión propia) | lo que aún queda libre en tu almacenamiento de Google; en las unidades compartidas, nada |
+| SFTP, SMB | espacio libre en el servidor |
+| WebDAV (por ejemplo, Nextcloud) | tu cuota en el servidor, si este la indica |
+
+Google Drive para ordenadores, OneDrive y Dropbox guardan sus archivos en tu Mac; ahí Manta muestra el espacio libre del disco. S3, FTP y los contenedores no indican el espacio libre; en ese caso no aparece el dato. Después de copiar, mover o eliminar, el valor se vuelve a leer.
+
 
 ## Qué significan las insignias {#abzeichen}
 

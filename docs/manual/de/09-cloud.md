@@ -37,6 +37,28 @@ Der Abschnitt **Cloud** steht zwischen **Orte** und **Geräte**. Jeder gefundene
 
 Ein Klick öffnet den Speicher im aktiven Bereich.
 
+## iCloud Drive wie im Finder {#icloud-apps}
+
+iCloud Drive sieht in Manta aus wie im Finder: Der oberste Ordner zeigt deine Ordner und Dateien **und** die Ordner deiner Apps – etwa **Obsidian**, **Pages**, **Numbers** oder **Kurzbefehle**. Manta zeigt dieselben App-Ordner wie der Finder (Apps, die ihre Dokumente in iCloud Drive teilen und dort welche haben).
+
+Die Pfadleiste beginnt beim Chip **iCloud Drive**; in einem App-Ordner steht dahinter der Name der App, z. B. **iCloud Drive › Obsidian › Vault**. Die Ordnernamen, unter denen macOS das auf der Festplatte ablegt (`~/Library/Mobile Documents/com~apple~CloudDocs`, `iCloud~md~obsidian/Documents`), siehst du nur noch, wenn du den Pfad bearbeitest.
+
+Ein App-Ordner gehört zu seiner App: Du kannst ihn nicht umbenennen, verschieben oder löschen – Manta sagt dir das, wenn du es versuchst. Was darin liegt, änderst du ganz normal.
+
+## Freier Speicher {#freier-speicher}
+
+Unten in der Statusleiste steht hinter der Anzahl der Objekte, wie viel Platz noch frei ist, z. B. „12 Objekte · 18 GB verfügbar“. Der Tooltip zeigt auch die Gesamtgröße, sofern bekannt.
+
+| Wo | Was „verfügbar“ bedeutet |
+|---|---|
+| Ordner auf deinem Mac | freier Platz der Festplatte – wie im Finder, also einschließlich Platz, den macOS bei Bedarf freiräumt |
+| iCloud Drive | was in deinem iCloud-Speicher noch frei ist |
+| Google Drive (eigene Verbindung) | was in deinem Google-Speicher noch frei ist; in geteilten Ablagen nichts |
+| SFTP, SMB | freier Platz auf dem Server |
+| WebDAV (z. B. Nextcloud) | dein Kontingent auf dem Server, falls er eins meldet |
+
+Google Drive für den Desktop, OneDrive und Dropbox legen ihre Dateien auf deinem Mac ab; dort zeigt Manta den freien Platz der Festplatte. S3, FTP und Container melden keinen freien Speicher – dann fehlt die Angabe. Nach dem Kopieren, Verschieben oder Löschen wird der Wert neu gelesen.
+
 
 ## Was die Abzeichen bedeuten {#abzeichen}
 

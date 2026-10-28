@@ -269,6 +269,27 @@ fn expand_tilde(path: &str) -> PathBuf {
 }
 
 impl Vfs for SftpFs {
+    /// `fstatvfs@openssh.com` on the folder, opened like a file (a
+    /// directory handle has no descriptor to ask). Servers without the
+    /// extension: unknown.
+    fn space(&self, path: &VfsPath) -> VfsResult<Option<manta_core::Space>> {
+        let Ok(mut dir) = self.sftp().open(Self::p(path)) else {
+            return Ok(None);
+        };
+        let Ok(st) = dir.statvfs() else {
+            return Ok(None);
+        };
+        let unit = if st.f_frsize > 0 {
+            st.f_frsize
+        } else {
+            st.f_bsize
+        };
+        Ok(Some(manta_core::Space {
+            available: st.f_bavail.saturating_mul(unit),
+            total: Some(st.f_blocks.saturating_mul(unit)).filter(|t| *t > 0),
+        }))
+    }
+
     fn label(&self) -> String {
         self.label.clone()
     }

@@ -36,6 +36,8 @@ pub const ENTRIES: Translations = &[
     ("status.hidden", ", скрыто: {n}"),
     ("status.matching", " по фильтру «{filter}»"),
     ("status.selected", "  ·  выбрано: {n}"),
+    ("status.available", "  ·  доступно {size}"),
+    ("status.available.tip", "доступно {available} из {total}"),
     ("status.palette_hint", "{shortcut}  Палитра команд"),
     ("status.transfers.one", "{count} передача · {percent} %"),
     ("status.transfers.few", "{count} передачи · {percent} %"),

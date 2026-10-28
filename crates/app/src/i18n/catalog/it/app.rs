@@ -34,6 +34,8 @@ pub const ENTRIES: Translations = &[
     ("status.hidden", ", {n} nascosti"),
     ("status.matching", " corrispondenti a “{filter}”"),
     ("status.selected", "  ·  {n} selezionati"),
+    ("status.available", "  ·  {size} disponibili"),
+    ("status.available.tip", "{available} disponibili su {total}"),
     ("status.palette_hint", "{shortcut}  Palette dei comandi"),
     ("status.transfers.one", "{count} trasferimento · {percent}%"),
     ("status.transfers.other", "{count} trasferimenti · {percent}%"),

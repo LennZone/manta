@@ -178,11 +178,18 @@ pub fn discover_in(home: &Path) -> Vec<CloudLocation> {
     out
 }
 
-/// The cloud location `path` lies in, if any.
+/// The cloud location `path` lies in, if any. The apps' folders in
+/// iCloud Drive (`Mobile Documents/<app>/Documents`) belong to iCloud Drive.
 pub fn location_of<'a>(path: &Path, locations: &'a [CloudLocation]) -> Option<&'a CloudLocation> {
     locations
         .iter()
-        .filter(|l| path.starts_with(&l.path))
+        .filter(|l| {
+            path.starts_with(&l.path)
+                || (l.provider == CloudProvider::ICloud
+                    && l.path.parent().is_some_and(|mobile| {
+                        crate::icloud::app_library_in(mobile, path).is_some()
+                    }))
+        })
         .max_by_key(|l| l.path.as_os_str().len())
 }
 
@@ -873,6 +880,14 @@ mod tests {
             Some(CloudProvider::OneDrive)
         );
         assert!(location_of(Path::new("/tmp"), &found).is_none());
+        // An app's folder in iCloud Drive belongs to iCloud Drive.
+        let mobile = home.path().join("Library/Mobile Documents");
+        assert_eq!(
+            location_of(&mobile.join("iCloud~md~obsidian/Documents/a.md"), &found)
+                .map(|l| l.provider),
+            Some(CloudProvider::ICloud)
+        );
+        assert!(location_of(&mobile.join("iCloud~md~obsidian"), &found).is_none());
 
         // Nothing there: nothing found (and no panic).
         assert!(discover_in(&home.path().join("nope")).is_empty());

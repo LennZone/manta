@@ -526,6 +526,39 @@ impl Vfs for GDriveFs {
         Ok(Area::MyDrive.path())
     }
 
+    /// The account's storage (`about.get storageQuota`). Shared drives
+    /// belong to the organisation: unknown there, like an unlimited account.
+    fn space(&self, path: &VfsPath) -> VfsResult<Option<manta_core::Space>> {
+        if path.starts_with(&Area::SharedDrives.path()) {
+            return Ok(None);
+        }
+        #[derive(serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct Quota {
+            limit: Option<String>,
+            usage: Option<String>,
+        }
+        #[derive(serde::Deserialize)]
+        #[serde(rename_all = "camelCase")]
+        struct About {
+            storage_quota: Option<Quota>,
+        }
+        let call = Call::new("GET", format!("{}/drive/v3/about", self.inner.api.base()))
+            .query("fields", "storageQuota(limit,usage)");
+        let about: About = self.inner.api.send_json(&call, "about")?;
+        let Some(q) = about.storage_quota else {
+            return Ok(None);
+        };
+        let num = |v: Option<String>| v.and_then(|v| v.parse::<u64>().ok());
+        Ok(match (num(q.limit), num(q.usage)) {
+            (Some(limit), Some(usage)) => Some(manta_core::Space {
+                available: limit.saturating_sub(usage),
+                total: Some(limit),
+            }),
+            _ => None,
+        })
+    }
+
     fn list(&self, dir: &VfsPath) -> VfsResult<Vec<Entry>> {
         let at = self.resolve(dir)?;
         if let Resolved::Root = at {

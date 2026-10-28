@@ -92,7 +92,7 @@ Was macOS dabei zulässt – und was nicht:
 - **Symbolleiste** oben: Neuer Ordner, Umbenennen, Löschen, Kopieren/Bewegen in den anderen Bereich, unsichtbare Dateien, Vergleichen und synchronisieren, Übertragungen, Verbinden, Befehle und Einstellungen.
 - **Seitenleiste** links: Favoriten, Orte, Geräte, Server und Container (siehe [Favoriten & Seitenleiste](07-favoriten-seitenleiste.md)).
 - **Bereiche**: eine oder mehrere Dateilisten nebeneinander, jede mit Tabs und Pfadleiste (siehe [Bereiche & Tabs](02-bereiche-tabs.md)).
-- **Statusleiste** unten: Anzahl der Objekte, Auswahl, laufende Übertragungen, die Systemauslastung (CPU, GPU, RAM; siehe [Systemauslastung](14-plugins.md#systemauslastung)) und ein Hinweis auf die Befehlspalette.
+- **Statusleiste** unten: Anzahl der Objekte, Auswahl, freier Speicher (siehe [Freier Speicher](09-cloud.md#freier-speicher)), laufende Übertragungen, die Systemauslastung (CPU, GPU, RAM; siehe [Systemauslastung](14-plugins.md#systemauslastung)) und ein Hinweis auf die Befehlspalette.
 
 ## Die Befehlspalette {#befehlspalette}
 

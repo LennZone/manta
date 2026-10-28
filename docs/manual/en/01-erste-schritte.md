@@ -92,7 +92,7 @@ What macOS allows – and what it doesn't:
 - **Toolbar** at the top: New Folder, Rename, Delete, Copy/Move to the other pane, hidden files, Compare & Sync, Transfers, Connect, Commands and Settings.
 - **Sidebar** on the left: Favorites, Locations, Devices, Servers and Containers (see [Favorites & Sidebar](07-favoriten-seitenleiste.md)).
 - **Panes**: one or more file lists side by side, each with tabs and a path bar (see [Panes & Tabs](02-bereiche-tabs.md)).
-- **Status bar** at the bottom: the number of items, the selection, running transfers, the system load (CPU, GPU, RAM; see [System Load](14-plugins.md#systemauslastung)) and a hint for the command palette.
+- **Status bar** at the bottom: the number of items, the selection, free space (see [Free space](09-cloud.md#freier-speicher)), running transfers, the system load (CPU, GPU, RAM; see [System Load](14-plugins.md#systemauslastung)) and a hint for the command palette.
 
 ## The command palette {#befehlspalette}
 

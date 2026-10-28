@@ -15,6 +15,14 @@ pub const PROPFIND_BODY: &str = concat!(
     "</d:prop></d:propfind>"
 );
 
+/// PROPFIND body asking for the quota (RFC 4331).
+pub const QUOTA_BODY: &str = concat!(
+    r#"<?xml version="1.0" encoding="utf-8"?>"#,
+    r#"<d:propfind xmlns:d="DAV:"><d:prop>"#,
+    "<d:quota-available-bytes/><d:quota-used-bytes/>",
+    "</d:prop></d:propfind>"
+);
+
 /// One `<response>` of a Multi-Status reply.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DavItem {
@@ -97,6 +105,35 @@ fn apply_props(prop: &Node, item: &mut DavItem) {
             item.etag = Some(e.to_string());
         }
     }
+}
+
+/// The quota of a [`QUOTA_BODY`] reply: `(available, used)`. Negative
+/// values (Nextcloud: -2 unknown, -3 unlimited) and missing ones are `None`.
+pub fn parse_quota(xml: &str) -> Result<(Option<u64>, Option<u64>), String> {
+    let root = parse(xml)?;
+    let mut avail = None;
+    let mut used = None;
+    // Depth 0: the folder itself is the only response.
+    let Some(r) = root.children("response").next() else {
+        return Ok((None, None));
+    };
+    for ps in r.children("propstat") {
+        let ok = ps
+            .text_of("status")
+            .and_then(status_code)
+            .is_none_or(|c| (200..300).contains(&c));
+        let Some(prop) = ps.child("prop").filter(|_| ok) else {
+            continue;
+        };
+        let num = |n: &str| {
+            prop.text_of(n)
+                .and_then(|t| t.trim().parse::<i64>().ok())
+                .and_then(|v| u64::try_from(v).ok())
+        };
+        avail = avail.or(num("quota-available-bytes"));
+        used = used.or(num("quota-used-bytes"));
+    }
+    Ok((avail, used))
 }
 
 /// PROPPATCH body setting one property (`name` in the DAV: namespace).
@@ -216,5 +253,18 @@ mod tests {
             .unwrap()
             .with_timezone(&Utc);
         assert_eq!(http_date(t), "Tue, 02 Jan 2024 10:00:00 GMT");
+    }
+
+    #[test]
+    fn quota() {
+        let x = r#"<d:multistatus xmlns:d="DAV:"><d:response><d:href>/f/</d:href>
+<d:propstat><d:prop><d:quota-available-bytes>1000</d:quota-available-bytes><d:quota-used-bytes>24</d:quota-used-bytes></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat>
+</d:response></d:multistatus>"#;
+        assert_eq!(parse_quota(x).unwrap(), (Some(1000), Some(24)));
+        // Nextcloud without a limit: -3.
+        let unlimited = x.replace(">1000<", ">-3<");
+        assert_eq!(parse_quota(&unlimited).unwrap(), (None, Some(24)));
+        let missing = x.replace("200 OK", "404 Not Found");
+        assert_eq!(parse_quota(&missing).unwrap(), (None, None));
     }
 }

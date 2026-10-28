@@ -555,6 +555,13 @@ impl Vfs for SmbFs {
         Some(PathBuf::from(self.os(path).as_str()))
     }
 
+    /// The mounted share reports the server's free space.
+    fn space(&self, path: &VfsPath) -> VfsResult<Option<manta_core::Space>> {
+        Ok(crate::space::disk_space(std::path::Path::new(
+            self.os(path).as_str(),
+        )))
+    }
+
     fn as_any(&self) -> Option<&dyn std::any::Any> {
         Some(self)
     }

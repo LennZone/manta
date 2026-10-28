@@ -2318,6 +2318,27 @@ fn list_rows_show_macos_type_icons() {
     }
 }
 
+/// The status bar says how much space is left where the active pane is,
+/// like Finder ("… · 18 GB available").
+#[test]
+fn status_bar_shows_free_space() {
+    use egui_kittest::kittest::Queryable;
+    let fx = fixture();
+    let mut h = harness(&fx, WIDE, Theme::Light);
+    assert!(
+        h.query_by_label_contains("available").is_none(),
+        "off in tests unless asked for"
+    );
+    app(&mut h).test_space = true;
+    wait_until(&mut h, "the free space shown", |h| {
+        h.query_by_label_contains(" available").is_some()
+    });
+    assert!(
+        h.query_by_label_contains("hidden  ·  ").is_some(),
+        "after the item count"
+    );
+}
+
 #[test]
 fn batch_rename_renames_and_undoes_on_local_fs() {
     use manta_plugin::{FileActionKind, FileActionPhase};

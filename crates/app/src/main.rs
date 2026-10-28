@@ -40,6 +40,7 @@ mod search;
 mod secrets;
 mod settings;
 mod sidebar;
+mod space;
 mod status_items;
 mod sync_view;
 mod tags;

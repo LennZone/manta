@@ -37,6 +37,28 @@ The **Cloud** section sits between **Locations** and **Devices**. Each cloud sto
 
 A click opens the storage in the active pane.
 
+## iCloud Drive as in the Finder {#icloud-apps}
+
+iCloud Drive looks in Manta the way it does in the Finder: the top folder shows your folders and files **and** your apps' folders – for example **Obsidian**, **Pages**, **Numbers** or **Shortcuts**. Manta shows the same app folders as the Finder (apps that share their documents in iCloud Drive and have some there).
+
+The path bar starts with the **iCloud Drive** chip; in an app folder the app's name follows, e.g. **iCloud Drive › Obsidian › Vault**. The folder names macOS uses on disk (`~/Library/Mobile Documents/com~apple~CloudDocs`, `iCloud~md~obsidian/Documents`) only show up when you edit the path.
+
+An app folder belongs to its app: you can't rename, move or delete it – Manta tells you so if you try. What's inside it you change as usual.
+
+## Free space {#freier-speicher}
+
+At the bottom of the status bar, after the number of items, Manta shows how much space is left, e.g. "12 items · 18 GB available". The tooltip also shows the total size, if known.
+
+| Where | What "available" means |
+|---|---|
+| Folders on your Mac | free space on the disk – as in the Finder, so including space macOS frees up when needed |
+| iCloud Drive | what's still free in your iCloud storage |
+| Google Drive (own connection) | what's still free in your Google storage; nothing in shared drives |
+| SFTP, SMB | free space on the server |
+| WebDAV (e.g. Nextcloud) | your quota on the server, if it reports one |
+
+Google Drive for desktop, OneDrive and Dropbox keep their files on your Mac; there Manta shows the disk's free space. S3, FTP and containers don't report free space – then the figure is missing. After copying, moving or deleting, the value is read again.
+
 
 ## What the badges mean {#abzeichen}
 

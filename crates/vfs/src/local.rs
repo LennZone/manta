@@ -8,7 +8,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
 use chrono::{DateTime, Utc};
-use manta_core::{Entry, EntryKind, Protocol, Vfs, VfsError, VfsPath, VfsResult};
+use manta_core::{Entry, EntryKind, Protocol, Space, Vfs, VfsError, VfsPath, VfsResult};
 
 /// The local file system.
 pub struct LocalFs;
@@ -323,6 +323,66 @@ fn unknown_entry(path: VfsPath, name: String) -> Entry {
     }
 }
 
+/// `~/Library/Mobile Documents/com~apple~CloudDocs`.
+fn is_icloud_top(p: &Path) -> bool {
+    crate::cloud_local::cloud_home()
+        .is_some_and(|h| p == crate::icloud::mobile_documents(&h).join(crate::icloud::CLOUD_DOCS))
+}
+
+/// An app's folder in iCloud Drive can't be renamed, moved or deleted.
+fn refuse_app_library(path: &VfsPath) -> VfsResult<()> {
+    if crate::icloud::is_app_library(Path::new(path.as_str())) {
+        return Err(VfsError::PermissionDenied(format!(
+            "{path}: an app's folder in iCloud Drive can't be renamed, moved or deleted"
+        )));
+    }
+    Ok(())
+}
+
+/// The folder's entries, in parts (macOS: `getattrlistbulk`).
+fn list_dir(dir: &VfsPath, part: &mut dyn FnMut(Vec<Entry>)) -> VfsResult<()> {
+    let os = os_path(dir);
+    let meta = fs::metadata(&os).map_err(|e| map_io(e, dir))?;
+    if !meta.is_dir() {
+        return Err(VfsError::NotADirectory(dir.to_string()));
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let mut delivered = false;
+        match bulk::list(&os, dir, &mut |p| {
+            delivered = true;
+            part(p)
+        }) {
+            Ok(()) => return Ok(()),
+            // Nothing handed over yet: the portable way below.
+            Err(e) if !delivered => {
+                log::debug!("getattrlistbulk failed in {dir}: {e}; using readdir")
+            }
+            Err(e) => return Err(map_io(e, dir)),
+        }
+    }
+    let rd = fs::read_dir(&os).map_err(|e| map_io(e, dir))?;
+    let mut out = Vec::new();
+    for item in rd {
+        let item = match item {
+            Ok(i) => i,
+            Err(e) => {
+                log::warn!("skipping unreadable entry in {dir}: {e}");
+                continue;
+            }
+        };
+        let name = item.file_name().to_string_lossy().into_owned();
+        out.push(stat_entry(dir, name));
+        if out.len() == PART {
+            part(std::mem::take(&mut out));
+        }
+    }
+    if !out.is_empty() {
+        part(out);
+    }
+    Ok(())
+}
+
 impl Vfs for LocalFs {
     fn label(&self) -> String {
         "Local".into()
@@ -345,45 +405,29 @@ impl Vfs for LocalFs {
         Ok(out)
     }
 
+    /// iCloud Drive's top folder also lists the apps' folders, like
+    /// Finder ([`crate::icloud`]).
     fn list_parts(&self, dir: &VfsPath, part: &mut dyn FnMut(Vec<Entry>)) -> VfsResult<()> {
         let os = os_path(dir);
-        let meta = fs::metadata(&os).map_err(|e| map_io(e, dir))?;
-        if !meta.is_dir() {
-            return Err(VfsError::NotADirectory(dir.to_string()));
+        if !is_icloud_top(&os) {
+            return list_dir(dir, part);
         }
-        #[cfg(target_os = "macos")]
-        {
-            let mut delivered = false;
-            match bulk::list(&os, dir, &mut |p| {
-                delivered = true;
-                part(p)
-            }) {
-                Ok(()) => return Ok(()),
-                // Nothing handed over yet: the portable way below.
-                Err(e) if !delivered => {
-                    log::debug!("getattrlistbulk failed in {dir}: {e}; using readdir")
-                }
-                Err(e) => return Err(map_io(e, dir)),
-            }
-        }
-        let rd = fs::read_dir(&os).map_err(|e| map_io(e, dir))?;
-        let mut out = Vec::new();
-        for item in rd {
-            let item = match item {
-                Ok(i) => i,
-                Err(e) => {
-                    log::warn!("skipping unreadable entry in {dir}: {e}");
-                    continue;
-                }
-            };
-            let name = item.file_name().to_string_lossy().into_owned();
-            out.push(stat_entry(dir, name));
-            if out.len() == PART {
-                part(std::mem::take(&mut out));
-            }
-        }
-        if !out.is_empty() {
-            part(out);
+        let mut names = std::collections::HashSet::new();
+        list_dir(dir, &mut |p| {
+            names.extend(p.iter().map(|e| e.name.to_lowercase()));
+            part(p)
+        })?;
+        let apps: Vec<Entry> = crate::icloud::app_libraries()
+            .into_iter()
+            .filter(|l| !names.contains(&l.name.to_lowercase()))
+            .filter_map(|l| {
+                let m = fs::symlink_metadata(&l.docs).ok()?;
+                let path = VfsPath::new(&l.docs.to_string_lossy());
+                Some(entry_from_lstat(&path, l.name, &m))
+            })
+            .collect();
+        if !apps.is_empty() {
+            part(apps);
         }
         Ok(())
     }
@@ -412,6 +456,7 @@ impl Vfs for LocalFs {
     }
 
     fn remove_dir(&self, path: &VfsPath) -> VfsResult<()> {
+        refuse_app_library(path)?;
         let os = os_path(path);
         let m = fs::symlink_metadata(&os).map_err(|e| map_io(e, path))?;
         if !m.is_dir() {
@@ -421,6 +466,7 @@ impl Vfs for LocalFs {
     }
 
     fn rename(&self, from: &VfsPath, to: &VfsPath) -> VfsResult<()> {
+        refuse_app_library(from)?;
         fs::rename(os_path(from), os_path(to)).map_err(|e| {
             // Attribute "not found" to the source, everything else to the target.
             if e.kind() == io::ErrorKind::NotFound && !Path::new(from.as_str()).exists() {
@@ -496,6 +542,19 @@ impl Vfs for LocalFs {
 
     fn local_path(&self, path: &VfsPath) -> Option<PathBuf> {
         Some(os_path(path))
+    }
+
+    /// iCloud Drive: what is left of the account; else the disk.
+    fn space(&self, path: &VfsPath) -> VfsResult<Option<Space>> {
+        let p = os_path(path);
+        let in_icloud = crate::cloud_local::cloud_home()
+            .is_some_and(|h| p.starts_with(h.join("Library/Mobile Documents")));
+        if in_icloud {
+            if let Some(s) = crate::space::icloud_quota() {
+                return Ok(Some(s));
+            }
+        }
+        Ok(crate::space::disk_space(&p))
     }
 }
 

@@ -633,3 +633,13 @@ fn ranged_download_and_resumed_upload_session() {
         .unwrap();
     assert_eq!(up.offset, 0);
 }
+
+#[test]
+fn space_is_the_accounts_quota() {
+    let f = setup();
+    let s = f.fs.space(&my("Docs")).unwrap().expect("quota");
+    assert_eq!(s.total, Some(15 * 1024 * 1024 * 1024));
+    assert_eq!(s.available, 10 * 1024 * 1024 * 1024);
+    // Shared drives belong to the organisation.
+    assert_eq!(f.fs.space(&Area::SharedDrives.path()).unwrap(), None);
+}

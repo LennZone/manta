@@ -30,11 +30,13 @@ pub mod cloud_local;
 pub mod container;
 pub mod ftp;
 pub mod gdrive;
+pub mod icloud;
 pub mod known_hosts;
 pub mod local;
 pub mod s3;
 pub mod sftp;
 pub mod smb;
+pub mod space;
 pub mod volumes;
 pub mod webdav;
 

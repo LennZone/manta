@@ -92,7 +92,7 @@ Ce que macOS permet – et ce qu’il ne permet pas :
 - **Barre d’outils** en haut : Nouveau dossier, Renommer, Supprimer, Copier/Déplacer dans l’autre sous-fenêtre, fichiers masqués, Comparer et synchroniser, Transferts, Se connecter, Commandes et Réglages.
 - **Barre latérale** à gauche : Favoris, Emplacements, Appareils, Serveurs et Conteneurs (voir [Favoris et barre latérale](07-favoriten-seitenleiste.md)).
 - **Sous-fenêtres** : une ou plusieurs listes de fichiers côte à côte, chacune avec ses onglets et sa barre du chemin d’accès (voir [Sous-fenêtres et onglets](02-bereiche-tabs.md)).
-- **Barre d’état** en bas : le nombre d’éléments, la sélection, les transferts en cours, la charge du système (CPU, GPU, RAM ; voir [Charge du système](14-plugins.md#systemauslastung)) et un rappel de la palette de commandes.
+- **Barre d’état** en bas : le nombre d’éléments, la sélection, l’espace libre (voir [Espace libre](09-cloud.md#freier-speicher)), les transferts en cours, la charge du système (CPU, GPU, RAM ; voir [Charge du système](14-plugins.md#systemauslastung)) et un rappel de la palette de commandes.
 
 ## La palette de commandes {#befehlspalette}
 

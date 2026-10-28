@@ -37,6 +37,28 @@ La sezione **Cloud** si trova tra **Posizioni** e **Dispositivi**. Ogni archivio
 
 Un clic apre l’archivio cloud nel pannello attivo.
 
+## iCloud Drive come nel Finder {#icloud-apps}
+
+In Manta iCloud Drive appare come nel Finder: la cartella principale mostra le tue cartelle e i tuoi file **e** le cartelle delle tue app, ad esempio **Obsidian**, **Pages**, **Numbers** o **Comandi Rapidi**. Manta mostra le stesse cartelle delle app del Finder (le app che condividono i loro documenti in iCloud Drive e ne hanno già lì).
+
+La barra del percorso inizia con l’indicatore **iCloud Drive**; in una cartella di un’app segue il nome dell’app, ad esempio **iCloud Drive › Obsidian › Vault**. I nomi delle cartelle con cui macOS salva tutto sul disco (`~/Library/Mobile Documents/com~apple~CloudDocs`, `iCloud~md~obsidian/Documents`) li vedi solo quando modifichi il percorso.
+
+Una cartella di un’app appartiene alla sua app: non puoi rinominarla, spostarla o eliminarla; se ci provi, Manta te lo dice. Il suo contenuto lo modifichi normalmente.
+
+## Spazio libero {#freier-speicher}
+
+In basso nella barra di stato, dopo il numero di elementi, Manta mostra quanto spazio è ancora libero, ad esempio “12 elementi · 18 GB disponibili”. Il suggerimento mostra anche la dimensione totale, se è nota.
+
+| Dove | Cosa significa “disponibili” |
+|---|---|
+| Cartelle sul tuo Mac | spazio libero sul disco, come nel Finder, quindi compreso lo spazio che macOS libera quando serve |
+| iCloud Drive | quanto è ancora libero nel tuo spazio di archiviazione iCloud |
+| Google Drive (connessione propria) | quanto è ancora libero nel tuo spazio di archiviazione Google; nei Drive condivisi niente |
+| SFTP, SMB | spazio libero sul server |
+| WebDAV (ad esempio Nextcloud) | la tua quota sul server, se il server la comunica |
+
+Google Drive per desktop, OneDrive e Dropbox salvano i loro file sul tuo Mac; lì Manta mostra lo spazio libero sul disco. S3, FTP e i container non comunicano lo spazio libero: in quel caso l’indicazione manca. Dopo una copia, uno spostamento o un’eliminazione il valore viene riletto.
+
 
 ## Cosa significano i contrassegni {#abzeichen}
 

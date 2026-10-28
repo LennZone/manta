@@ -37,6 +37,28 @@ OneDrive 和 Dropbox 的设置方式相同：安装提供商的 App，登录，�
 
 点按即可在当前面板中打开该存储。
 
+## 像在访达中一样的 iCloud Drive {#icloud-apps}
+
+iCloud Drive 在 Manta 中的样子与在访达中相同：顶层文件夹会显示你的文件夹和文件，**以及**你的 App 的文件夹，例如 **Obsidian**、**Pages 文稿**、**Numbers 表格**或**快捷指令**。Manta 显示的 App 文件夹与访达相同（即在 iCloud Drive 中共享文稿且其中已有文稿的 App）。
+
+路径栏以 **iCloud Drive** 标签开头；在 App 文件夹中，后面跟着 App 的名称，例如 **iCloud Drive › Obsidian › Vault**。macOS 在磁盘上存放这些内容时使用的文件夹名称（`~/Library/Mobile Documents/com~apple~CloudDocs`、`iCloud~md~obsidian/Documents`）只有在你编辑路径时才会看到。
+
+App 文件夹属于它的 App：你不能给它重新命名、移动或删除它；如果你尝试这样做，Manta 会告诉你。文件夹里的内容可以照常更改。
+
+## 可用空间 {#freier-speicher}
+
+在底部的状态栏中，项目数量后面会显示还剩多少可用空间，例如“12 项 · 可用 18 GB”。如果已知总容量，工具提示中也会显示。
+
+| 位置 | “可用”的含义 |
+|---|---|
+| Mac 上的文件夹 | 磁盘的可用空间，与访达中相同，也就是包括 macOS 在需要时会释放的空间 |
+| iCloud Drive | 你的 iCloud 储存空间中还剩余的空间 |
+| Google Drive（自己的连接） | 你的 Google 存储空间中还剩余的空间；共享云端硬盘中不显示 |
+| SFTP、SMB | 服务器上的可用空间 |
+| WebDAV（例如 Nextcloud） | 你在服务器上的配额（如果服务器提供） |
+
+桌面版 Google Drive、OneDrive 和 Dropbox 会将文件存放在你的 Mac 上；在这些位置，Manta 显示磁盘的可用空间。S3、FTP 和容器不提供可用空间信息，此时不显示此项。拷贝、移动或删除后，会重新读取该值。
+
 
 ## 标记的含义 {#abzeichen}
 

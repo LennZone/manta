@@ -34,6 +34,8 @@ pub const ENTRIES: Translations = &[
     ("status.hidden", "，{n} 项已隐藏"),
     ("status.matching", "，匹配“{filter}”"),
     ("status.selected", "  ·  已选择 {n} 项"),
+    ("status.available", "  ·  可用 {size}"),
+    ("status.available.tip", "{total} 中有 {available} 可用"),
     ("status.palette_hint", "{shortcut}  命令面板"),
     ("status.transfers.one", "{count} 个传输 · {percent}%"),
     ("status.transfers.other", "{count} 个传输 · {percent}%"),

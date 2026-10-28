@@ -108,6 +108,11 @@ pub enum WorkResult {
     TrashMeasured(Option<crate::trash::TrashSummary>),
     /// "Empty Trash" finished.
     TrashEmptied(Result<crate::trash::EmptyOutcome, String>),
+    /// Free space of a folder ([`crate::space`]).
+    Space {
+        key: crate::space::Key,
+        result: Result<Option<manta_core::Space>, String>,
+    },
     /// A network volume was ejected (or refused to).
     Ejected {
         path: std::path::PathBuf,

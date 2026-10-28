@@ -745,6 +745,21 @@ pub trait Vfs: Send + Sync {
     fn reconnect(&self) -> VfsResult<()> {
         Ok(())
     }
+
+    /// Free space where `path` is stored (the disk, the account's quota),
+    /// if the backend can tell. Default: unknown.
+    fn space(&self, _path: &VfsPath) -> VfsResult<Option<Space>> {
+        Ok(None)
+    }
+}
+
+/// Free space on a disk or in a cloud account ([`Vfs::space`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Space {
+    /// Bytes that can still be stored.
+    pub available: u64,
+    /// The whole capacity, when known.
+    pub total: Option<u64>,
 }
 
 pub type SharedVfs = Arc<dyn Vfs>;

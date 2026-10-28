@@ -37,6 +37,28 @@ La section **Cloud** se trouve entre **Emplacements** et **Appareils**. Chaque s
 
 Un clic ouvre le stockage dans la sous-fenêtre active.
 
+## iCloud Drive comme dans le Finder {#icloud-apps}
+
+Dans Manta, iCloud Drive se présente comme dans le Finder : le dossier de plus haut niveau affiche vos dossiers et fichiers **et** les dossiers de vos apps – par exemple **Obsidian**, **Pages**, **Numbers** ou **Raccourcis**. Manta affiche les mêmes dossiers d’apps que le Finder (les apps qui partagent leurs documents dans iCloud Drive et en ont déjà).
+
+La barre du chemin d’accès commence par la pastille **iCloud Drive** ; dans un dossier d’app, le nom de l’app suit, par exemple **iCloud Drive › Obsidian › Vault**. Les noms de dossier sous lesquels macOS range tout cela sur le disque (`~/Library/Mobile Documents/com~apple~CloudDocs`, `iCloud~md~obsidian/Documents`) n’apparaissent que lorsque vous modifiez le chemin.
+
+Un dossier d’app appartient à son app : vous ne pouvez pas le renommer, le déplacer ni le supprimer – Manta vous le signale si vous essayez. Son contenu, en revanche, se modifie normalement.
+
+## Espace libre {#freier-speicher}
+
+En bas, dans la barre d’état, Manta indique après le nombre d’éléments l’espace encore libre, par exemple « 12 éléments · 18 GB disponibles ». L’infobulle affiche aussi la taille totale, si elle est connue.
+
+| Où | Ce que signifie « disponibles » |
+|---|---|
+| Dossiers sur votre Mac | espace libre du disque – comme dans le Finder, donc y compris l’espace que macOS libère au besoin |
+| iCloud Drive | ce qui reste libre dans votre stockage iCloud |
+| Google Drive (connexion propre) | ce qui reste libre dans votre stockage Google ; rien dans les Drive partagés |
+| SFTP, SMB | espace libre sur le serveur |
+| WebDAV (par exemple Nextcloud) | votre quota sur le serveur, s’il en indique un |
+
+Google Drive pour ordinateur, OneDrive et Dropbox stockent leurs fichiers sur votre Mac ; Manta y affiche l’espace libre du disque. S3, FTP et les conteneurs n’indiquent pas d’espace libre – l’information est alors absente. Après une copie, un déplacement ou une suppression, la valeur est relue.
+
 
 ## Signification des pastilles {#abzeichen}
 

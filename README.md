@@ -56,7 +56,10 @@ updates.
 - Docker containers and Kubernetes pods as folders, through the `docker` / `kubectl` CLIs;
   start, restart and stop Docker containers from the sidebar
 - iCloud Drive, Google Drive, OneDrive, Dropbox, Box and other cloud folders synced by
-  macOS, with download state and "Download now" / "Remove download"
+  macOS, with download state and "Download now" / "Remove download"; iCloud Drive shows
+  the apps' folders by name, like Finder
+- Free space in the status bar: the Mac's disk, the iCloud or Google Drive quota, a
+  server's disk (SFTP, SMB) or WebDAV quota
 - Passwords, key passphrases and S3 secret keys are kept in the macOS Keychain
 
 **Files**

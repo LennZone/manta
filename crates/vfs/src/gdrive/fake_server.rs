@@ -284,7 +284,10 @@ fn route(req: &Req, state: &Arc<Mutex<State>>, port: u16) -> Resp {
     match (req.method.as_str(), segs.as_slice()) {
         ("GET", ["drive", "v3", "about"]) => resp_json(
             200,
-            json!({"user": {"emailAddress": EMAIL, "displayName": "Test User"}}),
+            json!({
+                "user": {"emailAddress": EMAIL, "displayName": "Test User"},
+                "storageQuota": {"limit": "16106127360", "usage": "5368709120"}
+            }),
         ),
         ("GET", ["drive", "v3", "drives"]) => {
             let drives: Vec<Value> = st

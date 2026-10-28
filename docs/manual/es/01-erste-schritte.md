@@ -92,7 +92,7 @@ Lo que macOS permite y lo que no:
 - **Barra de herramientas** arriba: Nueva carpeta, Renombrar, Eliminar, Copiar/Mover al otro panel, archivos ocultos, Comparar y sincronizar, Transferencias, Conectar, Comandos y Ajustes.
 - **Barra lateral** a la izquierda: Favoritos, Ubicaciones, Dispositivos, Servidores y Contenedores (consulta [Favoritos y barra lateral](07-favoriten-seitenleiste.md)).
 - **Paneles**: una o varias listas de archivos una al lado de otra, cada una con pestañas y una barra de ruta (consulta [Paneles y pestañas](02-bereiche-tabs.md)).
-- **Barra de estado** abajo: el número de ítems, la selección, las transferencias en curso, la carga del sistema (CPU, GPU, RAM; consulta [Carga del sistema](14-plugins.md#systemauslastung)) y una indicación sobre la paleta de comandos.
+- **Barra de estado** abajo: el número de ítems, la selección, el espacio libre (consulta [Espacio libre](09-cloud.md#freier-speicher)), las transferencias en curso, la carga del sistema (CPU, GPU, RAM; consulta [Carga del sistema](14-plugins.md#systemauslastung)) y una indicación sobre la paleta de comandos.
 
 ## La paleta de comandos {#befehlspalette}
 

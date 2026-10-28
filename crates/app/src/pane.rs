@@ -112,14 +112,19 @@ pub enum CrumbTarget {
     Outer(Location, Option<String>),
 }
 
-/// The user's Trash (`~/.Trash`) shows as „Papierkorb“ / "Trash" in the
-/// breadcrumb and tab title, like in Finder.
-fn trash_label(conn: Option<u64>, archive: bool, path: &VfsPath) -> Option<String> {
+/// Folders shown under another name in the breadcrumb and tab title, like
+/// in Finder: the user's Trash (`~/.Trash`) as „Papierkorb“ / "Trash",
+/// iCloud Drive's top folder as "iCloud Drive" and the apps' folders in
+/// it by their app's name („Obsidian“).
+fn folder_label(conn: Option<u64>, archive: bool, path: &VfsPath) -> Option<String> {
     if conn.is_some() || archive {
         return None;
     }
-    let trash = dirs::home_dir()?.join(".Trash");
-    (std::path::Path::new(path.as_str()) == trash).then(|| t!("sidebar.trash").to_string())
+    let p = std::path::Path::new(path.as_str());
+    if dirs::home_dir().is_some_and(|h| p == h.join(".Trash")) {
+        return Some(t!("sidebar.trash").to_string());
+    }
+    manta_vfs::icloud::folder_label(p)
 }
 
 /// The breadcrumb of a location: `… › Downloads › backup.zip › docs`.
@@ -144,11 +149,20 @@ pub fn crumbs(loc: &Location) -> Vec<Crumb> {
             target: CrumbTarget::Here(VfsPath::root()),
         });
     }
+    // Inside iCloud Drive the location chip stands for
+    // `~/Library/Mobile Documents/com~apple~CloudDocs`: start after it.
+    let skip = (loc.conn.is_none() && loc.archive.is_none())
+        .then(|| manta_vfs::icloud::crumb_base(std::path::Path::new(loc.path.as_str())))
+        .flatten()
+        .map_or(0, |base| base.components().count() - 1);
     let mut acc = VfsPath::root();
-    for c in loc.path.components() {
+    for (i, c) in loc.path.components().into_iter().enumerate() {
         acc = acc.join(c);
+        if i < skip {
+            continue;
+        }
         let label =
-            trash_label(loc.conn, loc.archive.is_some(), &acc).unwrap_or_else(|| c.to_string());
+            folder_label(loc.conn, loc.archive.is_some(), &acc).unwrap_or_else(|| c.to_string());
         out.push(Crumb {
             label,
             archive: false,
@@ -645,7 +659,7 @@ impl Tab {
         if let Some(s) = &self.search {
             return s.query.title();
         }
-        if let Some(t) = trash_label(self.loc.conn, self.loc.archive.is_some(), &self.loc.path) {
+        if let Some(t) = folder_label(self.loc.conn, self.loc.archive.is_some(), &self.loc.path) {
             return t;
         }
         let name = self.loc.path.file_name();
