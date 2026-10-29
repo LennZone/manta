@@ -98,6 +98,55 @@ impl SpaceAction {
     }
 }
 
+/// What the mouse's side buttons (thumb buttons 4 and 5) do.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MouseNav {
+    /// Button 4 goes back, button 5 forward (like browsers and Finder).
+    #[default]
+    BackForward,
+    /// Button 4 goes forward, button 5 back.
+    Swapped,
+    /// The side buttons do nothing.
+    Off,
+}
+
+/// A step through a tab's (or the help's) history.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NavStep {
+    Back,
+    Forward,
+}
+
+impl MouseNav {
+    pub const ALL: [MouseNav; 3] = [MouseNav::BackForward, MouseNav::Swapped, MouseNav::Off];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            MouseNav::BackForward => t!("settings.mouse_nav.back_forward"),
+            MouseNav::Swapped => t!("settings.mouse_nav.swapped"),
+            MouseNav::Off => t!("settings.mouse_nav.off"),
+        }
+    }
+
+    /// The step a side button pressed in this frame asks for.
+    pub fn step(self, input: &eframe::egui::InputState) -> Option<NavStep> {
+        use eframe::egui::PointerButton::{Extra1, Extra2};
+        let (back, forward) = match self {
+            MouseNav::BackForward => (Extra1, Extra2),
+            MouseNav::Swapped => (Extra2, Extra1),
+            MouseNav::Off => return None,
+        };
+        if input.pointer.button_pressed(back) {
+            Some(NavStep::Back)
+        } else if input.pointer.button_pressed(forward) {
+            Some(NavStep::Forward)
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Prefs {
     /// New tabs (and the panes at launch) show hidden files.
@@ -129,6 +178,10 @@ pub struct Prefs {
     /// was last shown in; off: the view belongs to the pane.
     #[serde(default)]
     pub remember_view_per_folder: bool,
+    /// The mouse's side buttons go back and forward in the pane under the
+    /// pointer (and in the help).
+    #[serde(default)]
+    pub mouse_nav: MouseNav,
     /// Download small images (< 5 MB) from servers in the background for
     /// thumbnails; off: server files show their type icon.
     #[serde(default)]
@@ -212,6 +265,15 @@ mod tests {
             Prefs::load(&path).open_archives,
             "archives open as folders by default"
         );
+    }
+
+    #[test]
+    fn mouse_side_buttons_go_back_and_forward_by_default() {
+        assert_eq!(Prefs::default().mouse_nav, MouseNav::BackForward);
+        let p: Prefs = serde_json::from_str("{\"mouse_nav\": \"swapped\"}").unwrap();
+        assert_eq!(p.mouse_nav, MouseNav::Swapped);
+        let p: Prefs = serde_json::from_str("{\"mouse_nav\": \"off\"}").unwrap();
+        assert_eq!(p.mouse_nav, MouseNav::Off);
     }
 
     #[test]

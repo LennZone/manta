@@ -5858,6 +5858,30 @@ impl MantaApp {
         crate::a11y::paint_focus_ring(ctx);
     }
 
+    /// The mouse's side buttons go back and forward in the pane under the
+    /// pointer (else the active one), like ⌘[ and ⌘]. Settings → Mouse
+    /// side buttons swaps or turns them off.
+    fn handle_mouse_nav(&mut self, ctx: &egui::Context, actions: &mut Vec<Action>) {
+        let Some(step) = ctx.input(|i| self.prefs.mouse_nav.step(i)) else {
+            return;
+        };
+        if self.sheet_open()
+            || self.modal_window().is_some()
+            || crate::aux_window::embedded_key(ctx).is_some()
+        {
+            return;
+        }
+        let pos = ctx.input(|i| i.pointer.interact_pos());
+        let side = pos
+            .and_then(|p| self.pane_rects.iter().find(|(_, r)| r.contains(p)))
+            .map_or(self.active, |(s, _)| *s);
+        self.activate(side);
+        actions.push(match step {
+            crate::prefs::NavStep::Back => Action::Back(side),
+            crate::prefs::NavStep::Forward => Action::Forward(side),
+        });
+    }
+
     fn handle_keys(&mut self, ctx: &egui::Context, actions: &mut Vec<Action>) {
         let step = std::mem::take(&mut self.pending_tab_switch);
         if step != 0 && !self.modal_open() {
@@ -7252,6 +7276,7 @@ impl MantaApp {
         self.aux_selftest(&ctx);
         crate::aux_window::track_embedded_focus(&ctx, &self.open_aux_windows());
         self.handle_keys(&ctx, &mut actions);
+        self.handle_mouse_nav(&ctx, &mut actions);
         let p = pal(ui);
 
         egui::Panel::top("toolbar")
@@ -7414,6 +7439,7 @@ impl MantaApp {
         self.modal_window_frame(&ctx);
         self.settings_window(&ctx);
         crate::update_window::window(&ctx, &mut self.updates);
+        self.help.mouse_nav = self.prefs.mouse_nav;
         let help = self.help.ui(&ctx);
         if let Some(url) = help.open_url {
             self.open_web_link(url);

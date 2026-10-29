@@ -697,6 +697,10 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `settings.space_opens` | Space opens | Leertaste öffnet | 空格键打开 | La barra espaciadora abre | La barre d’espace ouvre | Barra spaziatrice | Пробел открывает |
 | `settings.space.quick_look` | Quick Look (macOS) | Schnellansicht (macOS) | 快速查看（macOS） | Vista Rápida (macOS) | Coup d’œil (macOS) | Visualizzazione rapida (macOS) | Быстрый просмотр (macOS) |
 | `settings.space.built_in` | Built-in preview | Integrierte Vorschau | 内建预览 | Vista previa integrada | Aperçu intégré | Anteprima integrata | Встроенный просмотр |
+| `settings.mouse_nav` | Mouse side buttons | Maus-Seitentasten | 鼠标侧键 | Botones laterales del ratón | Boutons latéraux de la souris | Tasti laterali del mouse | Боковые кнопки мыши |
+| `settings.mouse_nav.back_forward` | Back / Forward | Zurück / Vorwärts | 后退 / 前进 | Atrás / Adelante | Précédent / Suivant | Indietro / Avanti | Назад / Вперёд |
+| `settings.mouse_nav.swapped` | Forward / Back (swapped) | Vorwärts / Zurück (vertauscht) | 前进 / 后退（互换） | Adelante / Atrás (invertido) | Suivant / Précédent (inversés) | Avanti / Indietro (invertiti) | Вперёд / Назад (поменять) |
+| `settings.mouse_nav.off` | Off | Aus | 关 | Desactivado | Désactivés | Disattivati | Выкл. |
 | `settings.section.copy_move` | Copy and move | Kopieren und Bewegen | 拷贝和移动 | Copiar y mover | Copie et déplacement | Copia e spostamento | Копирование и перемещение |
 | `settings.drop` | When you drop files | Beim Ablegen von Dateien | 拖放文件时 | Al soltar archivos | Lorsque vous déposez des fichiers | Quando rilasci dei file | При перетаскивании файлов |
 | `settings.drop.ask` | Ask (Copy preselected) | Nachfragen (Kopieren vorausgewählt) | 询问（预选“拷贝”） | Preguntar (Copiar preseleccionado) | Demander (Copier présélectionné) | Chiedi (Copia preselezionato) | Спрашивать (по умолчанию копировать) |

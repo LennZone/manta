@@ -54,6 +54,7 @@ Jeder Tab hat seinen eigenen Verlauf.
 
 - **⌘[** oder **⌘←**: **Zurück**
 - **⌘]** oder **⌘→**: **Vorwärts**
+- Die **Daumentasten der Maus** (Taste 4 und 5): **Zurück** und **Vorwärts** im Bereich unter dem Zeiger. Vertauschen oder abschalten unter [Einstellungen → Dateien](16-einstellungen.md#dateien).
 
 Der Verlauf reicht auch in Archive hinein und wieder heraus.
 

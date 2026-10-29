@@ -43,6 +43,7 @@ Disponible uniquement si Manta est exécuté depuis le dossier **Applications** 
 | **Afficher les fichiers masqués** | Pour les nouveaux onglets et au lancement. **⇧⌘.** les affiche ou les masque dans l’onglet actuel. |
 | **Ouvrir les archives comme des dossiers** | Retour ou un double-clic parcourt les archives ZIP et TAR dans la sous-fenêtre (en lecture seule). **⌥↩** les ouvre avec l’app par défaut. Voir [Archives](10-archive.md). |
 | **Mémoriser la présentation par dossier** | Chaque dossier s’ouvre dans la présentation dans laquelle il a été affiché pour la dernière fois (Icônes, Liste, Colonnes, Galerie). Désactivé (par défaut) : la présentation appartient à la sous-fenêtre. Voir [Présentations](03-ansichten.md#pro-ordner). |
+| **Boutons latéraux de la souris** | Les boutons du pouce reculent et avancent dans la sous-fenêtre sous le pointeur, comme **⌘[** et **⌘]**, aussi dans l’Aide. **Précédent / Suivant** (par défaut), **Suivant / Précédent (inversés)** ou **Désactivés**. |
 | **Charger les vignettes des fichiers sur serveur** | Télécharge les petites images (moins de 5 Mo) en arrière-plan. Désactivé (par défaut) : les fichiers de serveur affichent l’icône de leur type. Voir [Vignettes](03-ansichten.md#server-vorschaubilder). |
 | **Icônes de fichiers de macOS** | Les fichiers affichent l’icône que macOS associe à leur type, les apps la leur, comme dans le Finder, aussi sur les serveurs. Désactivé : les symboles de Manta. Par défaut : activé. |
 

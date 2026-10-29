@@ -79,6 +79,8 @@ pub struct Help {
     pub loc: Loc,
     pub back: Vec<Loc>,
     pub forward: Vec<Loc>,
+    /// What the mouse's side buttons do (Settings, set by the app).
+    pub mouse_nav: crate::prefs::MouseNav,
     /// Chapters whose sections are shown in the TOC.
     pub expanded: HashSet<String>,
     /// Search result under the keyboard cursor.
@@ -111,6 +113,7 @@ impl Default for Help {
             },
             back: Vec::new(),
             forward: Vec::new(),
+            mouse_nav: crate::prefs::MouseNav::default(),
             expanded: HashSet::new(),
             selected_hit: 0,
             focus_search: false,
@@ -317,6 +320,11 @@ impl Help {
             }
             if ui.input_mut(|i| i.consume_key(cmd, egui::Key::CloseBracket)) {
                 self.go_forward();
+            }
+            match ui.input(|i| self.mouse_nav.step(i)) {
+                Some(crate::prefs::NavStep::Back) => self.go_back(),
+                Some(crate::prefs::NavStep::Forward) => self.go_forward(),
+                None => {}
             }
             if ui.input_mut(|i| {
                 i.consume_key(cmd, egui::Key::F)

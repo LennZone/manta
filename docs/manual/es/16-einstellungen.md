@@ -43,6 +43,7 @@ Solo está disponible cuando Manta se ejecuta desde la carpeta **Aplicaciones** 
 | **Mostrar archivos ocultos** | Para pestañas nuevas y al abrir la app. **⇧⌘.** los muestra u oculta en la pestaña actual. |
 | **Abrir archivos comprimidos como carpetas** | Return o un doble clic explora los archivos ZIP y TAR en el panel (solo lectura). **⌥↩** los abre con la app predeterminada. Consulta [Archivos comprimidos](10-archive.md). |
 | **Recordar la visualización por carpeta** | Cada carpeta se abre en la visualización en la que se mostró por última vez (Iconos, Lista, Columnas, Galería). Desactivado (por omisión): la visualización pertenece al panel. Consulta [Visualizaciones](03-ansichten.md#pro-ordner). |
+| **Botones laterales del ratón** | Los botones del pulgar retroceden y avanzan en el panel bajo el puntero, como **⌘[** y **⌘]**, también en la Ayuda. **Atrás / Adelante** (predeterminado), **Adelante / Atrás (invertido)** o **Desactivado**. |
 | **Cargar miniaturas de archivos del servidor** | Descarga imágenes pequeñas (menos de 5 MB) en segundo plano. Desactivado (por omisión): los archivos del servidor muestran el icono de su tipo. Consulta [Miniaturas](03-ansichten.md#server-vorschaubilder). |
 | **Iconos de archivo de macOS** | Los archivos muestran el icono que macOS tiene para su tipo y las apps el suyo propio, como en el Finder, también en servidores. Desactivado: los símbolos de Manta. Predeterminado: activado. |
 

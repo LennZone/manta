@@ -54,6 +54,7 @@ Ogni scheda ha la propria cronologia.
 
 - **⌘[** o **⌘←**: **Indietro**
 - **⌘]** o **⌘→**: **Avanti**
+- I **tasti del pollice del mouse** (tasti 4 e 5): **Indietro** e **Avanti** nel riquadro sotto il puntatore. Si possono invertire o disattivare in [Impostazioni → File](16-einstellungen.md#dateien).
 
 La cronologia entra negli archivi ed esce di nuovo.
 

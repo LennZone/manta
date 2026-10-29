@@ -54,6 +54,7 @@ Each tab has its own history.
 
 - **⌘[** or **⌘←**: **Back**
 - **⌘]** or **⌘→**: **Forward**
+- The **mouse's thumb buttons** (buttons 4 and 5): **Back** and **Forward** in the pane under the pointer. Swap them or turn them off in [Settings → Files](16-einstellungen.md#dateien).
 
 The history reaches into archives and out again.
 

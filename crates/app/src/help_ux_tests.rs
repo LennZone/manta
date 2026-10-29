@@ -372,6 +372,23 @@ fn links_navigate_inside_the_help_window_and_back() {
     h.key_press_modifiers(Modifiers::COMMAND, Key::OpenBracket);
     h.run_steps(3);
     assert_eq!(page(&mut h), chapter("05-dateien.md"));
+    // So do the mouse's side buttons (button 5 forward, 4 back).
+    for (button, file) in [
+        (egui::PointerButton::Extra2, "02-bereiche-tabs.md"),
+        (egui::PointerButton::Extra1, "05-dateien.md"),
+    ] {
+        for pressed in [true, false] {
+            h.event(egui::Event::PointerButton {
+                pos: egui::pos2(400.0, 300.0),
+                button,
+                pressed,
+                modifiers: Modifiers::NONE,
+            });
+            h.step();
+        }
+        h.run_steps(2);
+        assert_eq!(page(&mut h), chapter(file));
+    }
 
     // Developer docs open in the window; web links go to the browser.
     let Target::Markdown { path, anchor } =

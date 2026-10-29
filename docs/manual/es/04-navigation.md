@@ -54,6 +54,7 @@ Cada pestaña tiene su propio historial.
 
 - **⌘[** o **⌘←**: **Atrás**
 - **⌘]** o **⌘→**: **Adelante**
+- Los **botones del pulgar del ratón** (botones 4 y 5): **Atrás** y **Adelante** en el panel bajo el puntero. Se pueden intercambiar o desactivar en [Ajustes → Archivos](16-einstellungen.md#dateien).
 
 El historial entra en los archivos comprimidos y vuelve a salir de ellos.
 

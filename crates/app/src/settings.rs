@@ -16,7 +16,7 @@ use crate::dialogs::{self, DialogResult};
 use crate::i18n::Language;
 use crate::icons;
 use crate::plugin_ui;
-use crate::prefs::{Accent, Appearance, ConflictPref, DropAction, Prefs, SpaceAction};
+use crate::prefs::{Accent, Appearance, ConflictPref, DropAction, MouseNav, Prefs, SpaceAction};
 use crate::theme::{self, pal, radius, space, text, Palette};
 use crate::widgets::{self, ButtonKind};
 
@@ -1935,6 +1935,31 @@ fn general_ui(
                     prefs.remember_view_per_folder = !prefs.remember_view_per_folder;
                     changed = true;
                 }
+            },
+        );
+        ui.add_space(space::SM);
+        setting_row(
+            ui,
+            t!("settings.mouse_nav"),
+            &t!(
+                "settings.mouse_nav.note",
+                back = crate::commands::Cmd::Back.shortcut(),
+                forward = crate::commands::Cmd::Forward.shortcut()
+            ),
+            |ui| {
+                egui::ComboBox::from_id_salt("mouse-nav")
+                    .width(170.0)
+                    .selected_text(prefs.mouse_nav.label())
+                    .show_ui(ui, |ui| {
+                        for m in MouseNav::ALL {
+                            if ui
+                                .selectable_value(&mut prefs.mouse_nav, m, m.label())
+                                .changed()
+                            {
+                                changed = true;
+                            }
+                        }
+                    });
             },
         );
         ui.add_space(space::SM);

@@ -3520,6 +3520,9 @@ mod panes_ux_tests;
 #[path = "favorites_ux_tests.rs"]
 mod favorites_ux_tests;
 
+#[path = "mouse_nav_ux_tests.rs"]
+mod mouse_nav_ux_tests;
+
 #[path = "views_ux_tests.rs"]
 mod views_ux_tests;
 

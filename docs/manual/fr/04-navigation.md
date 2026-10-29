@@ -54,6 +54,7 @@ Chaque onglet a son propre historique.
 
 - **⌘[** ou **⌘←** : **Précédent**
 - **⌘]** ou **⌘→** : **Suivant**
+- Les **boutons du pouce de la souris** (boutons 4 et 5) : **Précédent** et **Suivant** dans la sous-fenêtre sous le pointeur. Inversez-les ou désactivez-les dans [Réglages → Fichiers](16-einstellungen.md#dateien).
 
 L’historique entre dans les archives et en ressort.
 
