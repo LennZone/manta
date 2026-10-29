@@ -2409,12 +2409,13 @@ impl MantaApp {
     }
 
     /// Which pane a tab belongs to.
+    /// Any number of panes (one after closing the other, three or more);
+    /// a tab that is gone (its pane closed meanwhile): the active pane.
     fn side_of_tab(&self, tab_id: u64) -> Side {
-        if self.panes[1].tabs.iter().any(|t| t.id == tab_id) {
-            Side::Right
-        } else {
-            Side::Left
-        }
+        self.panes
+            .iter()
+            .find(|p| p.tabs.iter().any(|t| t.id == tab_id))
+            .map_or(self.active, |p| p.id)
     }
 
     /// Report finished transfer jobs of tracked actions.

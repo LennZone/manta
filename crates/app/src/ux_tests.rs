@@ -2244,6 +2244,39 @@ fn new_file_creates_an_empty_file_and_selects_it() {
     assert_eq!(std::fs::metadata(fx.root.join("todo.md")).unwrap().len(), 0);
 }
 
+/// With only one pane left (either one closed), renaming works (issue #3:
+/// it crashed, the pane of the renamed item was looked up as `panes[1]`).
+#[test]
+fn rename_with_a_single_pane() {
+    for closed in [Side::Right, Side::Left] {
+        let fx = fixture();
+        let mut h = harness(&fx, WIDE, Theme::Light);
+        let ctx = h.ctx.clone();
+        app(&mut h).handle_action(&ctx, super::Action::ClosePane(closed));
+        h.run_steps(2);
+        assert_eq!(app(&mut h).panes.len(), 1);
+        let side = app(&mut h).panes[0].id;
+        app(&mut h).navigate_path(side, VfsPath::new(&fx.root.to_string_lossy()));
+        settle(&mut h);
+        select(&mut h, side, &["README.md"]);
+        h.key_press(egui::Key::F2);
+        h.run_steps(2);
+        let Some(Dialog::Name(f)) = &mut app(&mut h).dialog else {
+            panic!("F2 opens the name dialog");
+        };
+        f.name = "LIESMICH.md".into();
+        h.key_press(egui::Key::Enter);
+        wait_until(&mut h, "the renamed file selected", |h| {
+            app(h)
+                .pane(side)
+                .tab()
+                .cursor_entry()
+                .is_some_and(|e| e.name == "LIESMICH.md")
+        });
+        assert!(fx.root.join("LIESMICH.md").exists() && !fx.root.join("README.md").exists());
+    }
+}
+
 /// Right-click a folder: New Folder / New File are made inside it (the
 /// dialog says where); the pane stays where it is.
 #[test]
