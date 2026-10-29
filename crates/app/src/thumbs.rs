@@ -170,6 +170,17 @@ fn app_for_bundle_id(_id: &str) -> Option<PathBuf> {
     None
 }
 
+/// How an icon file is drawn: an app bundle's icon, or the image of an
+/// `.icns` file (a volume's custom icon).
+pub fn icon_file_job(file: PathBuf) -> (Source, Method) {
+    let method = if file.extension().is_some_and(|x| x == "app") {
+        Method::AppIcon
+    } else {
+        Method::QuickLook
+    };
+    (Source::Local(file), method)
+}
+
 /// How `e` gets a thumbnail, if it can have one (local files).
 pub fn method_for(e: &Entry) -> Option<Method> {
     if is_app_bundle(e) {
@@ -991,6 +1002,26 @@ mod tests {
             img.height()
         );
         assert!(img.pixels().any(|p| p[3] > 0), "not blank");
+    }
+
+    /// A volume's custom icon (`.icns`) comes out as its image.
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn quick_look_draws_an_icns_file() {
+        let icns = Path::new(
+            "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/GenericFolderIcon.icns",
+        );
+        if !icns.is_file() {
+            return;
+        }
+        let (source, method) = icon_file_job(icns.to_path_buf());
+        assert_eq!(method, Method::QuickLook);
+        let Source::Local(path) = source else {
+            panic!("a local file")
+        };
+        let img = quicklook(&path, 64, false).expect("icns image");
+        assert!(img.width() >= 32, "{}", img.width());
+        assert!(img.pixels().any(|p| p[3] > 0), "blank");
     }
 
     /// Quick Look gives the icon macOS shows for a file type.

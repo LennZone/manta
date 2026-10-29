@@ -82,9 +82,9 @@ Vedi [Connessioni](08-verbindungen.md#favoriten).
 
 ## Unità {#geraete}
 
-Le unità appena collegate compaiono sotto **Dispositivi**. Se una non compare, fai clic sull’icona a freccia accanto a **Dispositivi** (**Rileggi volumi**).
+Le unità appena collegate e le immagini disco aperte (ad esempio un DMG da cui installi un’app) compaiono da sole sotto **Dispositivi**. Se una non compare, fai clic sull’icona a freccia accanto a **Dispositivi** (**Rileggi volumi**).
 
-Manta non ha un pulsante di espulsione per le unità: espellile nel Finder (o con l’icona di espulsione accanto all’unità nella barra laterale del Finder). L’icona di espulsione nella barra laterale di Manta compare solo accanto ai server connessi e li disconnette.
+Come nel Finder, immagini disco, chiavette USB e unità esterne sono elencate in una sezione propria, **Espellibili**, con l’icona del volume (o dell’app che contiene) se ne ha una. L’icona di espulsione accanto espelle l’unità. Il menu contestuale offre inoltre **Apri**, **Apri in una nuova scheda**, **Mostra nella cartella superiore** (per un’immagine disco, il file DMG) e **Espelli “Nome”**. I pannelli che mostrano l’unità passano a **Inizio** quando viene espulsa. Se un’app sta ancora usando l’unità, Manta segnala che non è stato possibile espellerla.
 
 ## Server connessi {#server}
 

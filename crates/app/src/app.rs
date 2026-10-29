@@ -206,8 +206,13 @@ pub enum Action {
     GoLocal(Side),
     /// Read `/Volumes` and look for cloud folders again.
     RescanVolumes,
-    /// Eject a mounted network volume (Devices).
+    /// Eject a volume (Devices, Ejectable).
     EjectVolume(PathBuf),
+    /// Open a local folder (a volume) in a new tab of the active pane.
+    OpenLocalInNewTab(PathBuf),
+    /// "Show in Enclosing Folder" of a volume: a disk image's file, else
+    /// the volume in `/Volumes`.
+    RevealVolume(PathBuf),
     /// "Download Now" for the selection (cloud folders).
     CloudDownload(Side),
     /// "Remove Download" for the selection (cloud folders).
@@ -1439,6 +1444,10 @@ impl MantaApp {
         // The Trash (sidebar full / empty), when Manta may read it.
         let trash = self.trash.watch_dir();
         wanted.extend(trash.clone());
+        // Mounted volumes ("Devices"): a disk image was opened, a drive
+        // plugged in or ejected elsewhere.
+        let volumes = std::path::Path::new(sidebar::VOLUMES_DIR);
+        wanted.insert(volumes.to_path_buf());
         self.live.sync(wanted);
         self.live.poll(now);
         let (due, next) = self.live.due(now);
@@ -1452,6 +1461,12 @@ impl MantaApp {
             self.cloud.invalidate(&dir);
             if trash.as_ref() == Some(&dir) {
                 self.trash.note_change(&dir);
+            }
+            if dir.as_path() == volumes {
+                log::debug!("live refresh: volumes changed");
+                let (l, d) = sidebar::discover_places();
+                self.locations = l;
+                self.devices = d;
             }
             for pane in &mut self.panes {
                 let view = pane.view;
@@ -1803,6 +1818,9 @@ impl MantaApp {
                 WorkResult::TrashMeasured(summary) => self.on_trash_measured(summary),
                 WorkResult::TrashEmptied(result) => self.on_trash_emptied(result),
                 WorkResult::Ejected { path, name, result } => self.on_ejected(path, name, result),
+                WorkResult::VolumeRevealed { volume, image } => {
+                    self.on_volume_revealed(volume, image)
+                }
                 WorkResult::Space { key, result } => {
                     if let Err(e) = &result {
                         log::debug!("free space of {}: {e}", key.1);
@@ -2917,6 +2935,8 @@ impl MantaApp {
                 self.tags.reload_finder();
             }
             Action::EjectVolume(path) => self.eject_volume(path),
+            Action::OpenLocalInNewTab(path) => self.open_local_in_new_tab(path),
+            Action::RevealVolume(path) => self.reveal_volume(path),
             Action::OpenConnection(id) => {
                 if let Some(c) = self.connections.iter().find(|c| c.id == id) {
                     let loc = Location {
@@ -3802,8 +3822,9 @@ impl MantaApp {
         // Dropping the last Arc closes the connection (transfers may still hold one).
     }
 
-    /// Eject a network volume from the sidebar (`diskutil unmount`, off
-    /// the UI thread). Panes showing it go back to the home folder.
+    /// Eject a volume from the sidebar (a network share, disk image, USB
+    /// stick or external drive; see [`manta_vfs::volumes::eject`]), off the
+    /// UI thread. Panes showing it go back to the home folder.
     fn eject_volume(&mut self, path: PathBuf) {
         let name = path
             .file_name()
@@ -3816,6 +3837,56 @@ impl MantaApp {
             move || manta_vfs::volumes::eject(&p).map_err(|e| e.to_string()),
             move |result| WorkResult::Ejected { path, name, result },
         );
+    }
+
+    /// A local folder in a new tab of the active pane (the volume menu's
+    /// "Open in New Tab", like Finder's "Open in New Window").
+    fn open_local_in_new_tab(&mut self, path: PathBuf) {
+        let side = self.active;
+        let id = self.next_id();
+        let pane = self.pane_mut(side);
+        let tab = pane.tab().duplicate(id);
+        pane.tabs.push(tab);
+        pane.active = pane.tabs.len() - 1;
+        let loc = Location {
+            fs: self.local.clone(),
+            conn: None,
+            path: local_vfs_path(&path),
+            archive: None,
+        };
+        self.navigate(side, loc, false);
+    }
+
+    /// "Show in Enclosing Folder" of a volume: the disk image file it was
+    /// opened from (`hdiutil info`, off the UI thread), else the volume
+    /// itself in `/Volumes`.
+    fn reveal_volume(&mut self, volume: PathBuf) {
+        let v = volume.clone();
+        self.worker.spawn(
+            "reveal-volume",
+            move || Ok::<_, String>(manta_vfs::volumes::disk_image_of(&v)),
+            move |result| WorkResult::VolumeRevealed {
+                volume,
+                image: result.ok().flatten(),
+            },
+        );
+    }
+
+    /// Select `image` (or `volume`) in its folder in the active pane.
+    fn on_volume_revealed(&mut self, volume: PathBuf, image: Option<PathBuf>) {
+        let item = image.filter(|i| i.exists()).unwrap_or(volume);
+        let (Some(dir), Some(name)) = (item.parent(), item.file_name()) else {
+            return;
+        };
+        let loc = Location {
+            fs: self.local.clone(),
+            conn: None,
+            path: local_vfs_path(dir),
+            archive: None,
+        };
+        let side = self.active;
+        self.navigate(side, loc, false);
+        self.pane_mut(side).tab_mut().pending_select = Some(name.to_string_lossy().into_owned());
     }
 
     /// `docker start|restart|stop` in the background; the sidebar row shows
@@ -7380,6 +7451,7 @@ impl MantaApp {
                     !self.prefs.gdrive_hint_dismissed && !self.cloud.has_google_drive(),
                     &connections,
                     &current,
+                    Some(&self.thumbs),
                     &mut self.containers,
                     flash,
                     &sidebar_tags,

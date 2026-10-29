@@ -82,9 +82,9 @@ Consulta [Conexiones](08-verbindungen.md#favoriten).
 
 ## Unidades {#geraete}
 
-Las unidades que conectas aparecen en **Dispositivos**. Si alguna no aparece, haz clic en el icono de flecha junto a **Dispositivos** (**Volver a buscar volúmenes**).
+Las unidades que conectas y las imágenes de disco que abres (por ejemplo, un DMG desde el que instalas una app) aparecen solas en **Dispositivos**. Si alguna no aparece, haz clic en el icono de flecha junto a **Dispositivos** (**Volver a buscar volúmenes**).
 
-Manta no tiene botón de expulsión para unidades: expúlsalas en Finder (o con el icono de expulsión junto a la unidad en la barra lateral de Finder). El icono de expulsión de la barra lateral de Manta solo aparece junto a los servidores conectados y sirve para desconectarlos.
+Como en Finder, las imágenes de disco, memorias USB y unidades externas aparecen en su propia sección, **Expulsables**, con el icono propio del volumen (o el de la app que contiene) si lo tiene. El icono de expulsión a su lado expulsa la unidad. El menú contextual ofrece además **Abrir**, **Abrir en una pestaña nueva**, **Mostrar en la carpeta contenedora** (en una imagen de disco, el archivo DMG) y **Expulsar “Nombre”**. Los paneles que muestran la unidad pasan a **Inicio** al expulsarla. Si una app todavía usa la unidad, Manta indica que no se ha podido expulsar.
 
 ## Servidores conectados {#server}
 

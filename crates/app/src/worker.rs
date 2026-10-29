@@ -113,11 +113,17 @@ pub enum WorkResult {
         key: crate::space::Key,
         result: Result<Option<manta_core::Space>, String>,
     },
-    /// A network volume was ejected (or refused to).
+    /// A volume was ejected (or refused to).
     Ejected {
         path: std::path::PathBuf,
         name: String,
         result: Result<(), String>,
+    },
+    /// The disk image file of a volume was looked up ("Show in Enclosing
+    /// Folder"; `None`: not a disk image).
+    VolumeRevealed {
+        volume: std::path::PathBuf,
+        image: Option<std::path::PathBuf>,
     },
     /// `docker start|restart|stop` finished (sidebar context menu).
     DockerControlled {

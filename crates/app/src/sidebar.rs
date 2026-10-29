@@ -13,6 +13,9 @@ use crate::theme::{self, pal, radius, size, space, text};
 use crate::widgets;
 use manta_core::VfsPath;
 
+/// Where macOS mounts volumes (watched for "Devices").
+pub const VOLUMES_DIR: &str = "/Volumes";
+
 #[derive(Clone)]
 pub struct Place {
     pub icon: &'static str,
@@ -20,10 +23,24 @@ pub struct Place {
     pub path: PathBuf,
     /// A mounted network share (SMB, AFP, NFS, WebDAV): ejectable.
     pub network: bool,
+    /// A disk image, USB stick or external drive: ejectable, like in Finder
+    /// (listed under "Ejectable").
+    pub ejectable: bool,
+    /// The volume's own icon ([`manta_vfs::volumes::custom_icon`]), drawn
+    /// instead of `icon` once it is loaded.
+    pub image: Option<PathBuf>,
+}
+
+impl Place {
+    /// Shows an eject button (and "Eject" in its menu).
+    pub fn can_eject(&self) -> bool {
+        self.network || self.ejectable
+    }
 }
 
 /// Standard user folders plus `/` and mounted volumes. Reads `/Volumes`, which
-/// is a cheap local directory listing; it is only refreshed on demand.
+/// is a cheap local directory listing; it is refreshed when `/Volumes`
+/// changes (live refresh), after an eject and on demand.
 pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
     let mut locations = Vec::new();
     let mut push = |icon, name: &str, p: Option<PathBuf>| {
@@ -33,6 +50,8 @@ pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
                 name: name.to_string(),
                 path,
                 network: false,
+                ejectable: false,
+                image: None,
             });
         }
     };
@@ -51,21 +70,29 @@ pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
         name: "Macintosh HD".into(),
         path: PathBuf::from("/"),
         network: false,
+        ejectable: false,
+        image: None,
     }];
     let network: Vec<PathBuf> = manta_vfs::volumes::network_volumes()
         .into_iter()
         .map(|v| v.path)
         .collect();
-    if let Ok(rd) = std::fs::read_dir("/Volumes") {
+    if let Ok(rd) = std::fs::read_dir(VOLUMES_DIR) {
         let mut vols: Vec<Place> = rd
             .filter_map(Result::ok)
             .filter(|e| {
-                // Skip the symlink to the boot volume.
+                // Skip the symlink to the boot volume and hidden mounts
+                // (`.timemachine`), like Finder.
                 e.file_type().map(|t| !t.is_symlink()).unwrap_or(false)
+                    && !e.file_name().to_string_lossy().starts_with('.')
             })
             .map(|e| {
                 let path = e.path();
                 let network = network.contains(&path);
+                let ejectable = !network && manta_vfs::volumes::is_ejectable(&path);
+                let image = ejectable
+                    .then(|| manta_vfs::volumes::custom_icon(&path))
+                    .flatten();
                 Place {
                     icon: if network {
                         icons::NETWORK
@@ -75,6 +102,8 @@ pub fn discover_places() -> (Vec<Place>, Vec<Place>) {
                     name: e.file_name().to_string_lossy().into_owned(),
                     path,
                     network,
+                    ejectable,
+                    image,
                 }
             })
             .collect();
@@ -222,6 +251,11 @@ pub(crate) struct Row<'a> {
     pub eject: bool,
     /// Tooltip (and spoken name) of the eject button; default "Disconnect".
     pub eject_tip: Option<&'a str>,
+    /// The eject button is always shown, not only on hover (volumes, like
+    /// Finder).
+    pub eject_always: bool,
+    /// An image (a volume's own icon) instead of `icon`.
+    pub image: Option<egui::TextureId>,
     /// Dot colour instead of green (with `status_dot`).
     pub dot: Option<egui::Color32>,
     /// Dim text after the label (e.g. a container's image).
@@ -318,7 +352,17 @@ pub(crate) fn row(ui: &mut egui::Ui, r: Row<'_>) -> (egui::Response, bool) {
         Some(c) => {
             ui.painter().circle_filled(ir.center(), 6.0, c);
         }
-        None => widgets::paint_icon(ui, ir, r.icon, 16.0, icon_color, r.fill_icon),
+        None => match r.image {
+            Some(tex) => {
+                ui.painter().image(
+                    tex,
+                    ir,
+                    egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                    egui::Color32::WHITE,
+                );
+            }
+            None => widgets::paint_icon(ui, ir, r.icon, 16.0, icon_color, r.fill_icon),
+        },
     }
     if r.status_dot {
         let c = ir.right_bottom() - egui::vec2(1.0, 2.0);
@@ -366,7 +410,7 @@ pub(crate) fn row(ui: &mut egui::Ui, r: Row<'_>) -> (egui::Response, bool) {
             egui::vec2(20.0, 20.0),
         );
         let e = ui.interact(er, resp.id.with("eject"), Sense::click());
-        let show = hovered || e.hovered() || r.selected;
+        let show = r.eject_always || hovered || e.hovered() || r.selected;
         if e.hovered() {
             ui.painter()
                 .rect_filled(er, CornerRadius::same(radius::CONTROL), p.hover);
@@ -402,6 +446,7 @@ pub fn sidebar_ui(
     drive_hint: bool,
     connections: &[ConnectionInfo],
     current: &Current,
+    thumbs: Option<&crate::thumbs::Thumbs>,
     containers: &mut crate::containers::Containers,
     flash: Option<(usize, f32)>,
     tags: &TagRows,
@@ -576,30 +621,23 @@ pub fn sidebar_ui(
             ) {
                 actions.push(Action::RescanVolumes);
             }
-            for pl in devices {
-                // An SMB connection's share is listed under "Servers".
-                if connections
+            // An SMB connection's share is listed under "Servers".
+            let listed = |pl: &&Place| {
+                !connections
                     .iter()
                     .any(|c| c.mount.as_deref() == Some(pl.path.as_path()))
-                {
-                    continue;
-                }
-                let (resp, eject) = row(
-                    ui,
-                    Row {
-                        icon: pl.icon,
-                        label: place_label(&pl.name),
-                        selected: is_current(&pl.path),
-                        status_dot: false,
-                        eject: pl.network,
-                        eject_tip: Some(t!("sidebar.eject")),
-                        ..Row::default()
-                    },
-                );
-                if eject {
-                    actions.push(Action::EjectVolume(pl.path.clone()));
-                } else if resp.on_hover_text(pl.path.display().to_string()).clicked() {
-                    actions.push(Action::OpenLocal(pl.path.clone()));
+            };
+            for pl in devices.iter().filter(|pl| !pl.ejectable).filter(listed) {
+                device_row(ui, pl, is_current(&pl.path), None, actions);
+            }
+
+            // Disk images, USB sticks, external drives: their own section,
+            // each with its eject button.
+            if devices.iter().any(|pl| pl.ejectable) {
+                section(ui, t!("sidebar.ejectable"), None);
+                for pl in devices.iter().filter(|pl| pl.ejectable) {
+                    let image = thumbs.and_then(|t| volume_image(ui, t, pl));
+                    device_row(ui, pl, is_current(&pl.path), image, actions);
                 }
             }
 
@@ -693,6 +731,102 @@ pub fn sidebar_ui(
         favorites: fav_rows,
         trash: trash_rect,
     }
+}
+
+/// A row under "Devices" or "Ejectable": opens the volume, its eject
+/// button ejects it.
+fn device_row(
+    ui: &mut egui::Ui,
+    pl: &Place,
+    selected: bool,
+    image: Option<egui::TextureId>,
+    actions: &mut Vec<Action>,
+) {
+    let (resp, eject) = row(
+        ui,
+        Row {
+            icon: pl.icon,
+            label: place_label(&pl.name),
+            selected,
+            eject: pl.can_eject(),
+            eject_tip: Some(t!("sidebar.eject")),
+            eject_always: pl.ejectable,
+            image,
+            ..Row::default()
+        },
+    );
+    if eject {
+        actions.push(Action::EjectVolume(pl.path.clone()));
+        return;
+    }
+    let resp = resp.on_hover_text(pl.path.display().to_string());
+    if resp.clicked() {
+        actions.push(Action::OpenLocal(pl.path.clone()));
+    }
+    device_menu(&resp, pl, actions);
+}
+
+/// The volume's own icon (custom volume icon or its app), once loaded.
+fn volume_image(
+    ui: &egui::Ui,
+    thumbs: &crate::thumbs::Thumbs,
+    pl: &Place,
+) -> Option<egui::TextureId> {
+    let file = pl.image.clone()?;
+    let px = crate::thumbs::bucket_for(18.0 * ui.ctx().pixels_per_point());
+    let key = crate::thumbs::ThumbKey {
+        origin: "volume-icon".into(),
+        path: file.to_string_lossy().into_owned(),
+        mtime: 0,
+        size: 0,
+        px,
+    };
+    match thumbs.get_any(&key, || Some(crate::thumbs::icon_file_job(file))) {
+        crate::thumbs::Thumb::Ready(t) => Some(t.id()),
+        _ => None,
+    }
+}
+
+/// Context menu of a volume, like Finder's: Open, Open in New Tab, Show in
+/// Enclosing Folder and Eject "…" (when it can be ejected).
+fn device_menu(resp: &egui::Response, pl: &Place, actions: &mut Vec<Action>) {
+    resp.context_menu(|ui| {
+        let mut item = |ui: &mut egui::Ui, icon: &str, label: &str, action: Action| {
+            if ui.button(format!("{icon}   {label}")).clicked() {
+                actions.push(action);
+                ui.close();
+            }
+        };
+        let path = &pl.path;
+        item(
+            ui,
+            icons::FOLDER_OPEN,
+            t!("sidebar.open"),
+            Action::OpenLocal(path.clone()),
+        );
+        item(
+            ui,
+            icons::PLUS,
+            t!("sidebar.open_new_tab"),
+            Action::OpenLocalInNewTab(path.clone()),
+        );
+        item(
+            ui,
+            icons::ARROW_SQUARE_OUT,
+            t!("sidebar.show_enclosing"),
+            Action::RevealVolume(path.clone()),
+        );
+        if pl.can_eject() {
+            ui.separator();
+            let name = place_label(&pl.name);
+            item(
+                ui,
+                icons::EJECT,
+                &t!("sidebar.eject_named", name = name),
+                Action::EjectVolume(path.clone()),
+            );
+        }
+    });
 }
 
 /// The Trash row (last in "Locations", as in Finder): opens the Trash,

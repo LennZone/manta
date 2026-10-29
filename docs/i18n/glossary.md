@@ -212,6 +212,10 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `pane.drag.failed` | Couldn't drag the items out of Manta | Die Objekte konnten nicht aus Manta gezogen werden | 无法将项目拖出 Manta | No se han podido arrastrar los ítems fuera de Manta | Impossible de faire glisser les éléments hors de Manta | Impossibile trascinare gli elementi fuori da Manta | Не удалось перетащить объекты из Manta |
 | `sidebar.disconnect` | Disconnect | Verbindung trennen | 断开连接 | Desconectar | Déconnecter | Disconnetti | Отключить |
 | `sidebar.eject` | Eject | Auswerfen | 推出 | Expulsar | Éjecter | Espelli | Извлечь |
+| `sidebar.eject_named` | Eject “{name}” | „{name}“ auswerfen | 推出“{name}” | Expulsar “{name}” | Éjecter « {name} » | Espelli “{name}” | Извлечь «{name}» |
+| `sidebar.ejectable` | Ejectable | Auswerfbar | 可推出 | Expulsables | Éjectables | Espellibili | Извлекаемые |
+| `sidebar.open_new_tab` | Open in New Tab | In neuem Tab öffnen | 在新标签页中打开 | Abrir en una pestaña nueva | Ouvrir dans un nouvel onglet | Apri in una nuova scheda | Открыть в новой вкладке |
+| `sidebar.show_enclosing` | Show in Enclosing Folder | Im umgebenden Ordner anzeigen | 在所在文件夹中显示 | Mostrar en la carpeta contenedora | Afficher dans le dossier parent | Mostra nella cartella superiore | Показать в папке |
 | `sidebar.favorites` | Favorites | Favoriten | 个人收藏 | Favoritos | Favoris | Preferiti | Избранное |
 | `sidebar.add_current` | Add Current Folder | Aktuellen Ordner hinzufügen | 添加当前文件夹 | Añadir carpeta actual | Ajouter le dossier actuel | Aggiungi cartella attuale | Добавить текущую папку |
 | `sidebar.all_buckets` | all buckets | alle Buckets | 所有 Bucket | todos los buckets | tous les buckets | tutti i bucket | все бакеты |

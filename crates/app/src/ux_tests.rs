@@ -215,6 +215,8 @@ fn places(root: &Path) -> (Vec<Place>, Vec<Place>) {
         name: name.into(),
         path,
         network: false,
+        ejectable: false,
+        image: None,
     };
     (
         vec![
@@ -3519,6 +3521,9 @@ mod panes_ux_tests;
 
 #[path = "favorites_ux_tests.rs"]
 mod favorites_ux_tests;
+
+#[path = "devices_ux_tests.rs"]
+mod devices_ux_tests;
 
 #[path = "mouse_nav_ux_tests.rs"]
 mod mouse_nav_ux_tests;

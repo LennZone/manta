@@ -82,9 +82,9 @@ See [Connections](08-verbindungen.md#favoriten).
 
 ## Drives {#geraete}
 
-Newly connected drives appear under **Devices**. If one doesn't show up, click the arrow icon next to **Devices** (**Rescan Volumes**).
+Newly connected drives and opened disk images (for example a DMG you install an app from) appear under **Devices** by themselves. If one doesn't show up, click the arrow icon next to **Devices** (**Rescan Volumes**).
 
-Manta has no eject button for drives: eject them in Finder (or with the eject icon next to the drive in Finder's sidebar). The eject icon in Manta's sidebar appears only next to connected servers; it disconnects them.
+As in Finder, disk images, USB sticks and external drives are listed in their own section, **Ejectable**, with the volume's own icon (or that of the app on it) if it has one. The eject icon next to it ejects the drive. The context menu also offers **Open**, **Open in New Tab**, **Show in Enclosing Folder** (for a disk image, the DMG file) and **Eject “Name”**. Panes that show the drive switch to **Home** when it is ejected. If an app is still using the drive, Manta reports that it couldn't be ejected.
 
 ## Connected servers {#server}
 

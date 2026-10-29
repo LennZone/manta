@@ -44,7 +44,8 @@ libc = "0.2"
 libc = "0.2"
 # Google Drive refresh tokens live in the login Keychain.
 security-framework = "3"
-# Cloud folders: iCloud / File Provider download status, download / evict.
+# Cloud folders: iCloud / File Provider download status, download / evict;
+# which volumes are ejectable (NSURL volume keys).
 objc2 = "0.6.3"
 objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSString", "NSURL", "NSArray", "NSDictionary", "NSValue", "NSError", "NSFileManager", "NSObject", "NSMetadata", "NSMetadataAttributes"] }
 

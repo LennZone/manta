@@ -99,6 +99,10 @@ pub const ENTRIES: Entries = &[
     // Sidebar
     ("sidebar.disconnect", "Disconnect", "Verbindung trennen"),
     ("sidebar.eject", "Eject", "Auswerfen"),
+    ("sidebar.eject_named", "Eject “{name}”", "„{name}“ auswerfen"),
+    ("sidebar.ejectable", "Ejectable", "Auswerfbar"),
+    ("sidebar.open_new_tab", "Open in New Tab", "In neuem Tab öffnen"),
+    ("sidebar.show_enclosing", "Show in Enclosing Folder", "Im umgebenden Ordner anzeigen"),
     ("sidebar.favorites", "Favorites", "Favoriten"),
     ("sidebar.add_current", "Add Current Folder", "Aktuellen Ordner hinzufügen"),
     ("sidebar.favorites_empty", "Press {shortcut} to keep the current folder here.", "Drücke {shortcut}, um den aktuellen Ordner hier abzulegen."),
