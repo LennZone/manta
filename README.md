@@ -35,12 +35,15 @@ updates.
 
 **Panes and views**
 - Any number of panes side by side, each with tabs, history, a breadcrumb path bar, filter,
-  sorting and hidden files; panes, tabs and widths come back at the next launch
+  sorting and hidden files; panes, tabs and widths come back at the next launch; the
+  mouse's thumb buttons go back and forward
 - Four views like Finder, per pane: Icons (with thumbnails), List, Columns and Gallery;
   files and apps show their macOS icons, like Finder
 - Command palette (⇧⌘P) with every action and its shortcut, Go to Path (⇧⌘G), and a full
   menu bar generated from the same commands
 - Local folders refresh by themselves when other apps change them (FSEvents)
+- Disk images, USB sticks and external drives under Ejectable in the sidebar, with their
+  own icon and an eject button, like Finder
 
 ![Manta in light mode with two local panes side by side and the sidebar with Favorites, Locations, Devices and Servers](docs/images/readme-overview.png)
 
