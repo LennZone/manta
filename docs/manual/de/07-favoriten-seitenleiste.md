@@ -82,7 +82,7 @@ Mehr dazu in [Verbindungen](08-verbindungen.md#favoriten).
 
 ## Laufwerke {#geraete}
 
-Neu eingesteckte Laufwerke und geöffnete Disk-Images (zum Beispiel eine DMG, aus der du eine App installierst) erscheinen von selbst unter **Geräte**. Taucht eines nicht auf, klicke auf das Pfeil-Symbol neben **Geräte** (**Volumes neu einlesen**).
+Neu eingesteckte Laufwerke und geöffnete Disk-Images (zum Beispiel eine DMG, aus der du eine App installierst) erscheinen von selbst in der Seitenleiste: interne Volumes und Netzwerk-Freigaben unter **Geräte**, auswerfbare Laufwerke unter **Auswerfbar** (siehe unten). Taucht eines nicht auf, klicke auf das Pfeil-Symbol neben **Geräte** (**Volumes neu einlesen**).
 
 Disk-Images, USB-Sticks und externe Laufwerke stehen wie im Finder in einem eigenen Abschnitt **Auswerfbar**, mit dem eigenen Symbol des Volumes (oder der App darauf), wenn es eins hat. Das Auswerfen-Symbol daneben wirft das Laufwerk aus. Das Kontextmenü bietet außerdem **Öffnen**, **In neuem Tab öffnen**, **Im umgebenden Ordner anzeigen** (bei einem Disk-Image die DMG-Datei) und **„Name“ auswerfen**. Bereiche, die das Laufwerk gerade zeigen, wechseln beim Auswerfen zum **Benutzerordner**. Benutzt eine App das Laufwerk noch, meldet Manta, dass es nicht ausgeworfen werden konnte.
 

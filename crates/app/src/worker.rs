@@ -119,6 +119,9 @@ pub enum WorkResult {
         name: String,
         result: Result<(), String>,
     },
+    /// `/Volumes` changed and the sidebar's places were read again
+    /// (locations, devices).
+    Places(Option<(Vec<crate::sidebar::Place>, Vec<crate::sidebar::Place>)>),
     /// The disk image file of a volume was looked up ("Show in Enclosing
     /// Folder"; `None`: not a disk image).
     VolumeRevealed {

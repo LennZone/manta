@@ -82,7 +82,7 @@ Voir [Connexions](08-verbindungen.md#favoriten).
 
 ## Disques {#geraete}
 
-Les disques nouvellement connectés et les images disque ouvertes (par exemple un DMG à partir duquel vous installez une app) apparaissent d’eux-mêmes sous **Appareils**. Si l’un d’eux n’apparaît pas, cliquez sur l’icône de flèche à côté de **Appareils** (**Analyser à nouveau les volumes**).
+Les disques nouvellement connectés et les images disque ouvertes (par exemple un DMG à partir duquel vous installez une app) apparaissent d’eux-mêmes dans la barre latérale : les volumes internes et les partages réseau sous **Appareils**, les disques éjectables sous **Éjectables** (voir ci-dessous). Si l’un d’eux n’apparaît pas, cliquez sur l’icône de flèche à côté de **Appareils** (**Analyser à nouveau les volumes**).
 
 Comme dans le Finder, les images disque, clés USB et disques externes sont listés dans leur propre section, **Éjectables**, avec l’icône propre du volume (ou celle de l’app qu’il contient) s’il en a une. L’icône d’éjection à côté éjecte le disque. Le menu contextuel propose aussi **Ouvrir**, **Ouvrir dans un nouvel onglet**, **Afficher dans le dossier parent** (pour une image disque, le fichier DMG) et **Éjecter « Nom »**. Les sous-fenêtres qui affichent le disque passent à **Départ** lors de l’éjection. Si une app utilise encore le disque, Manta indique qu’il n’a pas pu être éjecté.
 

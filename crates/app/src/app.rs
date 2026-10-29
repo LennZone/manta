@@ -1464,9 +1464,13 @@ impl MantaApp {
             }
             if dir.as_path() == volumes {
                 log::debug!("live refresh: volumes changed");
-                let (l, d) = sidebar::discover_places();
-                self.locations = l;
-                self.devices = d;
+                // Off the UI thread: asking a slow drive for its volume
+                // keys or icon must not stall the window.
+                self.worker.spawn(
+                    "discover-places",
+                    || Ok::<_, String>(sidebar::discover_places()),
+                    |result| WorkResult::Places(result.ok()),
+                );
             }
             for pane in &mut self.panes {
                 let view = pane.view;
@@ -1818,6 +1822,11 @@ impl MantaApp {
                 WorkResult::TrashMeasured(summary) => self.on_trash_measured(summary),
                 WorkResult::TrashEmptied(result) => self.on_trash_emptied(result),
                 WorkResult::Ejected { path, name, result } => self.on_ejected(path, name, result),
+                WorkResult::Places(Some((l, d))) => {
+                    self.locations = l;
+                    self.devices = d;
+                }
+                WorkResult::Places(None) => {}
                 WorkResult::VolumeRevealed { volume, image } => {
                     self.on_volume_revealed(volume, image)
                 }

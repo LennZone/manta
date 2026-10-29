@@ -74,20 +74,27 @@ fn volume_menu_actions() {
     assert_eq!(path(&mut h), VfsPath::new(&volume.to_string_lossy()));
 
     // Show in Enclosing Folder: not a disk image, so the volume is selected
-    // in its folder.
+    // in its folder (once the folder is listed; slow under load).
     act(&mut h, Action::RevealVolume(volume.clone()));
+    let root = VfsPath::new(&fx.root.to_string_lossy());
+    let selected = |h: &mut H| -> Vec<String> {
+        app(h)
+            .pane(side)
+            .tab()
+            .selected_entries()
+            .into_iter()
+            .map(|e| e.name)
+            .collect()
+    };
     let start = Instant::now();
-    while path(&mut h) != VfsPath::new(&fx.root.to_string_lossy()) {
-        assert!(start.elapsed() < Duration::from_secs(10), "not revealed");
+    while path(&mut h) != root || selected(&mut h) != ["Installer"] {
+        assert!(
+            start.elapsed() < Duration::from_secs(20),
+            "not revealed: {:?} {:?}",
+            path(&mut h),
+            selected(&mut h)
+        );
         h.run_steps(2);
         settle(&mut h);
     }
-    let selected: Vec<String> = app(&mut h)
-        .pane(side)
-        .tab()
-        .selected_entries()
-        .into_iter()
-        .map(|e| e.name)
-        .collect();
-    assert_eq!(selected, ["Installer"]);
 }

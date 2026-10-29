@@ -82,7 +82,7 @@ See [Connections](08-verbindungen.md#favoriten).
 
 ## Drives {#geraete}
 
-Newly connected drives and opened disk images (for example a DMG you install an app from) appear under **Devices** by themselves. If one doesn't show up, click the arrow icon next to **Devices** (**Rescan Volumes**).
+Newly connected drives and opened disk images (for example a DMG you install an app from) appear in the sidebar by themselves: internal volumes and network shares under **Devices**, ejectable drives under **Ejectable** (see below). If one doesn't show up, click the arrow icon next to **Devices** (**Rescan Volumes**).
 
 As in Finder, disk images, USB sticks and external drives are listed in their own section, **Ejectable**, with the volume's own icon (or that of the app on it) if it has one. The eject icon next to it ejects the drive. The context menu also offers **Open**, **Open in New Tab**, **Show in Enclosing Folder** (for a disk image, the DMG file) and **Eject “Name”**. Panes that show the drive switch to **Home** when it is ejected. If an app is still using the drive, Manta reports that it couldn't be ejected.
 

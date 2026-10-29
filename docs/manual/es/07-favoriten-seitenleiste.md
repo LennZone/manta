@@ -82,7 +82,7 @@ Consulta [Conexiones](08-verbindungen.md#favoriten).
 
 ## Unidades {#geraete}
 
-Las unidades que conectas y las imágenes de disco que abres (por ejemplo, un DMG desde el que instalas una app) aparecen solas en **Dispositivos**. Si alguna no aparece, haz clic en el icono de flecha junto a **Dispositivos** (**Volver a buscar volúmenes**).
+Las unidades que conectas y las imágenes de disco que abres (por ejemplo, un DMG desde el que instalas una app) aparecen solas en la barra lateral: los volúmenes internos y las carpetas compartidas de red en **Dispositivos**, las unidades expulsables en **Expulsables** (ver abajo). Si alguna no aparece, haz clic en el icono de flecha junto a **Dispositivos** (**Volver a buscar volúmenes**).
 
 Como en Finder, las imágenes de disco, memorias USB y unidades externas aparecen en su propia sección, **Expulsables**, con el icono propio del volumen (o el de la app que contiene) si lo tiene. El icono de expulsión a su lado expulsa la unidad. El menú contextual ofrece además **Abrir**, **Abrir en una pestaña nueva**, **Mostrar en la carpeta contenedora** (en una imagen de disco, el archivo DMG) y **Expulsar “Nombre”**. Los paneles que muestran la unidad pasan a **Inicio** al expulsarla. Si una app todavía usa la unidad, Manta indica que no se ha podido expulsar.
 
