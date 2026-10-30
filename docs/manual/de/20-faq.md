@@ -32,7 +32,7 @@ So viele, wie in dein Fenster passen – jeder braucht etwa 280 Punkte Breite. M
 
 ### Wo ist der Papierkorb? Kann ich Gelöschtes wiederherstellen? {#papierkorb}
 
-Ja, für Objekte auf deinem Mac: **⌘⌫** legt sie wie im Finder in den Papierkorb von macOS, und **Zurücklegen** im Finder holt sie zurück. **⌥⌘⌫** (**Sofort löschen …**) löscht nach Rückfrage endgültig. Server, S3 und Container haben keinen Papierkorb: Dort ist Löschen immer endgültig, und Manta fragt vorher nach. Siehe [Löschen](05-dateien.md#loeschen).
+Ja, für Objekte auf deinem Mac: **⌘⌫** legt sie wie im Finder in den Papierkorb von macOS. Direkt danach legt **⌘Z** (**Widerrufen**) sie wieder zurück; später geht es mit **Zurücklegen** im Finder. **⌥⌘⌫** (**Sofort löschen …**) löscht nach Rückfrage endgültig. Server, S3 und Container haben keinen Papierkorb: Dort ist Löschen immer endgültig, und Manta fragt vorher nach. Siehe [Löschen](05-dateien.md#loeschen).
 
 ### Wird beim Ziehen kopiert oder bewegt? {#ziehen}
 

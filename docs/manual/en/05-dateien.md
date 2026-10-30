@@ -227,7 +227,7 @@ Manta deletes like Finder:
 
 | Where | ⌘⌫ (**Move to Trash**) | ⌥⌘⌫ (**Delete Immediately…**) |
 |---|---|---|
-| Your Mac (also external drives and cloud folders) | Moves the items to the **Trash**, without asking. Finder's **Put Back** restores them. | Deletes permanently after asking. |
+| Your Mac (also external drives and cloud folders) | Moves the items to the **Trash**, without asking. **⌘Z** (**Undo**) or Finder's **Put Back** restores them. | Deletes permanently after asking. |
 | Servers (SFTP, FTP, FTPS), S3, containers | There is no Trash: deletes permanently after asking. | Deletes permanently after asking. |
 | Archives | Read-only: nothing can be deleted. | Read-only. |
 
@@ -236,7 +236,7 @@ To move items to the Trash:
 1. Select them.
 2. Press **⌘⌫** or the forward-delete key **⌦**, or choose **Move to Trash** in the context menu or the toolbar – or drag them onto **Trash** in the sidebar.
 
-A message confirms it ("Moved 3 items to the Trash"). To get items back, open the Trash in Finder, select them and choose **Put Back**. Manta has no Undo of its own for this.
+A message confirms it ("Moved 3 items to the Trash"). To get the items back, press **⌘Z** (**Undo**): Manta puts them back where they were, see [Undo](#widerrufen). For older items, or ones deleted in another app, open the Trash in Finder, select them and choose **Put Back**.
 
 To delete permanently:
 
@@ -251,6 +251,24 @@ To open the Trash itself, click **Trash** in the sidebar. In it, **⌘⌫** (the
 
 > [!CAUTION]
 > In **cloud folders** (iCloud Drive, Google Drive, OneDrive, Dropbox) an item you move to the Trash also disappears from the cloud as soon as your Mac syncs. **Put Back** usually brings it back; some providers also keep a trash on their website. See [Cloud Storage](09-cloud.md).
+
+## Undo {#widerrufen}
+
+**⌘Z** (**Undo**) reverts your last file operation, like in Finder, and **⇧⌘Z** (**Redo**) does it again. Both are in the **Edit** menu and the command palette. Manta remembers up to 100 steps until you quit it.
+
+| What you did | What **⌘Z** does |
+|---|---|
+| **Move to Trash** (**⌘⌫**, or dragging onto **Trash** in the sidebar) | Puts the items back where they were. |
+| Rename (**Rename…**, click to rename, the Info window) | Brings back the old name, on servers too. |
+| **New Folder…** or **New File…** on your Mac | Moves the new item to the Trash, like Finder, along with anything you have put into it. **⇧⌘Z** brings it back. |
+| **New Folder…** or **New File…** on a server, in S3 or in a container | There is no Trash: Manta deletes the new item, but only while it is still empty. Otherwise it says it couldn't delete it and leaves it where it is. |
+
+Not undoable: copying and moving (**F5**, **F6**, drag and drop) and everything permanent: **Delete Immediately…**, deleting on servers and **Empty Trash…**. **Batch Rename…** has its own **Undo**, see [Batch Rename](14-plugins.md#umbenennen).
+
+If the original place has been taken in the meantime (an item with the same name is there), Manta replaces nothing. It reports "Couldn't put back “name”" and keeps the step, so **⌘Z** works again once the place is free.
+
+- In a **text field** (filter, path, a name you are renaming) **⌘Z** and **⇧⌘Z** undo your typing, not file operations. While the **terminal** has focus, **⌘Z** belongs to the terminal.
+- Without [Full Disk Access](07-favoriten-seitenleiste.md#papierkorb-zugriff), Manta puts items back from the Trash through Finder, as it does for **Empty Trash…**: macOS asks once whether Manta may control Finder.
 
 ## Tags {#tags}
 

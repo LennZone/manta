@@ -55,7 +55,7 @@ The **Trash** is the last row under **Locations**, as in Finder. Its icon shows 
 - **Open**: click **Trash**. It opens in the active pane like any folder. **Delete Immediately…** (or **⌘⌫**) deletes single items in it for good – Manta asks first.
 - **Empty**: right-click **Trash** → **Empty Trash…**, or press **⇧⌘⌫**, or choose **Empty Trash…** in the command palette. Manta asks (“Are you sure you want to permanently erase the items in the Trash?”) and shows the number of items and their size. You can't undo this. Items that can't be deleted (locked ones, for example) are skipped and reported.
 - **Drag onto it**: drag items from a pane onto **Trash**. The row is highlighted and the pointer says e.g. “Move 3 items to the Trash”. Local items go to the Trash without asking (like **⌘⌫**). Items on a **server**, in **S3** or in a **container** can't go to a Trash: Manta asks whether to delete them permanently. Items in an **archive** can't be deleted – the pointer shows it. You can also drag files from other apps (Finder, for example) onto the Trash.
-- **Put Back**: only in Finder (right-click → **Open in Finder**, then **Put Back**). Finder keeps the original location in its own data, which Manta can't read.
+- **Put Back**: what you just moved to the Trash in Manta comes back with **⌘Z** (**Undo**), see [Undo](05-dateien.md#widerrufen). For older items use Finder (right-click → **Open in Finder**, then **Put Back**): Finder keeps the original location in its own data, which Manta can't read.
 
 ### Full Disk Access {#papierkorb-zugriff}
 

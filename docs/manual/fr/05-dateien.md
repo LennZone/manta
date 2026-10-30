@@ -227,7 +227,7 @@ Manta supprime comme le Finder :
 
 | Où | ⌘⌫ (**Placer dans la corbeille**) | ⌥⌘⌫ (**Supprimer immédiatement…**) |
 |---|---|---|
-| Votre Mac (y compris les disques externes et les dossiers cloud) | Place les éléments dans la **corbeille**, sans confirmation. La commande **Remettre** du Finder les restaure. | Supprime définitivement après confirmation. |
+| Votre Mac (y compris les disques externes et les dossiers cloud) | Place les éléments dans la **corbeille**, sans confirmation. **⌘Z** (**Annuler**) ou la commande **Remettre** du Finder les restaure. | Supprime définitivement après confirmation. |
 | Serveurs (SFTP, FTP, FTPS), S3, conteneurs | Il n’y a pas de corbeille : supprime définitivement après confirmation. | Supprime définitivement après confirmation. |
 | Archives | Lecture seule : rien ne peut être supprimé. | Lecture seule. |
 
@@ -236,7 +236,7 @@ Pour placer des éléments dans la corbeille :
 1. Sélectionnez-les.
 2. Appuyez sur **⌘⌫** ou sur la touche de suppression vers l’avant **⌦**, ou choisissez **Placer dans la corbeille** dans le menu contextuel ou la barre d’outils – ou faites-les glisser sur **Corbeille** dans la barre latérale.
 
-Un message le confirme (« 3 éléments placés dans la corbeille »). Pour récupérer des éléments, ouvrez la corbeille dans le Finder, sélectionnez-les et choisissez **Remettre**. Manta n’a pas sa propre fonction d’annulation pour cette opération.
+Un message le confirme (« 3 éléments placés dans la corbeille »). Pour récupérer les éléments, appuyez sur **⌘Z** (**Annuler**) : Manta les remet à leur place, voir [Annuler](#widerrufen). Pour des éléments plus anciens ou supprimés dans une autre app, ouvrez la corbeille dans le Finder, sélectionnez-les et choisissez **Remettre**.
 
 Pour supprimer définitivement :
 
@@ -251,6 +251,24 @@ Pour ouvrir la corbeille elle-même, cliquez sur **Corbeille** dans la barre lat
 
 > [!CAUTION]
 > Dans les **dossiers cloud** (iCloud Drive, Google Drive, OneDrive, Dropbox), un élément placé dans la corbeille disparaît aussi du cloud dès que votre Mac se synchronise. **Remettre** le restaure généralement ; certains fournisseurs conservent aussi une corbeille sur leur site web. Voir [Stockage cloud](09-cloud.md).
+
+## Annuler {#widerrufen}
+
+**⌘Z** (**Annuler**) annule votre dernière opération sur les fichiers, comme dans le Finder, et **⇧⌘Z** (**Rétablir**) la refait. Les deux commandes se trouvent dans le menu **Édition** et dans la palette de commandes. Manta mémorise jusqu’à 100 étapes, jusqu’à ce que vous le quittiez.
+
+| Ce que vous avez fait | Ce que fait **⌘Z** |
+|---|---|
+| **Placer dans la corbeille** (**⌘⌫**, ou glisser sur **Corbeille** dans la barre latérale) | Remet les éléments à leur emplacement d’origine. |
+| Renommer (**Renommer…**, renommer d’un clic, fenêtre d’informations) | Rétablit l’ancien nom, y compris sur les serveurs. |
+| **Nouveau dossier…** ou **Nouveau fichier…** sur votre Mac | Place le nouvel élément dans la corbeille, comme le Finder, avec tout ce que vous y avez mis. **⇧⌘Z** le récupère. |
+| **Nouveau dossier…** ou **Nouveau fichier…** sur un serveur, dans S3 ou dans un conteneur | Il n’y a pas de corbeille : Manta supprime le nouvel élément, mais seulement tant qu’il est vide. Sinon, Manta indique qu’il n’a pas pu le supprimer et le laisse en place. |
+
+Ne peuvent pas être annulés : la copie et le déplacement (**F5**, **F6**, glisser-déposer) et tout ce qui est définitif : **Supprimer immédiatement…**, la suppression sur les serveurs et **Vider la corbeille…**. **Renommer par lot…** a sa propre fonction d’annulation, voir [Renommage par lot](14-plugins.md#umbenennen).
+
+Si l’emplacement d’origine est de nouveau occupé entre-temps (un élément du même nom s’y trouve), Manta ne remplace rien. Il affiche « Impossible de remettre « nom » à sa place » et conserve l’étape : dès que la place est libre, **⌘Z** fonctionne de nouveau.
+
+- Dans un **champ de texte** (filtre, chemin, nom en cours de modification), **⌘Z** et **⇧⌘Z** annulent la saisie, pas les opérations sur les fichiers. Tant que le **terminal** est actif, **⌘Z** s’adresse au terminal.
+- Sans [Accès complet au disque](07-favoriten-seitenleiste.md#papierkorb-zugriff), Manta remet les éléments de la corbeille à leur place via le Finder, comme pour **Vider la corbeille…** : macOS demande une fois si Manta peut contrôler le Finder.
 
 ## Tags {#tags}
 

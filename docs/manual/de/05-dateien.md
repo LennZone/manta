@@ -227,7 +227,7 @@ Manta löscht wie der Finder:
 
 | Wo | ⌘⌫ (**In den Papierkorb legen**) | ⌥⌘⌫ (**Sofort löschen …**) |
 |---|---|---|
-| Dein Mac (auch externe Laufwerke und Cloud-Ordner) | Legt die Objekte ohne Rückfrage in den **Papierkorb**. **Zurücklegen** im Finder holt sie zurück. | Löscht nach Rückfrage endgültig. |
+| Dein Mac (auch externe Laufwerke und Cloud-Ordner) | Legt die Objekte ohne Rückfrage in den **Papierkorb**. **⌘Z** (**Widerrufen**) oder **Zurücklegen** im Finder holt sie zurück. | Löscht nach Rückfrage endgültig. |
 | Server (SFTP, FTP, FTPS), S3, Container | Es gibt keinen Papierkorb: löscht nach Rückfrage endgültig. | Löscht nach Rückfrage endgültig. |
 | Archive | Schreibgeschützt: Es lässt sich nichts löschen. | Schreibgeschützt. |
 
@@ -236,7 +236,7 @@ So legst du Objekte in den Papierkorb:
 1. Wähle die Objekte aus.
 2. Drücke **⌘⌫** oder die Entfernen-Taste **⌦**, oder wähle **In den Papierkorb legen** im Kontextmenü oder in der Symbolleiste – oder zieh sie auf **Papierkorb** in der Seitenleiste.
 
-Eine Meldung bestätigt es („3 Objekte in den Papierkorb gelegt“). Um Objekte zurückzuholen, öffne den Papierkorb im Finder, wähle sie aus und wähle **Zurücklegen**. Ein eigenes Widerrufen hat Manta dafür nicht.
+Eine Meldung bestätigt es („3 Objekte in den Papierkorb gelegt“). Um die Objekte zurückzuholen, drücke **⌘Z** (**Widerrufen**): Manta legt sie dorthin zurück, wo sie waren, siehe [Widerrufen](#widerrufen). Ältere Objekte oder solche, die du in einer anderen App gelöscht hast, holst du im Finder zurück: Öffne dort den Papierkorb, wähle sie aus und wähle **Zurücklegen**.
 
 So löschst du endgültig:
 
@@ -251,6 +251,24 @@ Den Papierkorb selbst öffnest du über **Papierkorb** in der Seitenleiste. Dari
 
 > [!CAUTION]
 > In **Cloud-Ordnern** (iCloud Drive, Google Drive, OneDrive, Dropbox) verschwindet ein Objekt, das du in den Papierkorb legst, auch aus der Cloud, sobald dein Mac synchronisiert. **Zurücklegen** holt es meist zurück; manche Anbieter haben zusätzlich einen Papierkorb auf ihrer Website. Siehe [Cloud-Speicher](09-cloud.md).
+
+## Widerrufen {#widerrufen}
+
+**⌘Z** (**Widerrufen**) macht deinen letzten Dateivorgang rückgängig, wie im Finder, und **⇧⌘Z** (**Wiederholen**) führt ihn erneut aus. Beide findest du im Menü **Bearbeiten** und in der Befehlspalette. Manta merkt sich bis zu 100 Schritte, bis du es beendest.
+
+| Was du getan hast | Was **⌘Z** macht |
+|---|---|
+| **In den Papierkorb legen** (**⌘⌫** oder Ziehen auf **Papierkorb** in der Seitenleiste) | Legt die Objekte dorthin zurück, wo sie waren. |
+| Umbenennen (**Umbenennen …**, per Klick umbenennen, Informationsfenster) | Stellt den alten Namen wieder her, auch auf Servern. |
+| **Neuer Ordner …** oder **Neue Datei …** auf deinem Mac | Legt das neue Objekt in den Papierkorb, wie der Finder, samt allem, was du inzwischen hineingelegt hast. **⇧⌘Z** holt es zurück. |
+| **Neuer Ordner …** oder **Neue Datei …** auf einem Server, in S3 oder in einem Container | Es gibt keinen Papierkorb: Manta löscht das neue Objekt, aber nur, solange es noch leer ist. Sonst meldet Manta, dass es sich nicht löschen ließ, und lässt es stehen. |
+
+Nicht widerrufen lassen sich Kopieren und Bewegen (**F5**, **F6**, Drag & Drop) und alles Endgültige: **Sofort löschen …**, Löschen auf Servern und **Papierkorb entleeren …**. **Stapelweise umbenennen …** hat ein eigenes **Widerrufen**, siehe [Stapelweise umbenennen](14-plugins.md#umbenennen).
+
+Ist der ursprüngliche Ort inzwischen wieder belegt (dort liegt ein Objekt mit demselben Namen), ersetzt Manta nichts. Es meldet „‚Name‘ konnte nicht zurückgelegt werden“ und behält den Schritt: Sobald der Platz frei ist, funktioniert **⌘Z** wieder.
+
+- In einem **Textfeld** (Filter, Pfad, Name beim Umbenennen) widerrufen **⌘Z** und **⇧⌘Z** deine Eingabe, nicht Dateivorgänge. Solange das **Terminal** den Fokus hat, gehört **⌘Z** dem Terminal.
+- Ohne [Festplattenvollzugriff](07-favoriten-seitenleiste.md#papierkorb-zugriff) legt Manta Objekte über den Finder aus dem Papierkorb zurück, wie bei **Papierkorb entleeren …**: macOS fragt beim ersten Mal, ob Manta den Finder steuern darf.
 
 ## Tags {#tags}
 

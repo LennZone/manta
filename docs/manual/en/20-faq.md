@@ -32,7 +32,7 @@ As many as fit in your window – each needs about 280 points of width. At least
 
 ### Where's the Trash? Can I get deleted files back? {#papierkorb}
 
-Yes, for items on your Mac: **⌘⌫** moves them to the macOS Trash, like Finder, and Finder's **Put Back** restores them. **⌥⌘⌫** (**Delete Immediately…**) deletes permanently after asking. Servers, S3 and containers have no Trash: deleting there is always permanent, and Manta asks first. See [Delete](05-dateien.md#loeschen).
+Yes, for items on your Mac: **⌘⌫** moves them to the macOS Trash, like Finder. Right afterwards, **⌘Z** (**Undo**) puts them back where they were; later on, Finder's **Put Back** restores them. **⌥⌘⌫** (**Delete Immediately…**) deletes permanently after asking. Servers, S3 and containers have no Trash: deleting there is always permanent, and Manta asks first. See [Delete](05-dateien.md#loeschen).
 
 ### Does dragging copy or move? {#ziehen}
 

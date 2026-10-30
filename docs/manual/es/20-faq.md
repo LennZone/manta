@@ -32,7 +32,7 @@ Tantos como quepan en tu ventana: cada uno necesita unos 280 puntos de anchura. 
 
 ### ¿Dónde está la papelera? ¿Puedo recuperar archivos eliminados? {#papierkorb}
 
-Sí, en el caso de los ítems de tu Mac: **⌘⌫** los traslada a la papelera de macOS, como Finder, y la opción **Devolver** de Finder los restaura. **⌥⌘⌫** (**Eliminar inmediatamente…**) elimina definitivamente tras preguntar. Los servidores, S3 y los contenedores no tienen papelera: allí eliminar es siempre definitivo, y Manta pregunta antes. Consulta [Eliminar](05-dateien.md#loeschen).
+Sí, en el caso de los ítems de tu Mac: **⌘⌫** los traslada a la papelera de macOS, como Finder. Justo después, **⌘Z** (**Deshacer**) los devuelve a su sitio; más adelante, la opción **Devolver** de Finder los restaura. **⌥⌘⌫** (**Eliminar inmediatamente…**) elimina definitivamente tras preguntar. Los servidores, S3 y los contenedores no tienen papelera: allí eliminar es siempre definitivo, y Manta pregunta antes. Consulta [Eliminar](05-dateien.md#loeschen).
 
 ### ¿Arrastrar copia o mueve? {#ziehen}
 

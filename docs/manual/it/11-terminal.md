@@ -74,7 +74,7 @@ Apri **Impostazioni** (**⌘,**) → **Plug-in** → **Terminale** → **Imposta
 
 ## Tastiera nel terminale {#tastatur}
 
-Quando il terminale è attivo, queste scorciatoie appartengono al terminale invece che a Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** e **⌘⌫**. Le altre scorciatoie di Manta, come **⇧⌘P**, continuano a funzionare. Fai clic nell’elenco dei file per restituire la tastiera a Manta.
+Quando il terminale è attivo, queste scorciatoie appartengono al terminale invece che a Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** e **⌘Z**. Le altre scorciatoie di Manta, come **⇧⌘P**, continuano a funzionare. Fai clic nell’elenco dei file per restituire la tastiera a Manta.
 
 ## Limiti {#grenzen}
 

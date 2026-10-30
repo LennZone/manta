@@ -92,7 +92,11 @@
         "reconectar",
         "devolver",
         "eliminar inmediatamente",
-        "vaciar papelera"
+        "vaciar papelera",
+        "deshacer",
+        "rehacer",
+        "restaurar",
+        "⌘z"
       ]
     },
     "schnellansicht": {
@@ -125,7 +129,9 @@
         "nube",
         "papelera",
         "vaciar papelera",
-        "acceso total al disco"
+        "acceso total al disco",
+        "devolver",
+        "deshacer"
       ]
     },
     "verbindungen": {
@@ -334,7 +340,10 @@
         "solo teclado",
         "navegación con el teclado",
         "foco",
-        "voiceover"
+        "voiceover",
+        "deshacer",
+        "rehacer",
+        "⌘z"
       ]
     },
     "fehlerbehebung": {

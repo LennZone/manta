@@ -86,6 +86,8 @@ Le scorciatoie agiscono sul pannello attivo. Vedi [Viste](03-ansichten.md).
 | ⌘⌫ o ⌦ | Sposta nel Cestino (sui server: elimina definitivamente dopo una conferma, vedi [Eliminare](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Elimina immediatamente… (definitivo, dopo una conferma) |
 | ⇧⌘⌫ | Svuota il Cestino… (dopo una conferma, vedi [Cestino](07-favoriten-seitenleiste.md#papierkorb)) |
+| ⌘Z | Annulla (sposta nel Cestino, rinomina, nuova cartella, nuovo file; vedi [Annulla](05-dateien.md#widerrufen)) |
+| ⇧⌘Z | Ripeti |
 | ⌥⌘C | Comprimi… |
 | ⌥⌘E | Estrai qui |
 | ⌘ durante il trascinamento | Preseleziona Sposta invece di Copia (senza tasti è preselezionato Copia; ⌥ preseleziona esplicitamente Copia) |
@@ -121,7 +123,7 @@ Le tue azioni rapide possono avere una scorciatoia propria (il campo `shortcut` 
 ## Quando le scorciatoie non funzionano {#fokus}
 
 - In un **campo di testo** (filtro, percorso, campi delle finestre di dialogo) funzionano solo **⇧⌘P**, **⇧⌘G**, **⌘,** e **⌘?**; tutti gli altri tasti appartengono al campo.
-- Nel **terminale**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** e **⌘⌫** appartengono al terminale. Fai clic nell’elenco dei file per restituire la tastiera a Manta.
+- Nel **terminale**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** e **⌘Z** appartengono al terminale. Fai clic nell’elenco dei file per restituire la tastiera a Manta.
 - Nelle finestre **Impostazioni**, **Confronta e sincronizza** e **anteprima** funzionano solo le loro scorciatoie.
 
 ## Uso solo da tastiera {#tastatur}

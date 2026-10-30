@@ -86,6 +86,8 @@ The shortcuts act on the active pane. See [Views](03-ansichten.md).
 | ⌘⌫ or ⌦ | Move to Trash (on servers: delete permanently after asking, see [Delete](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Delete Immediately… (permanent, after asking) |
 | ⇧⌘⌫ | Empty Trash… (after asking, see [Trash](07-favoriten-seitenleiste.md#papierkorb)) |
+| ⌘Z | Undo (Move to Trash, Rename, New Folder, New File; see [Undo](05-dateien.md#widerrufen)) |
+| ⇧⌘Z | Redo |
 | ⌥⌘C | Compress… |
 | ⌥⌘E | Extract Here |
 | ⌘ while dragging | Preselect Move instead of Copy (without a key Copy is preselected; ⌥ preselects Copy explicitly) |
@@ -121,7 +123,7 @@ Your own Quick Actions can have a shortcut of their own (the `shortcut` field in
 ## When shortcuts don't work {#fokus}
 
 - In a **text field** (filter, path, dialog fields) only **⇧⌘P**, **⇧⌘G**, **⌘,** and **⌘?** work; all other keys belong to the field.
-- In the **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** and **⌘⌫** belong to the terminal. Click into the file list to give the keyboard back to Manta.
+- In the **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** and **⌘Z** belong to the terminal. Click into the file list to give the keyboard back to Manta.
 - In the **Settings**, **Compare & Sync** and **preview** windows only their own shortcuts work.
 
 ## Keyboard-only use {#tastatur}

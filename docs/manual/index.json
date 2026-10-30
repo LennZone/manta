@@ -583,7 +583,14 @@
           "sofort löschen",
           "in den papierkorb legen",
           "in den papierkorb ziehen",
-          "papierkorb entleeren"
+          "papierkorb entleeren",
+          "widerrufen",
+          "wiederholen",
+          "rückgängig",
+          "undo",
+          "redo",
+          "wiederherstellen",
+          "⌘z"
         ],
         "en": [
           "copy",
@@ -622,7 +629,12 @@
           "delete immediately",
           "move to trash",
           "drag to trash",
-          "empty trash"
+          "empty trash",
+          "undo",
+          "redo",
+          "restore",
+          "revert",
+          "⌘z"
         ],
         "zh-Hans": [
           "拷贝",
@@ -639,7 +651,12 @@
           "传输",
           "暂停",
           "继续",
-          "清倒废纸篓"
+          "清倒废纸篓",
+          "撤销",
+          "重做",
+          "放回原处",
+          "恢复",
+          "⌘z"
         ],
         "es": [
           "copiar",
@@ -656,7 +673,11 @@
           "reconectar",
           "devolver",
           "eliminar inmediatamente",
-          "vaciar papelera"
+          "vaciar papelera",
+          "deshacer",
+          "rehacer",
+          "restaurar",
+          "⌘z"
         ],
         "fr": [
           "copier",
@@ -677,7 +698,11 @@
           "manta-part",
           "fichier partiel",
           "remettre",
-          "vider la corbeille"
+          "vider la corbeille",
+          "annuler",
+          "rétablir",
+          "restaurer",
+          "⌘z"
         ],
         "it": [
           "copiare",
@@ -694,7 +719,12 @@
           "file parziale",
           "manta-part",
           "sostituisci",
-          "mantieni entrambi"
+          "mantieni entrambi",
+          "annulla",
+          "ripeti",
+          "ripristina",
+          "recuperare",
+          "⌘z"
         ],
         "ru": [
           "копировать",
@@ -711,7 +741,12 @@
           "прерванные передачи",
           "manta-part",
           "вернуть",
-          "удалить немедленно"
+          "удалить немедленно",
+          "отменить",
+          "отмена",
+          "повторить",
+          "восстановить",
+          "⌘z"
         ]
       }
     },
@@ -837,7 +872,8 @@
           "papierkorb",
           "papierkorb entleeren",
           "zurücklegen",
-          "festplattenvollzugriff"
+          "festplattenvollzugriff",
+          "widerrufen"
         ],
         "en": [
           "favorites",
@@ -866,7 +902,8 @@
           "trash",
           "empty trash",
           "put back",
-          "full disk access"
+          "full disk access",
+          "undo"
         ],
         "zh-Hans": [
           "个人收藏",
@@ -883,7 +920,9 @@
           "Google Drive",
           "OneDrive",
           "Dropbox",
-          "废纸篓"
+          "废纸篓",
+          "放回原处",
+          "撤销"
         ],
         "es": [
           "favoritos",
@@ -900,7 +939,9 @@
           "nube",
           "papelera",
           "vaciar papelera",
-          "acceso total al disco"
+          "acceso total al disco",
+          "devolver",
+          "deshacer"
         ],
         "fr": [
           "favoris",
@@ -918,7 +959,9 @@
           "cloud",
           "corbeille",
           "vider la corbeille",
-          "accès complet au disque"
+          "accès complet au disque",
+          "remettre",
+          "annuler"
         ],
         "it": [
           "preferiti",
@@ -932,7 +975,9 @@
           "aggiungi ai preferiti",
           "accesso completo al disco",
           "unità",
-          "espellere"
+          "espellere",
+          "ripristina",
+          "annulla"
         ],
         "ru": [
           "избранное",
@@ -949,7 +994,8 @@
           "очистить корзину",
           "вернуть",
           "полный доступ к диску",
-          "облако"
+          "облако",
+          "отменить"
         ]
       }
     },
@@ -2245,7 +2291,10 @@
           "ohne maus",
           "tastaturnavigation",
           "fokus",
-          "voiceover"
+          "voiceover",
+          "widerrufen",
+          "wiederholen",
+          "⌘z"
         ],
         "en": [
           "keyboard shortcuts",
@@ -2266,7 +2315,10 @@
           "keyboard only",
           "keyboard navigation",
           "focus",
-          "voiceover"
+          "voiceover",
+          "undo",
+          "redo",
+          "⌘z"
         ],
         "zh-Hans": [
           "键盘快捷键",
@@ -2280,7 +2332,10 @@
           "新建标签页",
           "传输",
           "新功能",
-          "清倒废纸篓"
+          "清倒废纸篓",
+          "撤销",
+          "重做",
+          "⌘z"
         ],
         "es": [
           "atajos de teclado",
@@ -2294,7 +2349,10 @@
           "nueva pestaña",
           "transferencias",
           "vaciar papelera",
-          "⇧⌘⌫"
+          "⇧⌘⌫",
+          "deshacer",
+          "rehacer",
+          "⌘z"
         ],
         "fr": [
           "raccourcis clavier",
@@ -2309,7 +2367,10 @@
           "nouvel onglet",
           "transferts",
           "vider la corbeille",
-          "⇧⌘⌫"
+          "⇧⌘⌫",
+          "annuler",
+          "rétablir",
+          "⌘z"
         ],
         "it": [
           "scorciatoie",
@@ -2321,7 +2382,10 @@
           "f6",
           "finder",
           "tasti funzione",
-          "fn"
+          "fn",
+          "annulla",
+          "ripeti",
+          "⌘z"
         ],
         "ru": [
           "сочетания клавиш",
@@ -2333,7 +2397,10 @@
           "новая вкладка",
           "передачи",
           "очистить корзину",
-          "⇧⌘⌫"
+          "⇧⌘⌫",
+          "отменить",
+          "повторить",
+          "⌘z"
         ]
       }
     },

@@ -97,7 +97,11 @@
         "manta-part",
         "fichier partiel",
         "remettre",
-        "vider la corbeille"
+        "vider la corbeille",
+        "annuler",
+        "rétablir",
+        "restaurer",
+        "⌘z"
       ]
     },
     "schnellansicht": {
@@ -131,7 +135,9 @@
         "cloud",
         "corbeille",
         "vider la corbeille",
-        "accès complet au disque"
+        "accès complet au disque",
+        "remettre",
+        "annuler"
       ]
     },
     "verbindungen": {
@@ -330,7 +336,10 @@
         "clavier seul",
         "navigation au clavier",
         "focus",
-        "voiceover"
+        "voiceover",
+        "annuler",
+        "rétablir",
+        "⌘z"
       ]
     },
     "fehlerbehebung": {

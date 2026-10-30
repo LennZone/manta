@@ -227,7 +227,7 @@ Manta elimina come il Finder:
 
 | Dove | ⌘⌫ (**Sposta nel Cestino**) | ⌥⌘⌫ (**Elimina immediatamente…**) |
 |---|---|---|
-| Il tuo Mac (anche unità esterne e cartelle cloud) | Sposta gli elementi nel **Cestino**, senza chiedere. **Ripristina** del Finder li recupera. | Elimina definitivamente dopo una conferma. |
+| Il tuo Mac (anche unità esterne e cartelle cloud) | Sposta gli elementi nel **Cestino**, senza chiedere. **⌘Z** (**Annulla**) o **Ripristina** del Finder li recuperano. | Elimina definitivamente dopo una conferma. |
 | Server (SFTP, FTP, FTPS), S3, container | Non c’è un Cestino: elimina definitivamente dopo una conferma. | Elimina definitivamente dopo una conferma. |
 | Archivi | Sola lettura: non si può eliminare nulla. | Sola lettura. |
 
@@ -236,7 +236,7 @@ Per spostare elementi nel Cestino:
 1. Selezionali.
 2. Premi **⌘⌫** o il tasto di cancellazione in avanti **⌦**, oppure scegli **Sposta nel Cestino** nel menu contestuale o nella barra degli strumenti, oppure trascinali su **Cestino** nella barra laterale.
 
-Un messaggio lo conferma (“3 elementi spostati nel Cestino”). Per recuperare gli elementi, apri il Cestino nel Finder, selezionali e scegli **Ripristina**. Manta non ha un proprio comando Annulla per questo.
+Un messaggio lo conferma (“3 elementi spostati nel Cestino”). Per recuperare gli elementi, premi **⌘Z** (**Annulla**): Manta li rimette dov’erano, vedi [Annulla](#widerrufen). Per elementi più vecchi o eliminati da un’altra app, apri il Cestino nel Finder, selezionali e scegli **Ripristina**.
 
 Per eliminare definitivamente:
 
@@ -251,6 +251,24 @@ Per aprire il Cestino stesso, fai clic su **Cestino** nella barra laterale. Lì 
 
 > [!CAUTION]
 > Nelle **cartelle cloud** (iCloud Drive, Google Drive, OneDrive, Dropbox) un elemento che sposti nel Cestino sparisce anche dal cloud non appena il tuo Mac si sincronizza. Di solito **Ripristina** lo recupera; alcuni fornitori hanno anche un cestino sul loro sito web. Vedi [Archiviazione cloud](09-cloud.md).
+
+## Annulla {#widerrufen}
+
+**⌘Z** (**Annulla**) annulla la tua ultima operazione sui file, come nel Finder, e **⇧⌘Z** (**Ripeti**) la esegue di nuovo. Entrambi i comandi sono nel menu **Modifica** e nella palette dei comandi. Manta ricorda fino a 100 passaggi, finché non lo chiudi.
+
+| Cosa hai fatto | Cosa fa **⌘Z** |
+|---|---|
+| **Sposta nel Cestino** (**⌘⌫**, o trascinare su **Cestino** nella barra laterale) | Rimette gli elementi dov’erano. |
+| Rinominare (**Rinomina…**, rinominare con un clic, finestra Informazioni) | Ripristina il nome precedente, anche sui server. |
+| **Nuova cartella…** o **Nuovo file…** sul tuo Mac | Sposta il nuovo elemento nel Cestino, come il Finder, insieme a tutto ciò che ci hai messo dentro. **⇧⌘Z** lo recupera. |
+| **Nuova cartella…** o **Nuovo file…** su un server, in S3 o in un container | Non c’è un Cestino: Manta elimina il nuovo elemento, ma solo finché è ancora vuoto. Altrimenti segnala che non è riuscito a eliminarlo e lo lascia dov’è. |
+
+Non si possono annullare la copia e lo spostamento (**F5**, **F6**, trascinamento) né le operazioni definitive: **Elimina immediatamente…**, l’eliminazione sui server e **Svuota il Cestino…**. **Rinomina in blocco…** ha un proprio comando **Annulla**, vedi [Rinomina in blocco](14-plugins.md#umbenennen).
+
+Se nel frattempo la posizione originale è di nuovo occupata (c’è un elemento con lo stesso nome), Manta non sostituisce nulla. Segnala “Impossibile ripristinare ‘nome’” e conserva il passaggio: appena la posizione è libera, **⌘Z** funziona di nuovo.
+
+- In un **campo di testo** (filtro, percorso, nome che stai rinominando) **⌘Z** e **⇧⌘Z** annullano ciò che hai digitato, non le operazioni sui file. Quando il **terminale** è attivo, **⌘Z** appartiene al terminale.
+- Senza [Accesso completo al disco](07-favoriten-seitenleiste.md#papierkorb-zugriff), Manta ripristina gli elementi dal Cestino tramite il Finder, come per **Svuota il Cestino…**: macOS chiede una volta se Manta può controllare il Finder.
 
 ## Tag {#tags}
 

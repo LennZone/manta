@@ -74,7 +74,7 @@ Open **Settings** (**⌘,**) → **Plugins** → **Terminal** → **Settings**.
 
 ## Keyboard in the terminal {#tastatur}
 
-While the terminal has focus, these shortcuts belong to the terminal instead of Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** and **⌘⌫**. Other Manta shortcuts such as **⇧⌘P** keep working. Click into the file list to give the keyboard back to Manta.
+While the terminal has focus, these shortcuts belong to the terminal instead of Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** and **⌘Z**. Other Manta shortcuts such as **⇧⌘P** keep working. Click into the file list to give the keyboard back to Manta.
 
 ## Limitations {#grenzen}
 

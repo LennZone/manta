@@ -86,6 +86,8 @@ Die Kürzel wirken auf den aktiven Bereich. Siehe [Ansichten](03-ansichten.md).
 | ⌘⌫ oder ⌦ | In den Papierkorb legen (auf Servern: nach Rückfrage endgültig löschen, siehe [Löschen](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Sofort löschen … (endgültig, nach Rückfrage) |
 | ⇧⌘⌫ | Papierkorb entleeren … (nach Rückfrage, siehe [Papierkorb](07-favoriten-seitenleiste.md#papierkorb)) |
+| ⌘Z | Widerrufen (In den Papierkorb legen, Umbenennen, Neuer Ordner, Neue Datei; siehe [Widerrufen](05-dateien.md#widerrufen)) |
+| ⇧⌘Z | Wiederholen |
 | ⌥⌘C | Komprimieren … |
 | ⌥⌘E | Hier entpacken |
 | ⌘ beim Ziehen | Bewegen statt Kopieren vorwählen (ohne Taste ist Kopieren vorausgewählt; ⌥ wählt ausdrücklich Kopieren) |
@@ -121,7 +123,7 @@ Eigene Schnellaktionen können ein eigenes Kürzel bekommen (Feld `shortcut` in 
 ## Wann Kürzel nicht wirken {#fokus}
 
 - In einem **Textfeld** (Filter, Pfad, Dialogfelder) funktionieren nur **⇧⌘P**, **⇧⌘G**, **⌘,** und **⌘?**; alle anderen Tasten gehören dem Textfeld.
-- Im **Terminal** gehören **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** und **⌘⌫** dem Terminal. Klicke in die Dateiliste, um Manta die Tastatur zurückzugeben.
+- Im **Terminal** gehören **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** und **⌘Z** dem Terminal. Klicke in die Dateiliste, um Manta die Tastatur zurückzugeben.
 - In den Fenstern **Einstellungen**, **Vergleichen und synchronisieren** und **Vorschau** wirken nur deren eigene Kürzel.
 
 ## Bedienung ohne Maus {#tastatur}

@@ -74,7 +74,7 @@ Ouvrez **Réglages** (**⌘,**) → **Plug-ins** → **Terminal** → **Réglage
 
 ## Clavier dans le terminal {#tastatur}
 
-Tant que le terminal est actif, ces raccourcis s’adressent au terminal et non à Manta : **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** et **⌘⌫**. Les autres raccourcis de Manta, comme **⇧⌘P**, continuent de fonctionner. Cliquez dans la liste des fichiers pour rendre le clavier à Manta.
+Tant que le terminal est actif, ces raccourcis s’adressent au terminal et non à Manta : **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** et **⌘Z**. Les autres raccourcis de Manta, comme **⇧⌘P**, continuent de fonctionner. Cliquez dans la liste des fichiers pour rendre le clavier à Manta.
 
 ## Limites {#grenzen}
 

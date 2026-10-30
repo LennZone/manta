@@ -227,7 +227,7 @@ Manta elimina como Finder:
 
 | Dónde | ⌘⌫ (**Trasladar a la papelera**) | ⌥⌘⌫ (**Eliminar inmediatamente…**) |
 |---|---|---|
-| Tu Mac (también unidades externas y carpetas en la nube) | Traslada los ítems a la **Papelera**, sin preguntar. La opción **Devolver** de Finder los restaura. | Elimina definitivamente tras preguntar. |
+| Tu Mac (también unidades externas y carpetas en la nube) | Traslada los ítems a la **Papelera**, sin preguntar. **⌘Z** (**Deshacer**) o la opción **Devolver** de Finder los restauran. | Elimina definitivamente tras preguntar. |
 | Servidores (SFTP, FTP, FTPS), S3, contenedores | No hay papelera: elimina definitivamente tras preguntar. | Elimina definitivamente tras preguntar. |
 | Archivos comprimidos | Solo lectura: no se puede eliminar nada. | Solo lectura. |
 
@@ -236,7 +236,7 @@ Para trasladar ítems a la papelera:
 1. Selecciónalos.
 2. Pulsa **⌘⌫** o la tecla de borrar hacia delante **⌦**, o elige **Trasladar a la papelera** en el menú contextual o en la barra de herramientas, o arrástralos a **Papelera** en la barra lateral.
 
-Un mensaje lo confirma (“Se han trasladado 3 ítems a la papelera”). Para recuperar ítems, abre la papelera en Finder, selecciónalos y elige **Devolver**. Manta no tiene una función Deshacer propia para esto.
+Un mensaje lo confirma (“Se han trasladado 3 ítems a la papelera”). Para recuperar los ítems, pulsa **⌘Z** (**Deshacer**): Manta los devuelve a donde estaban; consulta [Deshacer](#widerrufen). Para ítems más antiguos o eliminados desde otra app, abre la papelera en Finder, selecciónalos y elige **Devolver**.
 
 Para eliminar definitivamente:
 
@@ -251,6 +251,24 @@ Para abrir la propia papelera, haz clic en **Papelera** en la barra lateral. Den
 
 > [!CAUTION]
 > En las **carpetas en la nube** (iCloud Drive, Google Drive, OneDrive, Dropbox), un ítem que trasladas a la papelera desaparece también de la nube en cuanto tu Mac se sincroniza. **Devolver** suele recuperarlo; algunos proveedores también tienen una papelera en su sitio web. Consulta [Almacenamiento en la nube](09-cloud.md).
+
+## Deshacer {#widerrufen}
+
+**⌘Z** (**Deshacer**) revierte tu última operación con archivos, como en Finder, y **⇧⌘Z** (**Rehacer**) la vuelve a hacer. Ambos están en el menú **Edición** y en la paleta de comandos. Manta recuerda hasta 100 pasos mientras no lo cierres.
+
+| Lo que hiciste | Lo que hace **⌘Z** |
+|---|---|
+| **Trasladar a la papelera** (**⌘⌫**, o arrastrar a **Papelera** en la barra lateral) | Devuelve los ítems a donde estaban. |
+| Renombrar (**Renombrar…**, renombrar con un clic, la ventana de información) | Recupera el nombre anterior, también en servidores. |
+| **Nueva carpeta…** o **Nuevo archivo…** en tu Mac | Traslada el ítem nuevo a la papelera, como Finder, junto con todo lo que hayas puesto dentro. **⇧⌘Z** lo recupera. |
+| **Nueva carpeta…** o **Nuevo archivo…** en un servidor, en S3 o en un contenedor | No hay papelera: Manta elimina el ítem nuevo, pero solo mientras siga vacío. Si no, avisa de que no ha podido eliminarlo y lo deja donde está. |
+
+No se puede deshacer copiar y mover (**F5**, **F6**, arrastrar y soltar) ni nada definitivo: **Eliminar inmediatamente…**, eliminar en servidores y **Vaciar papelera…**. **Renombrar en lote…** tiene su propio **Deshacer**; consulta [Renombrar en lote](14-plugins.md#umbenennen).
+
+Si mientras tanto el lugar original vuelve a estar ocupado (hay un ítem con el mismo nombre), Manta no reemplaza nada. Avisa con “No se ha podido devolver ‘nombre’” y conserva el paso, así que **⌘Z** vuelve a funcionar en cuanto el lugar quede libre.
+
+- En un **campo de texto** (filtro, ruta, el nombre que estás cambiando), **⌘Z** y **⇧⌘Z** deshacen lo que escribes, no las operaciones con archivos. Mientras el **terminal** tiene el foco, **⌘Z** pertenece al terminal.
+- Sin [Acceso total al disco](07-favoriten-seitenleiste.md#papierkorb-zugriff), Manta devuelve los ítems de la papelera a través de Finder, igual que con **Vaciar papelera…**: macOS pregunta una vez si Manta puede controlar Finder.
 
 ## Etiquetas {#tags}
 

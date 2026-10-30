@@ -86,6 +86,8 @@ Les raccourcis agissent sur la sous-fenêtre active. Voir [Présentations](03-an
 | ⌘⌫ ou ⌦ | Placer dans la corbeille (sur les serveurs : suppression définitive après confirmation, voir [Supprimer](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Supprimer immédiatement… (définitivement, après confirmation) |
 | ⇧⌘⌫ | Vider la corbeille… (après confirmation, voir [Corbeille](07-favoriten-seitenleiste.md#papierkorb)) |
+| ⌘Z | Annuler (placer dans la corbeille, renommer, nouveau dossier, nouveau fichier ; voir [Annuler](05-dateien.md#widerrufen)) |
+| ⇧⌘Z | Rétablir |
 | ⌥⌘C | Compresser… |
 | ⌥⌘E | Extraire ici |
 | ⌘ pendant le glissement | Présélectionner Déplacer au lieu de Copier (sans touche, Copier est présélectionné ; ⌥ présélectionne explicitement Copier) |
@@ -121,7 +123,7 @@ Vos propres actions rapides peuvent avoir leur propre raccourci (le champ `short
 ## Quand les raccourcis ne fonctionnent pas {#fokus}
 
 - Dans un **champ de texte** (filtre, chemin, champs de zone de dialogue), seuls **⇧⌘P**, **⇧⌘G**, **⌘,** et **⌘?** fonctionnent ; toutes les autres touches s’adressent au champ.
-- Dans le **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** et **⌘⌫** s’adressent au terminal. Cliquez dans la liste des fichiers pour rendre le clavier à Manta.
+- Dans le **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** et **⌘Z** s’adressent au terminal. Cliquez dans la liste des fichiers pour rendre le clavier à Manta.
 - Dans les fenêtres **Réglages**, **Comparer et synchroniser** et **aperçu**, seuls leurs propres raccourcis fonctionnent.
 
 ## Utilisation au clavier seul {#tastatur}

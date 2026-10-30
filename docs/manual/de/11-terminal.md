@@ -74,7 +74,7 @@ Ausschalten: **Dateiaktionen im Terminal zeigen** in den Einstellungen.
 
 ## Tastatur im Terminal {#tastatur}
 
-Solange das Terminal den Fokus hat, gehören diese Kürzel dem Terminal statt Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** und **⌘⌫**. Andere Manta-Kürzel wie **⇧⌘P** funktionieren weiter. Klicke in die Dateiliste, um Manta wieder die Tastatur zu geben.
+Solange das Terminal den Fokus hat, gehören diese Kürzel dem Terminal statt Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** und **⌘Z**. Andere Manta-Kürzel wie **⇧⌘P** funktionieren weiter. Klicke in die Dateiliste, um Manta wieder die Tastatur zu geben.
 
 ## Grenzen {#grenzen}
 

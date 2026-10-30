@@ -86,6 +86,8 @@ Los atajos actúan sobre el panel activo. Consulta [Visualizaciones](03-ansichte
 | ⌘⌫ o ⌦ | Trasladar a la papelera (en servidores: eliminar definitivamente tras preguntar; consulta [Eliminar](05-dateien.md#loeschen)) |
 | ⌥⌘⌫ | Eliminar inmediatamente… (definitivo, tras preguntar) |
 | ⇧⌘⌫ | Vaciar papelera… (tras preguntar; consulta [Papelera](07-favoriten-seitenleiste.md#papierkorb)) |
+| ⌘Z | Deshacer (trasladar a la papelera, renombrar, nueva carpeta, nuevo archivo; consulta [Deshacer](05-dateien.md#widerrufen)) |
+| ⇧⌘Z | Rehacer |
 | ⌥⌘C | Comprimir… |
 | ⌥⌘E | Extraer aquí |
 | ⌘ al arrastrar | Preseleccionar Mover en lugar de Copiar (sin tecla se preselecciona Copiar; ⌥ preselecciona Copiar de forma explícita) |
@@ -121,7 +123,7 @@ Tus propias acciones rápidas pueden tener un atajo propio (el campo `shortcut` 
 ## Cuando los atajos no funcionan {#fokus}
 
 - En un **campo de texto** (filtro, ruta, campos de diálogo) solo funcionan **⇧⌘P**, **⇧⌘G**, **⌘,** y **⌘?**; todas las demás teclas pertenecen al campo.
-- En el **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** y **⌘⌫** pertenecen al terminal. Haz clic en la lista de archivos para devolver el teclado a Manta.
+- En el **terminal**, **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** y **⌘Z** pertenecen al terminal. Haz clic en la lista de archivos para devolver el teclado a Manta.
 - En las ventanas **Ajustes**, **Comparar y sincronizar** y **vista previa** solo funcionan sus propios atajos.
 
 ## Uso solo con teclado {#tastatur}

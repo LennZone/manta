@@ -74,7 +74,7 @@ Abre **Ajustes** (**⌘,**) → **Plugins** → **Terminal** → **Ajustes**.
 
 ## El teclado en el terminal {#tastatur}
 
-Mientras el terminal tiene el foco, estos atajos pertenecen al terminal en lugar de a Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→** y **⌘⌫**. Otros atajos de Manta, como **⇧⌘P**, siguen funcionando. Haz clic en la lista de archivos para devolver el teclado a Manta.
+Mientras el terminal tiene el foco, estos atajos pertenecen al terminal en lugar de a Manta: **⌘C**, **⌘V**, **⌘A**, **⌘K**, **⌘←**, **⌘→**, **⌘⌫** y **⌘Z**. Otros atajos de Manta, como **⇧⌘P**, siguen funcionando. Haz clic en la lista de archivos para devolver el teclado a Manta.
 
 ## Limitaciones {#grenzen}
 

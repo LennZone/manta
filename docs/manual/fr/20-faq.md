@@ -32,7 +32,7 @@ Autant que votre fenêtre peut en contenir – chacune a besoin d’environ 280 
 
 ### Où est la corbeille ? Puis-je récupérer des fichiers supprimés ? {#papierkorb}
 
-Oui, pour les éléments de votre Mac : **⌘⌫** les place dans la corbeille de macOS, comme le Finder, et la commande **Remettre** du Finder les restaure. **⌥⌘⌫** (**Supprimer immédiatement…**) supprime définitivement après confirmation. Les serveurs, S3 et les conteneurs n’ont pas de corbeille : la suppression y est toujours définitive, et Manta demande d’abord confirmation. Voir [Supprimer](05-dateien.md#loeschen).
+Oui, pour les éléments de votre Mac : **⌘⌫** les place dans la corbeille de macOS, comme le Finder. Juste après, **⌘Z** (**Annuler**) les remet à leur place ; plus tard, la commande **Remettre** du Finder les restaure. **⌥⌘⌫** (**Supprimer immédiatement…**) supprime définitivement après confirmation. Les serveurs, S3 et les conteneurs n’ont pas de corbeille : la suppression y est toujours définitive, et Manta demande d’abord confirmation. Voir [Supprimer](05-dateien.md#loeschen).
 
 ### Le glisser-déposer copie-t-il ou déplace-t-il ? {#ziehen}
 

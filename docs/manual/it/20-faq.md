@@ -32,7 +32,7 @@ Quanti ne entrano nella finestra: ognuno ha bisogno di circa 280 punti di larghe
 
 ### Dov’è il Cestino? Posso recuperare i file eliminati? {#papierkorb}
 
-Sì, per gli elementi sul tuo Mac: **⌘⌫** li sposta nel Cestino di macOS, come il Finder, e **Ripristina** del Finder li recupera. **⌥⌘⌫** (**Elimina immediatamente…**) elimina definitivamente dopo una conferma. Server, S3 e container non hanno un Cestino: lì l’eliminazione è sempre definitiva e Manta chiede prima conferma. Vedi [Eliminare](05-dateien.md#loeschen).
+Sì, per gli elementi sul tuo Mac: **⌘⌫** li sposta nel Cestino di macOS, come il Finder. Subito dopo, **⌘Z** (**Annulla**) li rimette dov’erano; più tardi li recuperi con **Ripristina** del Finder. **⌥⌘⌫** (**Elimina immediatamente…**) elimina definitivamente dopo una conferma. Server, S3 e container non hanno un Cestino: lì l’eliminazione è sempre definitiva e Manta chiede prima conferma. Vedi [Eliminare](05-dateien.md#loeschen).
 
 ### Trascinando si copia o si sposta? {#ziehen}
 
