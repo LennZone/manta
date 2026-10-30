@@ -38,6 +38,7 @@ use crate::sync_view::{SyncRequest, SyncView};
 use crate::theme::{self, pal, radius, space, text};
 use crate::toasts::{ToastKind, Toasts};
 use crate::transfers::{self, TransfersView};
+use crate::undo::Op;
 use crate::util::{self, same_fs};
 use crate::widgets;
 use crate::worker::{self, ConnectRequest, WorkResult, Worker};
@@ -164,6 +165,9 @@ pub enum Action {
     TrashExternal(Vec<PathBuf>),
     /// "Empty Trash…" (asks first).
     EmptyTrash,
+    /// ⌘Z / ⇧⌘Z: the next step of the file operation history.
+    Undo,
+    Redo,
     /// Show the Trash in Finder (explicitly Finder: Manta may be the
     /// default file viewer).
     ShowTrashInFinder,
@@ -451,6 +455,8 @@ pub struct MantaApp {
     pub(crate) trasher: crate::trash::SharedTrasher,
     /// The sidebar's Trash: its folder and full / empty state.
     pub(crate) trash: trash_place::TrashPlace,
+    /// Undo and Redo (⌘Z, ⇧⌘Z) of Manta's own file operations.
+    pub(crate) history: crate::undo::History,
     /// Where the Trash row was drawn in the last frame.
     pub(crate) trash_rect: Option<egui::Rect>,
     /// Secrets of favorites: the login Keychain (tests: memory).
@@ -608,7 +614,10 @@ pub(crate) fn can_trash(fs: &SharedVfs) -> bool {
 
 /// "New File": an empty file at `path`. `open_write` truncates, so a file
 /// that appeared since the folder was listed is left alone.
-fn create_empty_file(fs: &dyn manta_core::Vfs, path: &VfsPath) -> manta_core::VfsResult<()> {
+pub(crate) fn create_empty_file(
+    fs: &dyn manta_core::Vfs,
+    path: &VfsPath,
+) -> manta_core::VfsResult<()> {
     if fs.stat(path).is_ok() {
         return Err(manta_core::VfsError::AlreadyExists(path.to_string()));
     }
@@ -977,6 +986,7 @@ impl MantaApp {
             folder_views_path: None,
             trasher: init.trasher.clone().unwrap_or_else(crate::trash::system),
             trash: trash_place::TrashPlace::default(),
+            history: Default::default(),
             trash_rect: None,
             secrets,
             live: crate::live_refresh::LiveRefresh::new(
@@ -1819,6 +1829,11 @@ impl MantaApp {
                     refresh,
                     outcome,
                 } => self.on_trashed(action, refresh, outcome),
+                WorkResult::Undone {
+                    redo,
+                    refresh,
+                    outcome,
+                } => self.on_undone(redo, refresh, outcome),
                 WorkResult::TrashMeasured(summary) => self.on_trash_measured(summary),
                 WorkResult::TrashEmptied(result) => self.on_trash_emptied(result),
                 WorkResult::Ejected { path, name, result } => self.on_ejected(path, name, result),
@@ -1850,10 +1865,14 @@ impl MantaApp {
                     select,
                     action,
                     result,
+                    undo,
                 } => {
                     if let Some(id) = action {
                         let outcome = result.clone().map(|()| 0);
                         self.finish_action(id, outcome);
+                    }
+                    if let (Ok(()), Some(op)) = (&result, undo) {
+                        self.history.record(op);
                     }
                     match result {
                         Ok(()) => self.set_success(description),
@@ -1914,6 +1933,9 @@ impl MantaApp {
         outcome: crate::trash::TrashOutcome,
     ) {
         self.trash.stale();
+        if !outcome.put_back.is_empty() {
+            self.history.record(Op::PutBack(outcome.put_back.clone()));
+        }
         let name_of = |p: &std::path::Path| {
             p.file_name()
                 .map(|n| n.to_string_lossy().into_owned())
@@ -1938,6 +1960,54 @@ impl MantaApp {
                 };
                 self.set_error_detail(title, err.clone());
             }
+        }
+        for (fs, dir) in refresh {
+            self.refresh_matching(&fs, &dir);
+        }
+    }
+
+    /// ⌘Z (⇧⌘Z: `redo`): run the next step of the history in the
+    /// background. Nothing happens while a step still runs.
+    fn undo_redo(&mut self, redo: bool) {
+        if self.history.busy {
+            return;
+        }
+        let Some(op) = self.history.take(redo) else {
+            self.set_info(if redo {
+                t!("status.nothing_to_redo")
+            } else {
+                t!("status.nothing_to_undo")
+            });
+            return;
+        };
+        let refresh = op.refresh(&self.local);
+        let trasher = self.trasher.clone();
+        self.worker.spawn(
+            if redo { "redo" } else { "undo" },
+            move || Ok(op.run(trasher.as_ref())),
+            move |result: Result<crate::undo::Outcome, String>| WorkResult::Undone {
+                redo,
+                refresh,
+                outcome: result.unwrap_or_else(|e| crate::undo::Outcome {
+                    error: Some((t!("error.undo_failed").to_string(), e)),
+                    ..Default::default()
+                }),
+            },
+        );
+    }
+
+    fn on_undone(
+        &mut self,
+        redo: bool,
+        refresh: Vec<(SharedVfs, VfsPath)>,
+        mut outcome: crate::undo::Outcome,
+    ) {
+        self.history.finish(redo, &mut outcome);
+        self.trash.stale();
+        match (outcome.error, outcome.done) {
+            (Some((title, detail)), _) => self.set_error_detail(title, detail),
+            (None, Some(done)) => self.set_success(done),
+            (None, None) => {}
         }
         for (fs, dir) in refresh {
             self.refresh_matching(&fs, &dir);
@@ -2762,6 +2832,8 @@ impl MantaApp {
             Action::DropOnTrash { from, fs, paths } => self.drop_on_trash(from, fs, paths),
             Action::TrashExternal(paths) => self.trash_external(paths),
             Action::EmptyTrash => self.ask_empty_trash(),
+            Action::Undo => self.undo_redo(false),
+            Action::Redo => self.undo_redo(true),
             Action::ShowTrashInFinder => self.show_trash_in_finder(),
             Action::OpenFullDiskAccess => self.open_full_disk_access(),
             Action::ToggleHidden(side) => {
@@ -3437,6 +3509,8 @@ impl MantaApp {
             Cmd::MoveToTrash => Action::Delete(side),
             Cmd::DeletePermanently => Action::DeletePermanently(side),
             Cmd::EmptyTrash => Action::EmptyTrash,
+            Cmd::Undo => Action::Undo,
+            Cmd::Redo => Action::Redo,
             Cmd::SelectAll => Action::SelectAll(side),
             Cmd::ToggleHidden => Action::ToggleHidden(side),
             Cmd::NewTab => Action::NewTab(side),
@@ -3528,6 +3602,8 @@ impl MantaApp {
             Cmd::Open | Cmd::CopyToOther | Cmd::OpenWithApp | Cmd::GetInfo => has_sel,
             Cmd::MoveToOther | Cmd::MoveToTrash | Cmd::DeletePermanently => has_sel && !ro,
             Cmd::EmptyTrash => self.trash.dir.is_some() && self.trash.status.full() != Some(false),
+            Cmd::Undo => self.history.can_undo(),
+            Cmd::Redo => self.history.can_redo(),
             Cmd::NewFolder | Cmd::NewFile => !ro,
             Cmd::Compress => has_sel && !ro,
             // Asked for every menu item every frame: no copies of the
@@ -4109,6 +4185,7 @@ impl MantaApp {
                         select: None,
                         action,
                         result,
+                        undo: None,
                     },
                 );
             }
@@ -4622,6 +4699,7 @@ impl MantaApp {
                             None,
                         );
                         let action = Some(self.start_action(a));
+                        let undo = Some(Op::remove_new(fs.clone(), target.clone(), false));
                         self.worker.spawn(
                             "touch",
                             move || create_empty_file(&*fs, &target).map_err(|e| e.to_string()),
@@ -4632,6 +4710,7 @@ impl MantaApp {
                                 select,
                                 action,
                                 result,
+                                undo,
                             },
                         );
                     }
@@ -4644,6 +4723,7 @@ impl MantaApp {
                             None,
                         );
                         let action = Some(self.start_action(a));
+                        let undo = Some(Op::remove_new(fs.clone(), target.clone(), true));
                         self.worker.spawn(
                             "mkdir",
                             move || fs.create_dir(&target).map_err(|e| e.to_string()),
@@ -4654,6 +4734,7 @@ impl MantaApp {
                                 select,
                                 action,
                                 result,
+                                undo,
                             },
                         );
                     }
@@ -4669,6 +4750,11 @@ impl MantaApp {
                         );
                         a.destination = Some(target.clone());
                         let action = Some(self.start_action(a));
+                        let undo = Some(Op::Rename {
+                            fs: fs.clone(),
+                            from: target.clone(),
+                            to: from.clone(),
+                        });
                         self.worker.spawn(
                             "rename",
                             move || fs.rename(&from, &target).map_err(|e| e.to_string()),
@@ -4679,6 +4765,7 @@ impl MantaApp {
                                 select,
                                 action,
                                 result,
+                                undo,
                             },
                         );
                     }
@@ -6152,6 +6239,14 @@ impl MantaApp {
         }
         if !panel_focus && key(Modifiers::COMMAND, Key::Backspace) {
             actions.push(Action::Delete(side));
+        }
+        // ⇧⌘Z before ⌘Z (a pattern without ⇧ also matches with it). A
+        // focused text field keeps both for its text (see `text_focus`).
+        if !panel_focus && key(cmd_shift, Key::Z) {
+            actions.push(Action::Redo);
+        }
+        if !panel_focus && key(Modifiers::COMMAND, Key::Z) {
+            actions.push(Action::Undo);
         }
         if !panel_focus && key(Modifiers::COMMAND, Key::A) {
             self.pane_mut(side).tab_mut().select_all();

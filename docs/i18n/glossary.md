@@ -45,6 +45,8 @@ Short UI terms only (menus, commands, buttons, settings labels, dialog titles, s
 | `cmd.move_to_trash` | Move to Trash | In den Papierkorb legen | 移到废纸篓 | Trasladar a la papelera | Placer dans la corbeille | Sposta nel Cestino | Переместить в Корзину |
 | `cmd.delete_permanently` | Delete Immediately… | Sofort löschen … | 立即删除… | Eliminar inmediatamente… | Supprimer immédiatement… | Elimina immediatamente… | Удалить немедленно… |
 | `cmd.empty_trash` | Empty Trash… | Papierkorb entleeren … | 清倒废纸篓… | Vaciar papelera… | Vider la corbeille… | Svuota il Cestino… | Очистить Корзину… |
+| `cmd.undo` | Undo | Widerrufen | 撤销 | Deshacer | Annuler | Annulla | Отменить |
+| `cmd.redo` | Redo | Wiederholen | 重做 | Rehacer | Rétablir | Ripeti | Повторить |
 | `cmd.select_all` | Select All | Alles auswählen | 全选 | Seleccionar todo | Tout sélectionner | Seleziona tutto | Выбрать все |
 | `cmd.toggle_hidden` | Show Hidden Files | Unsichtbare Dateien einblenden | 显示隐藏文件 | Mostrar archivos ocultos | Afficher les fichiers masqués | Mostra file nascosti | Показать скрытые файлы |
 | `cmd.new_tab` | New Tab | Neuer Tab | 新建标签页 | Nueva pestaña | Nouvel onglet | Nuova scheda | Новая вкладка |

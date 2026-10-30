@@ -84,7 +84,7 @@ fn wait_for(h: &mut H, what: &str, mut f: impl FnMut(&mut H) -> bool) {
 }
 
 /// Show the left pane on the fake server, with a file and a folder.
-fn open_server(h: &mut H) -> MemFs {
+pub(super) fn open_server(h: &mut H) -> MemFs {
     let mem = MemFs::new();
     mem.mkdir_p("/srv/www");
     mem.put("/srv/old.log", b"x", chrono::Utc::now());

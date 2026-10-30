@@ -27,6 +27,10 @@ pub enum Cmd {
     DeletePermanently,
     /// ⇧⌘⌫: delete everything in the Trash after asking (Finder).
     EmptyTrash,
+    /// ⌘Z: revert the last file operation (Trash, rename, new item).
+    Undo,
+    /// ⇧⌘Z: do the last undone operation again.
+    Redo,
     SelectAll,
     ToggleHidden,
     NewTab,
@@ -96,6 +100,8 @@ pub const ALL: &[Cmd] = &[
     Cmd::MoveToTrash,
     Cmd::DeletePermanently,
     Cmd::EmptyTrash,
+    Cmd::Undo,
+    Cmd::Redo,
     Cmd::SelectAll,
     Cmd::ToggleHidden,
     Cmd::NewTab,
@@ -166,6 +172,8 @@ impl Cmd {
             Cmd::MoveToTrash => t!("cmd.move_to_trash"),
             Cmd::DeletePermanently => t!("cmd.delete_permanently"),
             Cmd::EmptyTrash => t!("cmd.empty_trash"),
+            Cmd::Undo => t!("cmd.undo"),
+            Cmd::Redo => t!("cmd.redo"),
             Cmd::SelectAll => t!("cmd.select_all"),
             Cmd::ToggleHidden => t!("cmd.toggle_hidden"),
             Cmd::NewTab => t!("cmd.new_tab"),
@@ -224,6 +232,8 @@ impl Cmd {
             Cmd::MoveToTrash => "⌘⌫",
             Cmd::DeletePermanently => "⌥⌘⌫",
             Cmd::EmptyTrash => "⇧⌘⌫",
+            Cmd::Undo => "⌘Z",
+            Cmd::Redo => "⇧⌘Z",
             Cmd::SelectAll => "⌘A",
             Cmd::ToggleHidden => "⇧⌘.",
             Cmd::NewTab => "⌘T",
@@ -279,6 +289,8 @@ impl Cmd {
             Cmd::MoveToTrash => i::TRASH,
             Cmd::DeletePermanently => i::TRASH,
             Cmd::EmptyTrash => i::TRASH,
+            Cmd::Undo => i::ARROW_COUNTER_CLOCKWISE,
+            Cmd::Redo => i::ARROW_CLOCKWISE,
             Cmd::SelectAll => i::CHECK_CIRCLE,
             Cmd::ToggleHidden => i::FILE_DASHED,
             Cmd::NewTab => i::PLUS,
@@ -338,6 +350,8 @@ impl Cmd {
             | Cmd::MoveToTrash
             | Cmd::DeletePermanently
             | Cmd::EmptyTrash
+            | Cmd::Undo
+            | Cmd::Redo
             | Cmd::Compress
             | Cmd::GetInfo
             | Cmd::ExtractHere => t!("cmd.cat.file"),
@@ -392,6 +406,8 @@ impl Cmd {
             Cmd::MoveToTrash => t!("cmd.kw.move_to_trash"),
             Cmd::DeletePermanently => t!("cmd.kw.delete_permanently"),
             Cmd::EmptyTrash => t!("cmd.kw.empty_trash"),
+            Cmd::Undo => t!("cmd.kw.undo"),
+            Cmd::Redo => t!("cmd.kw.redo"),
             Cmd::SelectAll => t!("cmd.kw.select_all"),
             Cmd::ToggleHidden => t!("cmd.kw.toggle_hidden"),
             Cmd::NewTab => t!("cmd.kw.new_tab"),

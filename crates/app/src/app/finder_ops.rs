@@ -334,6 +334,11 @@ impl MantaApp {
         a.destination = Some(target.clone());
         let action = Some(self.start_action(a));
         let refresh = vec![(fs.clone(), dir)];
+        let undo = Some(crate::undo::Op::Rename {
+            fs: fs.clone(),
+            from: target.clone(),
+            to: from.clone(),
+        });
         self.worker.spawn(
             "rename",
             move || {
@@ -350,6 +355,7 @@ impl MantaApp {
                 select: None,
                 action,
                 result,
+                undo,
             },
         );
     }

@@ -52,6 +52,7 @@ mod toasts;
 mod transfer_pill;
 mod transfers;
 mod trash;
+mod undo;
 mod update_window;
 mod updates;
 mod util;

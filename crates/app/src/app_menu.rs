@@ -212,7 +212,15 @@ pub fn command_menus() -> Vec<MenuDef> {
         ),
         m(
             t!("menu.edit"),
-            &[c(SelectAll), None, c(Filter), c(EditPath)],
+            &[
+                c(Undo),
+                c(Redo),
+                None,
+                c(SelectAll),
+                None,
+                c(Filter),
+                c(EditPath),
+            ],
         ),
         m(
             t!("menu.view"),
@@ -1029,6 +1037,8 @@ mod tests {
             ("\u{8}".into(), OPTION | COMMAND)
         );
         assert_eq!(k(Cmd::EmptyTrash), ("\u{8}".into(), SHIFT | COMMAND));
+        assert_eq!(k(Cmd::Undo), ("z".into(), COMMAND));
+        assert_eq!(k(Cmd::Redo), ("z".into(), SHIFT | COMMAND));
         assert_eq!(k(Cmd::AddToFavorites), ("t".into(), CONTROL | COMMAND));
         assert_eq!(k(Cmd::ToggleHidden), (".".into(), SHIFT | COMMAND));
         assert_eq!(k(Cmd::Rename), ("\u{F705}".into(), 0), "F2");

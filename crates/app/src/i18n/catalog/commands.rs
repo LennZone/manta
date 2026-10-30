@@ -39,6 +39,8 @@ pub const ENTRIES: Entries = &[
         "Sofort löschen …",
     ),
     ("cmd.empty_trash", "Empty Trash…", "Papierkorb entleeren …"),
+    ("cmd.undo", "Undo", "Widerrufen"),
+    ("cmd.redo", "Redo", "Wiederholen"),
     ("cmd.select_all", "Select All", "Alles auswählen"),
     (
         "cmd.toggle_hidden",
@@ -196,6 +198,12 @@ pub const ENTRIES: Entries = &[
         "remove erase rm permanent forever",
         "remove erase rm permanent forever entfernen endgültig dauerhaft",
     ),
+    (
+        "cmd.kw.undo",
+        "revert restore put back trash rename",
+        "revert restore put back undo rückgängig zurücklegen wiederherstellen",
+    ),
+    ("cmd.kw.redo", "again repeat", "again repeat redo erneut"),
     ("cmd.kw.select_all", "all", "all alle"),
     (
         "cmd.kw.toggle_hidden",

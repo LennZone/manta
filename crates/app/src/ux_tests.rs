@@ -3570,6 +3570,9 @@ mod native_dnd_ux_tests;
 #[path = "trash_ux_tests.rs"]
 mod trash_ux_tests;
 
+#[path = "undo_ux_tests.rs"]
+mod undo_ux_tests;
+
 #[path = "host_key_ux_tests.rs"]
 mod host_key_ux_tests;
 

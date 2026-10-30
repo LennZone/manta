@@ -155,6 +155,15 @@ pub enum WorkResult {
         /// The `FileAction` to finish with the result.
         action: Option<u64>,
         result: Result<(), String>,
+        /// Reverts the operation: recorded for Undo when it succeeded.
+        undo: Option<crate::undo::Op>,
+    },
+    /// An Undo or Redo step ran (`redo`: from Redo).
+    Undone {
+        redo: bool,
+        /// Directories whose listings should be refreshed afterwards.
+        refresh: Vec<(SharedVfs, VfsPath)>,
+        outcome: crate::undo::Outcome,
     },
 }
 

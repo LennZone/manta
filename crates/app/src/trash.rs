@@ -30,6 +30,12 @@ pub trait Trasher: Send + Sync {
     /// Empty the Trash through Finder: used when Manta can't list the
     /// Trash folder itself (no Full Disk Access).
     fn empty_with_finder(&self) -> Result<(), String>;
+
+    /// Move `from` (an item in the Trash) back to `to`, where it was
+    /// before (Undo of Move to Trash). `to` must not exist.
+    fn put_back(&self, from: &Path, to: &Path) -> Result<(), String> {
+        std::fs::rename(from, to).map_err(|e| e.to_string())
+    }
 }
 
 pub type SharedTrasher = Arc<dyn Trasher>;
@@ -88,6 +94,55 @@ impl Trasher for SystemTrash {
             Err("Emptying the Trash isn't supported on this system".into())
         }
     }
+
+    fn put_back(&self, from: &Path, to: &Path) -> Result<(), String> {
+        let err = match std::fs::rename(from, to) {
+            Ok(()) => return Ok(()),
+            Err(e) => e.to_string(),
+        };
+        if !is_permission_error(&err) {
+            return Err(err);
+        }
+        #[cfg(target_os = "macos")]
+        {
+            // Without Full Disk Access macOS keeps Manta out of `~/.Trash`;
+            // Finder may move the item (Apple Events, as for emptying). The
+            // paths go in as arguments, never into the script text. Finder
+            // keeps the name the item has in the Trash, so it is set again.
+            let (Some(dir), Some(name)) = (to.parent(), to.file_name()) else {
+                return Err(err);
+            };
+            let out = std::process::Command::new("/usr/bin/osascript")
+                .args([
+                    "-e",
+                    "on run argv",
+                    "-e",
+                    "tell application \"Finder\"",
+                    "-e",
+                    "set m to move (POSIX file (item 1 of argv)) to (POSIX file (item 2 of argv))",
+                    "-e",
+                    "set name of m to (item 3 of argv)",
+                    "-e",
+                    "end tell",
+                    "-e",
+                    "end run",
+                ])
+                .arg(from)
+                .arg(dir)
+                .arg(name)
+                .output()
+                .map_err(|e| e.to_string())?;
+            if out.status.success() {
+                Ok(())
+            } else {
+                Err(String::from_utf8_lossy(&out.stderr).trim().to_string())
+            }
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            Err(err)
+        }
+    }
 }
 
 pub fn system() -> SharedTrasher {
@@ -101,6 +156,9 @@ pub struct TrashOutcome {
     pub moved: Vec<PathBuf>,
     /// Where they ended up (when the system said so), for cleanup in tests.
     pub locations: Vec<PathBuf>,
+    /// `(where it is in the Trash, where it was)` for the items whose new
+    /// location is known: what Undo puts back.
+    pub put_back: Vec<(PathBuf, PathBuf)>,
     /// `(path, error)` for items that stayed.
     pub failed: Vec<(PathBuf, String)>,
 }
@@ -112,6 +170,9 @@ pub fn trash_all(trasher: &dyn Trasher, paths: &[PathBuf]) -> TrashOutcome {
         match trasher.trash(p) {
             Ok(loc) => {
                 out.moved.push(p.clone());
+                if let Some(l) = &loc {
+                    out.put_back.push((l.clone(), p.clone()));
+                }
                 out.locations.extend(loc);
             }
             Err(e) => out.failed.push((p.clone(), e)),
